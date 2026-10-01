@@ -1558,6 +1558,7 @@ export interface AcademyLessonRow {
   path_title?: string;
   path_passing_score?: number;
   path_language?: string;
+  path_difficulty?: string;
 }
 
 export interface AcademyLessonUpsertInput {

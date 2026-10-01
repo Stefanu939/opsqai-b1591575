@@ -187,7 +187,7 @@ export function createSupabaseAcademyRepository(client: AnyClient): IAcademyRepo
       const { data, error } = await client
         .from("academy_lessons")
         .select(
-          "*, academy_chapters(id, title, path_id, academy_learning_paths(id, title, passing_score, language))",
+          "*, academy_chapters(id, title, path_id, academy_learning_paths(id, title, passing_score, language, difficulty))",
         )
         .eq("id", id)
         .maybeSingle();
@@ -202,6 +202,7 @@ export function createSupabaseAcademyRepository(client: AnyClient): IAcademyRepo
         path_title: path?.title,
         path_passing_score: path?.passing_score,
         path_language: path?.language,
+        path_difficulty: path?.difficulty,
       } as AcademyLessonRow;
     },
 
