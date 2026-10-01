@@ -25,10 +25,10 @@ export const Route = createFileRoute("/company")({
     pageHead({
       title: "Company — OPSQAI · Enterprise Operational AI Platform",
       description:
-        "OPSQAI is building the operational AI layer for industrial companies. Windows self-hosted, sovereign by design. Mission, team and go-to-market.",
+        "OPSQAI builds sovereign operational AI for banking, logistics and other regulated or complex organisations. Windows Self-Hosted and problem-first by design.",
       path: "/company",
       keywords:
-        "OPSQAI company, mission, team, go-to-market, DACH industry, operational AI, sovereign AI",
+        "OPSQAI company, banking AI, financial services AI, logistics AI, regulated industries, operational AI, sovereign AI",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Company", path: "/company" },

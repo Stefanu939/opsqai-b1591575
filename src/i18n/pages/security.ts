@@ -30,7 +30,7 @@ const en = {
       { title: "Append-only audit log", body: "License issuance, ownership transfer, admin promotion, module activation — every privileged action is logged with actor, target and timestamp." },
       { title: "Role-based access", body: "Workspace owner, admin, manager, supervisor, worker, viewer. Platform Super Admin is a separate, tightly-scoped OPSQAI role." },
       { title: "Single-tenant boundary", body: "Every install is one customer. No shared databases, vector stores or AI keys — nothing crosses tenants." },
-      { title: "GDPR aligned", body: "EU-hosted cloud surfaces, DPA available on request, right-to-erasure procedures documented for both cloud metadata and on-prem content." },
+      { title: "Compliance-aligned controls", body: "Data export, anonymisation, configurable retention, local audit evidence and documented recovery support relevant GDPR, DORA and ISO/IEC 27001 control objectives. OPSQAI does not claim certification or automatic legal compliance." },
     ],
   },
   boundary: {
@@ -98,7 +98,7 @@ const de: Copy = {
       { title: "Unveränderliches Audit-Protokoll", body: "Lizenzausstellung, Eigentümerwechsel, Admin-Beförderung, Modulaktivierung — jede privilegierte Aktion wird mit Akteur, Ziel und Zeitstempel protokolliert." },
       { title: "Rollenbasierter Zugriff", body: "Workspace-Inhaber, Admin, Manager, Supervisor, Mitarbeiter, Betrachter. Platform Super Admin ist eine separate, eng begrenzte OPSQAI-Rolle." },
       { title: "Single-Tenant-Grenze", body: "Jede Installation entspricht einem Kunden. Keine gemeinsamen Datenbanken, Vektorspeicher oder KI-Schlüssel — nichts überschreitet Mandantengrenzen." },
-      { title: "DSGVO-konform", body: "EU-gehostete Cloud-Komponenten, DPA auf Anfrage verfügbar, dokumentierte Löschverfahren sowohl für Cloud-Metadaten als auch für lokale Inhalte." },
+      { title: "An Compliance-Zielen ausgerichtete Kontrollen", body: "Datenexport, Anonymisierung, konfigurierbare Aufbewahrung, lokale Auditnachweise und dokumentierte Wiederherstellung unterstützen relevante Kontrollziele aus DSGVO, DORA und ISO/IEC 27001. OPSQAI beansprucht keine Zertifizierung oder automatische Rechtskonformität." },
     ],
   },
   boundary: {
@@ -165,7 +165,7 @@ const ro: Copy = {
       { title: "Jurnal de audit doar-adăugare", body: "Emiterea licenței, transferul de proprietate, promovarea la admin, activarea modulelor — fiecare acțiune privilegiată este înregistrată cu actor, țintă și marcaj temporal." },
       { title: "Acces bazat pe roluri", body: "Proprietar de workspace, admin, manager, supervizor, lucrător, vizualizator. Platform Super Admin este un rol OPSQAI separat, strict delimitat." },
       { title: "Graniță single-tenant", body: "Fiecare instalare corespunde unui singur client. Fără baze de date, magazii vectoriale sau chei AI partajate — nimic nu traversează granițele dintre clienți." },
-      { title: "Aliniat GDPR", body: "Componente cloud găzduite în UE, DPA disponibil la cerere, proceduri de ștergere documentate atât pentru metadatele din cloud, cât și pentru conținutul on-premise." },
+      { title: "Controale aliniate cerințelor relevante", body: "Exportul datelor, anonimizarea, retenția configurabilă, dovezile locale de audit și recuperarea documentată sprijină obiective relevante din GDPR, DORA și ISO/IEC 27001. OPSQAI nu pretinde certificare sau conformitate juridică automată." },
     ],
   },
   boundary: {

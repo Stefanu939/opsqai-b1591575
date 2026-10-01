@@ -159,7 +159,7 @@ const de: MarketingCopy = {
     h1b: "für operatives Wissen —",
     serif: "für Menschen.",
     intro:
-      "OPSQAI ist eine Windows-Self-Hosted-Plattform, die governance-fähige KI in industrielle Abläufe bringt. Souverän von Grund auf: Kunden besitzen ihre Daten, Dokumente, Embeddings und ihren KI-Anbieter. Wir sehen operatives Wissen nie — und das ist bewusst so gebaut, denn es geht",
+      "OPSQAI ist eine Windows-Self-Hosted-Plattform für governance-fähige KI in Banken, Logistik und komplexen Geschäftsabläufen. Kunden besitzen Daten, Dokumente, Embeddings und KI-Anbieter. Operatives Wissen bleibt innerhalb der Kundengrenze, denn es geht",
     introEm: "nicht ohne die Menschen",
   },
   product: {

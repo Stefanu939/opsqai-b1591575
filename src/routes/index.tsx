@@ -71,7 +71,7 @@ export const Route = createFileRoute("/")({
         "You tell us the problem. We analyze the root cause, design the solution and build it into your OPSQAI Workspace — installed on your own Windows environment. Start with OPSQAI Discovery: written diagnosis, workspace configuration, value estimate, direct path into a 30-day pilot.",
       path: "/",
       keywords:
-        "OPSQAI Discovery, operational problems diagnosis, workspace built around problems, enterprise operational AI, windows self-hosted AI, root cause analysis operations, logistics AI, HR AI",
+        "OPSQAI Discovery, banking operational AI, financial services AI, workspace built around problems, enterprise operational AI, Windows self-hosted AI, logistics AI, HR AI",
       jsonLd: [
         softwareApplicationLd({
           description:

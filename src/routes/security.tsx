@@ -30,10 +30,10 @@ export const Route = createFileRoute("/security")({
     pageHead({
       title: "Security — OPSQAI · Sovereign by design",
       description:
-        "Ed25519-signed licenses, signed activation bundles, hash-chained audit trail, CRL, chunk-level ACL. OPSQAI never sees operational knowledge.",
+        "Ed25519-signed licenses, local audit evidence, role-based access, retention and data-subject workflows aligned with relevant GDPR, DORA and ISO 27001 controls.",
       path: "/security",
       keywords:
-        "OPSQAI security, Ed25519 licenses, activation bundle, hash-chained audit, CRL, chunk-level ACL, GDPR",
+        "OPSQAI security, Ed25519 licenses, hash-chained audit, chunk-level ACL, GDPR controls, DORA controls, ISO 27001 controls",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Security", path: "/security" },
