@@ -1204,17 +1204,85 @@ function ThinkingDots({ label }: { label: string }) {
 
 function EmailButton({ text }: { text: string }) {
   const { lang } = useT();
-  const label = lang === "de" ? "Per E-Mail senden" : lang === "en" ? "Send by email" : "Trimite pe email";
-  const subject = lang === "de" ? "OPSQAI-Antwort" : lang === "en" ? "OPSQAI answer" : "Răspuns OPSQAI";
-  const body = text.length > 1800 ? `${text.slice(0, 1800)}…` : text;
+  const L = (ro: string, en: string, de: string) => (lang === "de" ? de : lang === "en" ? en : ro);
+  const [open, setOpen] = useState(false);
+  const [to, setTo] = useState("");
+  const [subject, setSubject] = useState(L("Răspuns OPSQAI", "OPSQAI answer", "OPSQAI-Antwort"));
+  const [body, setBody] = useState(text);
+  useEffect(() => {
+    if (open) setBody(text);
+  }, [open, text]);
+
+  const short = body.length > 1800 ? `${body.slice(0, 1800)}…` : body;
+  const outlookWeb = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(to)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(short)}`;
+  const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(short)}`;
+
+  const downloadEml = () => {
+    const eml = [
+      "X-Unsent: 1",
+      `To: ${to}`,
+      `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
+      "MIME-Version: 1.0",
+      "Content-Type: text/plain; charset=UTF-8",
+      "Content-Transfer-Encoding: 8bit",
+      "",
+      body.replace(/\r?\n/g, "\r\n"),
+    ].join("\r\n");
+    const url = URL.createObjectURL(new Blob([eml], { type: "message/rfc822" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "OPSQAI-draft.eml";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast.success(L("Draft descărcat — deschide-l, se va afișa în Outlook.", "Draft downloaded — open it to edit in Outlook.", "Entwurf heruntergeladen — öffnen, um ihn in Outlook zu bearbeiten."));
+  };
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(`${subject}\n\n${body}`);
+      toast.success(L("Copiat", "Copied", "Kopiert"));
+    } catch {
+      toast.error(L("Nu s-a putut copia", "Could not copy", "Kopieren fehlgeschlagen"));
+    }
+  };
+
   return (
-    <a
-      href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
-      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-    >
-      <Mail className="h-3 w-3" />
-      {label}
-    </a>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Mail className="h-3 w-3" />
+          {L("Trimite pe email", "Send by email", "Per E-Mail senden")}
+        </button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col gap-4 overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>{L("Draft email", "Email draft", "E-Mail-Entwurf")}</SheetTitle>
+        </SheetHeader>
+        <p className="text-xs text-muted-foreground">
+          {L(
+            "Verifică și editează textul. OPSQAI nu trimite nimic singur — tu trimiți din clientul tău de email.",
+            "Review and edit the text. OPSQAI never sends on its own — you send from your email client.",
+            "Text prüfen und bearbeiten. OPSQAI sendet nie selbst — Sie senden aus Ihrem E-Mail-Programm.",
+          )}
+        </p>
+        <Input placeholder={L("Destinatar (opțional)", "Recipient (optional)", "Empfänger (optional)")} value={to} onChange={(e) => setTo(e.target.value)} />
+        <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
+        <Textarea className="min-h-[260px] flex-1" value={body} onChange={(e) => setBody(e.target.value)} />
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <Button onClick={downloadEml}>{L("Deschide în Outlook (desktop)", "Open in Outlook (desktop)", "In Outlook öffnen (Desktop)")}</Button>
+          <Button variant="secondary" asChild>
+            <a href={outlookWeb} target="_blank" rel="noreferrer">Outlook Web / Microsoft 365</a>
+          </Button>
+          <Button variant="outline" asChild>
+            <a href={mailto}>{L("Aplicația de email implicită", "Default email app", "Standard-E-Mail-App")}</a>
+          </Button>
+          <Button variant="outline" onClick={copy}>{L("Copiază textul", "Copy text", "Text kopieren")}</Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
