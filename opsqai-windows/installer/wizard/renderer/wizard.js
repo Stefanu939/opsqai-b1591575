@@ -186,6 +186,12 @@ const WIZARD_SHELL_HTML = String.raw`
             required. Setup downloads the models below once (several GB);
             afterwards chat, embeddings and knowledge retrieval work offline.
           </p>
+          <label>AI engine
+            <select id="ai-engine">
+              <option value="llamacpp">llama.cpp — lightweight, fastest on CPU (recommended)</option>
+              <option value="ollama">Ollama</option>
+            </select>
+          </label>
           <label>Performance preset
             <select id="ai-preset">
               <option value="office">Office PC — 3B model, ~2.5 GB RAM, no GPU</option>
@@ -758,10 +764,11 @@ function buildConfig() {
     const v = el && el.value ? el.value.trim() : "";
     return v || fallback;
   };
+  const engine = val("#ai-engine", "llamacpp");
   state.data.ai = {
-    provider: "ollama",
-    baseUrl: val("#ai-base-url", "http://127.0.0.1:11434"),
-    chatModel: val("#ai-chat-model", "qwen2.5:7b"),
+    provider: engine,
+    ...(engine === "ollama" ? { baseUrl: val("#ai-base-url", "http://127.0.0.1:11434") } : {}),
+    chatModel: val("#ai-chat-model", "qwen2.5:3b"),
     chatFastModel: val("#ai-fast-model", "qwen2.5:3b"),
     embeddingModel: val("#ai-embedding-model", "bge-m3"),
   };
@@ -1073,4 +1080,11 @@ document.addEventListener("change", (e) => {
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
   set("ai-chat-model", office ? "qwen2.5:3b" : "qwen2.5:7b");
   set("ai-fast-model", office ? "qwen2.5:1.5b" : "qwen2.5:3b");
+});
+
+// The Ollama URL only applies to the Ollama engine.
+document.addEventListener("change", (e) => {
+  if (e.target?.id !== "ai-engine") return;
+  const url = document.getElementById("ai-base-url");
+  if (url) url.closest("label").style.display = e.target.value === "ollama" ? "" : "none";
 });
