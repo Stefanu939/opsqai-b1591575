@@ -61,12 +61,7 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const QRCode = (await import("qrcode")).default;
 
-  const verifyBase = (
-    (typeof template.verifyBaseUrl === "string" && template.verifyBaseUrl) ||
-    process.env["APP_URL"] ||
-    "https://opsqai.de"
-  ).replace(/\/+$/, "");
-  const verifyUrl = `${verifyBase}/verify/${code}`;
+  const verifyUrl = `${resolveCertificateVerifyBase()}/verify/${code}`;
   const qrPng = await QRCode.toBuffer(verifyUrl, { width: 220, margin: 1 });
 
 
