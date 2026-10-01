@@ -458,7 +458,7 @@ function EmailIntelligencePage() {
                     ) : (
                       <Button size="sm" disabled={busy !== null} onClick={() => run(`gen-${selected.message.id}`, async () => {
                         await generate({ data: { id: selected.message.id } });
-                      }, busy)}>
+                      })}>
                         <Sparkles className="mr-1 h-4 w-4" />{busy === `gen-${selected.message.id}` ? L.generating : L.generate}
                       </Button>
                     )}
