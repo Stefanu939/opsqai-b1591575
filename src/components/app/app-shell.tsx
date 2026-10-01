@@ -193,6 +193,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       module: "kb",
     },
     {
+      to: "/app/email",
+      label: "Email Intelligence",
+      icon: Mail,
+      show: mode === "selfhost" && hasAnyPermission("knowledge.manage"),
+      module: "kb",
+    },
+    {
       to: "/app/activity",
       label: "Activity log",
       icon: ScrollText,
