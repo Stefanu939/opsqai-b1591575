@@ -63,6 +63,7 @@
         <div class="actions" style="margin-top: 14px;">
           <button class="primary" id="btn-start">Start services &amp; retry</button>
           <button id="btn-retry">Retry now</button>
+          <button id="btn-rollback">Restore previous version</button>
           <button id="btn-logs">Open logs folder</button>
           <button id="btn-quit">Quit</button>
         </div>
@@ -112,6 +113,20 @@
         }
       });
       document.getElementById("btn-retry").addEventListener("click", () => api.retry?.());
+      document.getElementById("btn-rollback").addEventListener("click", async () => {
+        const b = document.getElementById("btn-rollback");
+        if (!confirm("Restore the version that ran before the last update? This takes about a minute.")) return;
+        b.disabled = true;
+        b.textContent = "Restoring…";
+        const r = await api.rollback?.();
+        if (!r || !r.ok) {
+          b.disabled = false;
+          b.textContent = "Restore previous version";
+          alert("Could not start the restore: " + ((r && r.error) || "updater unavailable"));
+          return;
+        }
+        setTimeout(() => api.retry?.(), 90000);
+      });
       document.getElementById("btn-logs").addEventListener("click", () => api.openLogs?.());
       document.getElementById("btn-quit").addEventListener("click", () => api.quit?.());
     </script>
