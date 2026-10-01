@@ -133,6 +133,9 @@ export function CreateCourseDialog({
           department_id: departmentId === NO_DEPARTMENT ? null : departmentId,
           language,
           target_role: targetRole.trim() || null,
+          passing_score: passingScore,
+          difficulty,
+          mandatory,
         },
       })) as any;
       notifySaved("Course generated from Knowledge Base —");
