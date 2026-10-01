@@ -138,7 +138,7 @@ export function CreateCourseDialog({
           mandatory,
         },
       })) as any;
-      notifySaved("Course generated from Knowledge Base —");
+      notifySaved("Course generated and saved as draft in the Academy library —");
       reset();
       onOpenChange(false);
       const id = created?.path_id ?? created?.id ?? created?.pathId;
