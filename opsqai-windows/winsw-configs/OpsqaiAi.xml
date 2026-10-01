@@ -1,0 +1,26 @@
+<service>
+  <id>OpsqaiAi</id>
+  <name>OPSQAI Local AI Engine</name>
+  <description>Local llama.cpp engine (chat + embeddings) on 127.0.0.1 only. No external network access.</description>
+
+  <executable>%BASE%\..\runtime\node\node.exe</executable>
+  <arguments>"%BASE%\..\services\ai\index.js"</arguments>
+  <workingdirectory>%BASE%\..</workingdirectory>
+
+  <startmode>Automatic</startmode>
+  <stoptimeout>20 sec</stoptimeout>
+
+  <onfailure action="restart" delay="5 sec"/>
+  <onfailure action="restart" delay="15 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  <logpath>%ProgramData%\OPSQAI\logs</logpath>
+
+  <env name="OPSQAI_SERVICE" value="ai"/>
+  <env name="OPSQAI_CONFIG"  value="%ProgramData%\OPSQAI\config\config.json"/>
+</service>

@@ -153,6 +153,7 @@ Section "OPSQAI Core" SEC_CORE
 
   ; Register services (order matters for dependency graph).
   !insertmacro RegisterService "OpsqaiDatabase"
+  !insertmacro RegisterService "OpsqaiAi"
   !insertmacro RegisterService "OpsqaiPlatform"
   !insertmacro RegisterService "OpsqaiWorker"
   !insertmacro RegisterService "OpsqaiCaddy"
@@ -274,6 +275,7 @@ Section "Uninstall"
   !insertmacro StopAndUninstallService "OpsqaiCaddy"
   !insertmacro StopAndUninstallService "OpsqaiWorker"
   !insertmacro StopAndUninstallService "OpsqaiPlatform"
+  !insertmacro StopAndUninstallService "OpsqaiAi"
   !insertmacro StopAndUninstallService "OpsqaiDatabase"
 
   ; Remove shortcuts.

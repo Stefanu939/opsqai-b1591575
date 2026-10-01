@@ -119,8 +119,10 @@ export function applyAiEnv(ai: SelfHostAiConfig): void {
     process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT =
       pick(ai.embedding_model, ai.embeddingModel) ?? "text-embedding-3-small";
   } else {
-    process.env.GENERIC_AI_BASE_URL = pick(ai.base_url, ai.baseUrl) ?? "";
-    process.env.GENERIC_AI_API_KEY = pick(ai.api_key, ai.apiKey) ?? "";
+    const local = (provider as string) === "llamacpp";
+    process.env.GENERIC_AI_BASE_URL =
+      pick(ai.base_url, ai.baseUrl) ?? (local ? "http://127.0.0.1:11440/v1" : "");
+    process.env.GENERIC_AI_API_KEY = local ? "local" : (pick(ai.api_key, ai.apiKey) ?? "");
     process.env.GENERIC_AI_CHAT_MODEL = pick(ai.chat_model, ai.chatModel) ?? "gpt-4o";
     process.env.GENERIC_AI_CHAT_FAST_MODEL = pick(ai.chat_fast_model, ai.chatFastModel) ?? "gpt-4o-mini";
     process.env.GENERIC_AI_EMBEDDING_MODEL =

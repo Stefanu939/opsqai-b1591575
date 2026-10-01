@@ -325,6 +325,7 @@ const SERVICES = [
   "OpsqaiDatabase",
   "OpsqaiPlatform",
   "OpsqaiWorker",
+  "OpsqaiAi",
   "OpsqaiProxy",
 ];
 

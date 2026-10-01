@@ -186,6 +186,12 @@ const WIZARD_SHELL_HTML = String.raw`
             required. Setup downloads the models below once (several GB);
             afterwards chat, embeddings and knowledge retrieval work offline.
           </p>
+          <label>AI engine
+            <select id="ai-engine">
+              <option value="llamacpp">llama.cpp — lightweight, fastest on CPU (recommended)</option>
+              <option value="ollama">Ollama</option>
+            </select>
+          </label>
           <label>Performance preset
             <select id="ai-preset">
               <option value="office">Office PC — 3B model, ~2.5 GB RAM, no GPU</option>
@@ -352,7 +358,7 @@ const WIZARD_SHELL_HTML = String.raw`
         <li data-stage="postgres"><span class="stage-dot"></span>Installing bundled PostgreSQL</li>
         <li data-stage="services"><span class="stage-dot"></span>Installing OPSQAI services</li>
         <li data-stage="migrate"><span class="stage-dot"></span>Creating database &amp; applying migrations</li>
-        <li data-stage="ai-install"><span class="stage-dot"></span>Installing local AI runtime (Ollama)</li>
+        <li data-stage="ai-install"><span class="stage-dot"></span>Installing local AI runtime</li>
         <li data-stage="ai-start"><span class="stage-dot"></span>Starting local AI runtime</li>
         <li data-stage="ai-chat-model"><span class="stage-dot"></span>Downloading chat model</li>
         <li data-stage="ai-embed-model"><span class="stage-dot"></span>Downloading embedding model</li>
@@ -758,10 +764,11 @@ function buildConfig() {
     const v = el && el.value ? el.value.trim() : "";
     return v || fallback;
   };
+  const engine = val("#ai-engine", "llamacpp");
   state.data.ai = {
-    provider: "ollama",
-    baseUrl: val("#ai-base-url", "http://127.0.0.1:11434"),
-    chatModel: val("#ai-chat-model", "qwen2.5:7b"),
+    provider: engine,
+    ...(engine === "ollama" ? { baseUrl: val("#ai-base-url", "http://127.0.0.1:11434") } : {}),
+    chatModel: val("#ai-chat-model", "qwen2.5:3b"),
     chatFastModel: val("#ai-fast-model", "qwen2.5:3b"),
     embeddingModel: val("#ai-embedding-model", "bge-m3"),
   };
@@ -791,7 +798,7 @@ const STAGE_MARKERS = [
   { stage: "postgres", match: /postgres|initdb|pg_ctl/i,              pct: 22 },
   { stage: "services", match: /installing services|winsw|nssm/i,      pct: 40 },
   { stage: "migrate",  match: /running app migrations|migrate|admin seeded/i, pct: 62 },
-  { stage: "ai-install",     match: /ai engine: installing Ollama runtime/i,   pct: 66 },
+  { stage: "ai-install",     match: /ai engine: installing (Ollama|llama\.cpp) runtime/i,   pct: 66 },
   { stage: "ai-start",       match: /ai engine: starting local runtime/i,      pct: 70 },
   { stage: "ai-chat-model",  match: /ai engine: downloading chat model/i,      pct: 74 },
   { stage: "ai-embed-model", match: /ai engine: downloading embedding model/i, pct: 80 },
@@ -1073,4 +1080,11 @@ document.addEventListener("change", (e) => {
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
   set("ai-chat-model", office ? "qwen2.5:3b" : "qwen2.5:7b");
   set("ai-fast-model", office ? "qwen2.5:1.5b" : "qwen2.5:3b");
+});
+
+// The Ollama URL only applies to the Ollama engine.
+document.addEventListener("change", (e) => {
+  if (e.target?.id !== "ai-engine") return;
+  const url = document.getElementById("ai-base-url");
+  if (url) url.closest("label").style.display = e.target.value === "ollama" ? "" : "none";
 });

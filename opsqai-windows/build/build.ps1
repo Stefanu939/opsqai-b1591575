@@ -319,7 +319,8 @@ $services = @(
   'OpsqaiPlatform',
   'OpsqaiWorker',
   'OpsqaiCaddy',
-  'OpsqaiUpdater'
+  'OpsqaiUpdater',
+  'OpsqaiAi'
 )
 foreach ($svc in $services) {
   Copy-Item $winswExe (Join-Path $winswDir "$svc.exe") -Force
@@ -561,6 +562,38 @@ if (-not $SkipOllama) {
   Write-Host "Skipping Ollama runtime (dev build)"
 }
 
+# --- 5d. llama.cpp local AI runtime (default engine) ----------------------
+# CPU build (AVX2) of llama-server.exe + its DLLs, ~30 MB. Models are single
+# GGUF files downloaded during setup. Override the tag/asset via env vars.
+$llamaDir = Join-Path $payload 'vendor\llamacpp'
+$llamaExe = Join-Path $llamaDir 'llama-server.exe'
+$llamaTag = $env:OPSQAI_LLAMACPP_TAG
+if (-not $llamaTag) { $llamaTag = 'b4600' }
+$llamaAsset = $env:OPSQAI_LLAMACPP_ASSET
+if (-not $llamaAsset) { $llamaAsset = "llama-$llamaTag-bin-win-avx2-x64.zip" }
+New-Item -ItemType Directory -Force -Path $llamaDir | Out-Null
+if (-not (Test-Path $llamaExe)) {
+  Write-Host "llama.cpp runtime $llamaTag ($llamaAsset)"
+  $llamaZip = Join-Path $env:TEMP $llamaAsset
+  Fetch "https://github.com/ggml-org/llama.cpp/releases/download/$llamaTag/$llamaAsset" $llamaZip
+  $zipSha = (Get-FileHash -Algorithm SHA256 -Path $llamaZip).Hash.ToLowerInvariant()
+  $pin = $env:OPSQAI_LLAMACPP_SHA256
+  if (-not $pin -and $VendorPins.llamacpp) { $pin = $VendorPins.llamacpp.$llamaTag }
+  if ($pin) {
+    if ($zipSha -ne $pin.ToLowerInvariant()) { throw "llama.cpp SHA-256 mismatch for $llamaTag. Expected $pin got $zipSha" }
+  } else {
+    Write-Warning "No SHA-256 pin for llama.cpp $llamaTag — add `"$llamaTag`": `"$zipSha`" to build\vendor-pins.json (llamacpp)."
+  }
+  $tmpLlama = Join-Path $env:TEMP 'opsqai-llamacpp'
+  Remove-Item -Recurse -Force $tmpLlama -ErrorAction SilentlyContinue
+  Expand-Archive $llamaZip -DestinationPath $tmpLlama -Force
+  $found = Get-ChildItem -Path $tmpLlama -Recurse -Filter 'llama-server.exe' | Select-Object -First 1
+  if (-not $found) { throw "llama-server.exe not found in $llamaAsset" }
+  Copy-Item (Join-Path $found.DirectoryName '*') $llamaDir -Recurse -Force
+}
+$llamaSha = (Get-FileHash -Algorithm SHA256 -Path $llamaExe).Hash.ToLowerInvariant()
+Set-Content -Path (Join-Path $llamaDir 'llama-server.exe.sha256') -Value $llamaSha -Encoding ascii
+
 # --- 6. Assets -------------------------------------------------------------
 # One approved branding source: public\brand\sovereign-mark.svg is rendered into
 # installer\nsis\assets\opsqai.ico (scripts\gen_icons.py) and mirrored to the
@@ -642,6 +675,9 @@ Assert-Exists (Join-Path $payload 'app\server\admin-seed\node_modules\argon2\pre
 
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
 Assert-Exists (Join-Path $payload 'services\bootstrap\ollama.cjs') 'local AI engine setup module'
+Assert-Exists (Join-Path $payload 'services\bootstrap\llamacpp.cjs') 'llama.cpp engine setup module'
+Assert-Exists (Join-Path $payload 'services\ai\index.js') 'local AI engine service'
+Assert-Exists (Join-Path $payload 'vendor\llamacpp\llama-server.exe') 'llama.cpp runtime'
 if (-not $SkipOllama) {
   Assert-Exists (Join-Path $payload 'vendor\ollama\OllamaSetup.exe') 'Ollama local AI runtime setup'
 }

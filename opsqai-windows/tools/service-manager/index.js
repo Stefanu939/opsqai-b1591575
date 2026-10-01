@@ -34,6 +34,7 @@ const SERVICES = [
   "OpsqaiDatabase",
   "OpsqaiPlatform",
   "OpsqaiWorker",
+  "OpsqaiAi",
   "OpsqaiCaddy",
   "OpsqaiUpdater",
 ];
