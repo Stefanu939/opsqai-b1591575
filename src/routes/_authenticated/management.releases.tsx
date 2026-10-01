@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { WindowsReleasesPanel } from "@/components/mc/windows-releases-panel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useRef, useState, useCallback, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, type ChangeEvent, type DragEvent } from "react";
 import {
   listReleases,
   createRelease,
@@ -343,6 +343,8 @@ function NewReleaseDialog({
   const [notesFile, setNotesFile] = useState<UploadedFile | null>(null);
   const [minSupported, setMinSupported] = useState("");
   const [current, setCurrent] = useState(true);
+  const [installerBusy, setInstallerBusy] = useState(false);
+  const [notesBusy, setNotesBusy] = useState(false);
 
   const reset = () => {
     setVersion("");
@@ -356,9 +358,15 @@ function NewReleaseDialog({
     setNotesFile(null);
     setMinSupported("");
     setCurrent(true);
+    setInstallerBusy(false);
+    setNotesBusy(false);
   };
 
   const submit = () => {
+    if (installerBusy || notesBusy) {
+      toast.error("Please wait for the file upload to complete before publishing.");
+      return;
+    }
     if (!version.trim()) {
       toast.error("Version is required.");
       return;
@@ -440,6 +448,7 @@ function NewReleaseDialog({
                 file={imageFile}
                 onChange={setImageFile}
                 onChecksum={setChecksum}
+                onBusyChange={setInstallerBusy}
               />
             )}
           </div>
@@ -481,6 +490,7 @@ function NewReleaseDialog({
                   kind="notes"
                   file={notesFile}
                   onChange={setNotesFile}
+                  onBusyChange={setNotesBusy}
                 />
               )}
             </div>
@@ -495,8 +505,12 @@ function NewReleaseDialog({
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={submit} disabled={pending}>
-            {pending ? "Publishing…" : "Publish"}
+          <Button onClick={submit} disabled={pending || installerBusy || notesBusy}>
+            {pending
+              ? "Publishing…"
+              : installerBusy || notesBusy
+                ? "Uploading…"
+                : "Publish"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -553,12 +567,14 @@ function ReleaseFileUpload({
   file,
   onChange,
   onChecksum,
+  onBusyChange,
 }: {
   version: string;
   kind: "installer" | "notes";
   file: UploadedFile | null;
   onChange: (file: UploadedFile | null) => void;
   onChecksum?: (checksum: string) => void;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -568,6 +584,9 @@ function ReleaseFileUpload({
   const [hashing, setHashing] = useState(false);
   const [resumable, setResumable] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    onBusyChange?.(uploading || hashing);
+  }, [uploading, hashing, onBusyChange]);
 
   const accept = kind === "installer" ? ".exe,.msi,.zip" : ".pdf,.md,.txt";
 
@@ -605,6 +624,7 @@ function ReleaseFileUpload({
         // restarting. Small files use a single request.
         if (selected.size > RESUMABLE_THRESHOLD) {
           setResumable(true);
+          let finalPath = path;
           const { Upload } = await import("tus-js-client");
           await new Promise<void>((resolve, reject) => {
             const tus = new Upload(selected, {
@@ -636,12 +656,18 @@ function ReleaseFileUpload({
               onError: (error) => reject(error instanceof Error ? error : new Error(String(error))),
             });
             void tus.findPreviousUploads().then((previous) => {
-              if (previous[0]) tus.resumeFromPreviousUpload(previous[0]);
+              const prev = previous[0];
+              const prevName = prev?.metadata?.objectName;
+              if (prev && prevName) {
+                // Resuming writes to the ORIGINAL object — keep its path.
+                finalPath = prevName;
+                tus.resumeFromPreviousUpload(prev);
+              }
               tus.start();
             });
           });
 
-          onChange({ path, name: selected.name, size: selected.size });
+          onChange({ path: finalPath, name: selected.name, size: selected.size });
           toast.success(`${kind === "installer" ? "Installer" : "Release notes"} uploaded`);
           if (onChecksum && kind === "installer") {
             if (selected.size > MAX_CHECKSUM_BYTES) {
