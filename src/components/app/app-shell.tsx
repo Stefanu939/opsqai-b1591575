@@ -22,6 +22,7 @@ import {
   BrainCircuit,
   ChevronDown,
   AlertTriangle,
+  Mail,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { BuildProvenanceLine } from "@/components/app/build-provenance-line";
@@ -189,6 +190,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/microsoft",
       label: "Microsoft 365",
       icon: ScrollText,
+      show: mode === "selfhost" && hasAnyPermission("knowledge.manage"),
+      module: "kb",
+    },
+    {
+      to: "/app/email",
+      label: "Email Intelligence",
+      icon: Mail,
       show: mode === "selfhost" && hasAnyPermission("knowledge.manage"),
       module: "kb",
     },

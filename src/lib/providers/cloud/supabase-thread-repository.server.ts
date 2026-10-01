@@ -33,8 +33,9 @@ export function createSupabaseThreadRepository(client: Client): IThreadRepositor
     async listForUser(userId, opts) {
       let q = client
         .from("threads")
-        .select("id,title,created_at,updated_at,company_id")
+        .select("id,title,created_at,updated_at,company_id,pinned")
         .eq("user_id", userId)
+        .order("pinned", { ascending: false })
         .order("updated_at", { ascending: false })
         .limit(opts?.limit ?? 200);
       if (opts?.companyId) q = q.eq("company_id", opts.companyId);
@@ -46,12 +47,21 @@ export function createSupabaseThreadRepository(client: Client): IThreadRepositor
         createdAt: r.created_at,
         updatedAt: r.updated_at,
         companyId: r.company_id,
+        pinned: r.pinned === true,
       }));
     },
     async renameOwned(id, userId, title) {
       const { error } = await client
         .from("threads")
         .update({ title })
+        .eq("id", id)
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message);
+    },
+    async setPinned(id, userId, pinned) {
+      const { error } = await client
+        .from("threads")
+        .update({ pinned })
         .eq("id", id)
         .eq("user_id", userId);
       if (error) throw new Error(error.message);

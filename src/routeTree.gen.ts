@@ -78,6 +78,7 @@ import { Route as AuthenticatedAppActivityRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
 import { Route as AuthenticatedAppCalendarRouteImport } from './routes/_authenticated/app.calendar'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
+import { Route as AuthenticatedAppEmailRouteImport } from './routes/_authenticated/app.email'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppGapsRouteImport } from './routes/_authenticated/app.gaps'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
@@ -127,6 +128,7 @@ import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
 import { Route as ApiPublicStudyContactRouteImport } from './routes/api.public.study-contact'
 import { Route as ApiPublicStudySubmitRouteImport } from './routes/api.public.study-submit'
+import { Route as ApiPublicTeamsRouteImport } from './routes/api/public/teams'
 import { Route as ApiPublicVerifyCertificateRouteImport } from './routes/api/public/verify-certificate'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
@@ -526,6 +528,11 @@ const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppEmailRoute = AuthenticatedAppEmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -799,6 +806,11 @@ const ApiPublicStudyContactRoute = ApiPublicStudyContactRouteImport.update({
 const ApiPublicStudySubmitRoute = ApiPublicStudySubmitRouteImport.update({
   id: '/api/public/study-submit',
   path: '/api/public/study-submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTeamsRoute = ApiPublicTeamsRouteImport.update({
+  id: '/api/public/teams',
+  path: '/api/public/teams',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicVerifyCertificateRoute =
@@ -1135,6 +1147,7 @@ export interface FileRoutesByFullPath {
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
+  '/app/email': typeof AuthenticatedAppEmailRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/gaps': typeof AuthenticatedAppGapsRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -1182,6 +1195,7 @@ export interface FileRoutesByFullPath {
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
+  '/api/public/teams': typeof ApiPublicTeamsRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
@@ -1294,6 +1308,7 @@ export interface FileRoutesByTo {
   '/app/activity': typeof AuthenticatedAppActivityRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
+  '/app/email': typeof AuthenticatedAppEmailRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/gaps': typeof AuthenticatedAppGapsRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -1340,6 +1355,7 @@ export interface FileRoutesByTo {
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
+  '/api/public/teams': typeof ApiPublicTeamsRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app': typeof AuthenticatedAppIndexRoute
@@ -1460,6 +1476,7 @@ export interface FileRoutesById {
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
   '/_authenticated/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
+  '/_authenticated/app/email': typeof AuthenticatedAppEmailRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/gaps': typeof AuthenticatedAppGapsRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -1507,6 +1524,7 @@ export interface FileRoutesById {
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
+  '/api/public/teams': typeof ApiPublicTeamsRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
@@ -1627,6 +1645,7 @@ export interface FileRouteTypes {
     | '/app/audit'
     | '/app/calendar'
     | '/app/chat'
+    | '/app/email'
     | '/app/faq'
     | '/app/gaps'
     | '/app/knowledge'
@@ -1674,6 +1693,7 @@ export interface FileRouteTypes {
     | '/api/public/selfhost-heartbeat'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
+    | '/api/public/teams'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app/'
@@ -1786,6 +1806,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/audit'
     | '/app/calendar'
+    | '/app/email'
     | '/app/faq'
     | '/app/gaps'
     | '/app/knowledge'
@@ -1832,6 +1853,7 @@ export interface FileRouteTypes {
     | '/api/public/selfhost-heartbeat'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
+    | '/api/public/teams'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app'
@@ -1951,6 +1973,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/audit'
     | '/_authenticated/app/calendar'
     | '/_authenticated/app/chat'
+    | '/_authenticated/app/email'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/gaps'
     | '/_authenticated/app/knowledge'
@@ -1998,6 +2021,7 @@ export interface FileRouteTypes {
     | '/api/public/selfhost-heartbeat'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
+    | '/api/public/teams'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/_authenticated/app/'
@@ -2110,6 +2134,7 @@ export interface RootRouteChildren {
   ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
   ApiPublicStudyContactRoute: typeof ApiPublicStudyContactRoute
   ApiPublicStudySubmitRoute: typeof ApiPublicStudySubmitRoute
+  ApiPublicTeamsRoute: typeof ApiPublicTeamsRoute
   ApiPublicVerifyCertificateRoute: typeof ApiPublicVerifyCertificateRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiAuthMicrosoftCallbackRoute: typeof ApiAuthMicrosoftCallbackRoute
@@ -2616,6 +2641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/email': {
+      id: '/_authenticated/app/email'
+      path: '/email'
+      fullPath: '/app/email'
+      preLoaderRoute: typeof AuthenticatedAppEmailRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/faq': {
       id: '/_authenticated/app/faq'
       path: '/faq'
@@ -2957,6 +2989,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/study-submit'
       fullPath: '/api/public/study-submit'
       preLoaderRoute: typeof ApiPublicStudySubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/teams': {
+      id: '/api/public/teams'
+      path: '/api/public/teams'
+      fullPath: '/api/public/teams'
+      preLoaderRoute: typeof ApiPublicTeamsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/verify-certificate': {
@@ -3302,6 +3341,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAuditRoute: typeof AuthenticatedAppAuditRoute
   AuthenticatedAppCalendarRoute: typeof AuthenticatedAppCalendarRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
+  AuthenticatedAppEmailRoute: typeof AuthenticatedAppEmailRoute
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppGapsRoute: typeof AuthenticatedAppGapsRoute
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
@@ -3333,6 +3373,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAuditRoute: AuthenticatedAppAuditRoute,
   AuthenticatedAppCalendarRoute: AuthenticatedAppCalendarRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
+  AuthenticatedAppEmailRoute: AuthenticatedAppEmailRoute,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppGapsRoute: AuthenticatedAppGapsRoute,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
@@ -3668,6 +3709,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
   ApiPublicStudyContactRoute: ApiPublicStudyContactRoute,
   ApiPublicStudySubmitRoute: ApiPublicStudySubmitRoute,
+  ApiPublicTeamsRoute: ApiPublicTeamsRoute,
   ApiPublicVerifyCertificateRoute: ApiPublicVerifyCertificateRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiAuthMicrosoftCallbackRoute: ApiAuthMicrosoftCallbackRoute,

@@ -1,7 +1,13 @@
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listThreads, deleteThread, renameThread, createThread } from "@/lib/threads.functions";
+import {
+  listThreads,
+  deleteThread,
+  renameThread,
+  createThread,
+  setThreadPinned,
+} from "@/lib/threads.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageSquarePlus, Search, Trash2, Pencil, Check, X, MessagesSquare, Pin } from "lucide-react";
@@ -10,7 +16,7 @@ import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
-type Thread = { id: string; title: string; created_at: string; updated_at: string };
+type Thread = { id: string; title: string; created_at: string; updated_at: string; pinned: boolean };
 
 function bucketOf(iso: string): "today" | "week" | "month" | "older" {
   const d = new Date(iso).getTime();
@@ -30,6 +36,7 @@ export function ChatSidebar() {
   const create = useServerFn(createThread);
   const remove = useServerFn(deleteThread);
   const rename = useServerFn(renameThread);
+  const togglePinServer = useServerFn(setThreadPinned);
   const params = useParams({ strict: false }) as { threadId?: string };
   const activeId = params.threadId;
 
@@ -48,6 +55,7 @@ export function ChatSidebar() {
           title: r.title,
           created_at: r.createdAt,
           updated_at: r.updatedAt,
+          pinned: r.pinned === true,
         })),
       );
     } finally {
@@ -64,21 +72,19 @@ export function ChatSidebar() {
     return q ? threads.filter((t) => (t.title || "").toLowerCase().includes(q)) : threads;
   }, [threads, query]);
 
-  // Pinned conversations are remembered on this device.
-  const [pinned, setPinned] = useState<string[]>([]);
-  useEffect(() => {
+  // Pinned conversations are stored on the server, per user, so they follow
+  // the user across devices. The local copy is optimistic UI state.
+  const togglePin = async (id: string) => {
+    const current = threads.find((t) => t.id === id);
+    const next = !(current?.pinned === true);
+    setThreads((p) => p.map((t) => (t.id === id ? { ...t, pinned: next } : t)));
     try {
-      setPinned(JSON.parse(localStorage.getItem("opsqai.chat.pinned") || "[]"));
-    } catch {
-      setPinned([]);
+      await togglePinServer({ data: { id, pinned: next } });
+    } catch (e) {
+      setThreads((p) => p.map((t) => (t.id === id ? { ...t, pinned: !next } : t)));
+      toast.error(String(e));
     }
-  }, []);
-  const togglePin = (id: string) =>
-    setPinned((p) => {
-      const next = p.includes(id) ? p.filter((x) => x !== id) : [id, ...p];
-      localStorage.setItem("opsqai.chat.pinned", JSON.stringify(next));
-      return next;
-    });
+  };
 
   const grouped = useMemo(() => {
     const g: Record<"pinned" | "today" | "week" | "month" | "older", Thread[]> = {
@@ -89,9 +95,9 @@ export function ChatSidebar() {
       older: [],
     };
     for (const t of filtered)
-      g[pinned.includes(t.id) ? "pinned" : bucketOf(t.updated_at || t.created_at)].push(t);
+      g[t.pinned ? "pinned" : bucketOf(t.updated_at || t.created_at)].push(t);
     return g;
-  }, [filtered, pinned]);
+  }, [filtered]);
   const { lang: pinLang } = useT();
   const pinnedLabel = pinLang === "de" ? "Angeheftet" : pinLang === "en" ? "Pinned" : "Fixate";
 
@@ -252,7 +258,7 @@ export function ChatSidebar() {
                             </Link>
                             <button
                               onClick={() => togglePin(t.id)}
-                              className={`${pinned.includes(t.id) ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-muted-foreground"} p-1 hover:text-foreground hover:bg-muted rounded transition-opacity`}
+                              className={`${t.pinned ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-muted-foreground"} p-1 hover:text-foreground hover:bg-muted rounded transition-opacity`}
                               aria-label="Pin"
                             >
                               <Pin className="h-3 w-3" />
