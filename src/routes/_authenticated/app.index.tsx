@@ -27,6 +27,7 @@ import {
   getExecutiveInsights,
 } from "@/lib/dashboard.functions";
 import { useAuth } from "@/lib/auth-context";
+import { useT } from "@/i18n";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,6 +47,233 @@ import {
   rangeToWindow,
   type DashboardFilterState,
 } from "@/components/app/dashboard-filters";
+
+
+const DASH_TR: Record<string, Record<"en"|"ro"|"de", string>> = {
+ "Hello": {"en":"Hello","ro":"Bună ziua","de":"Guten Tag"},
+ "Welcome to OPSQAI": {"en":"Welcome to OPSQAI","ro":"Bun venit în OPSQAI","de":"Willkommen bei OPSQAI"},
+ "Activity": {"en":"Activity","ro":"Activitate","de":"Aktivität"},
+ "Questions asked versus assistant responses.": {"en":"Questions asked versus assistant responses.","ro":"Întrebări puse comparativ cu răspunsurile asistentului.","de":"Gestellte Fragen im Vergleich zu Antworten."},
+ "Get started": {
+  "en": "Get started",
+  "ro": "Primii pași",
+  "de": "Erste Schritte"
+ },
+ "Operational overview": {
+  "en": "Operational overview",
+  "ro": "Centru de comandă",
+  "de": "Leitstand"
+ },
+ "Ask the assistant": {
+  "en": "Ask the assistant",
+  "ro": "Întreabă asistentul",
+  "de": "Assistent fragen"
+ },
+ "Add knowledge": {
+  "en": "Add knowledge",
+  "ro": "Adaugă cunoștințe",
+  "de": "Wissen hinzufügen"
+ },
+ "Curate FAQ": {
+  "en": "Curate FAQ",
+  "ro": "Gestionează FAQ",
+  "de": "FAQ pflegen"
+ },
+ "Run AI audit": {
+  "en": "Run AI audit",
+  "ro": "Rulează audit AI",
+  "de": "KI-Audit starten"
+ },
+ "Manage users": {
+  "en": "Manage users",
+  "ro": "Gestionează utilizatori",
+  "de": "Benutzer verwalten"
+ },
+ "Questions (30d)": {
+  "en": "Questions (30d)",
+  "ro": "Întrebări (30z)",
+  "de": "Fragen (30T)"
+ },
+ "Documents": {
+  "en": "Documents",
+  "ro": "Documente",
+  "de": "Dokumente"
+ },
+ "FAQ entries": {
+  "en": "FAQ entries",
+  "ro": "Intrări FAQ",
+  "de": "FAQ-Einträge"
+ },
+ "Open gaps": {
+  "en": "Open gaps",
+  "ro": "Lacune deschise",
+  "de": "Offene Lücken"
+ },
+ "Active users (30d)": {
+  "en": "Active users (30d)",
+  "ro": "Utilizatori activi (30z)",
+  "de": "Aktive Nutzer (30T)"
+ },
+ "AI confidence (30d)": {
+  "en": "AI confidence (30d)",
+  "ro": "Încredere AI (30z)",
+  "de": "KI-Konfidenz (30T)"
+ },
+ "AI audits": {
+  "en": "AI audits",
+  "ro": "Audituri AI",
+  "de": "KI-Audits"
+ },
+ "Last audit score": {
+  "en": "Last audit score",
+  "ro": "Scor ultimul audit",
+  "de": "Letzter Audit-Score"
+ },
+ "Complete": {
+  "en": "Complete",
+  "ro": "Complete",
+  "de": "Vollständig"
+ },
+ "In progress": {
+  "en": "In progress",
+  "ro": "În lucru",
+  "de": "In Arbeit"
+ },
+ "Missing": {
+  "en": "Missing",
+  "ro": "Lipsă",
+  "de": "Fehlend"
+ },
+ "No activity in this window.": {
+  "en": "No activity in this window.",
+  "ro": "Nicio activitate în această perioadă.",
+  "de": "Keine Aktivität in diesem Zeitraum."
+ },
+ "Questions": {
+  "en": "Questions",
+  "ro": "Întrebări",
+  "de": "Fragen"
+ },
+ "AI responses": {
+  "en": "AI responses",
+  "ro": "Răspunsuri AI",
+  "de": "KI-Antworten"
+ },
+ "Workspace health": {
+  "en": "Workspace health",
+  "ro": "Sănătatea spațiului de lucru",
+  "de": "Zustand des Arbeitsbereichs"
+ },
+ "of 100": {
+  "en": "of 100",
+  "ro": "din 100",
+  "de": "von 100"
+ },
+ "Knowledge coverage": {
+  "en": "Knowledge coverage",
+  "ro": "Acoperirea cunoștințelor",
+  "de": "Wissensabdeckung"
+ },
+ "No knowledge status recorded yet.": {
+  "en": "No knowledge status recorded yet.",
+  "ro": "Încă nu există stare înregistrată.",
+  "de": "Noch kein Wissensstatus erfasst."
+ },
+ "Executive insights": {
+  "en": "Executive insights",
+  "ro": "Observații pentru conducere",
+  "de": "Management-Einblicke"
+ },
+ "Not enough signal yet — insights appear once the workspace is in daily use.": {
+  "en": "Not enough signal yet — insights appear once the workspace is in daily use.",
+  "ro": "Încă nu sunt destule date — observațiile apar după utilizare zilnică.",
+  "de": "Noch zu wenig Daten — Einblicke erscheinen bei täglicher Nutzung."
+ },
+ "Quick actions": {
+  "en": "Quick actions",
+  "ro": "Acțiuni rapide",
+  "de": "Schnellaktionen"
+ },
+ "Top SOPs": {
+  "en": "Top SOPs",
+  "ro": "Cele mai folosite SOP-uri",
+  "de": "Meistgenutzte SOPs"
+ },
+ "Untitled": {
+  "en": "Untitled",
+  "ro": "Fără titlu",
+  "de": "Ohne Titel"
+ },
+ "No usage recorded yet.": {
+  "en": "No usage recorded yet.",
+  "ro": "Nicio utilizare înregistrată.",
+  "de": "Noch keine Nutzung erfasst."
+ },
+ "Critical SOPs": {
+  "en": "Critical SOPs",
+  "ro": "SOP-uri critice",
+  "de": "Kritische SOPs"
+ },
+ "Nothing flagged as critical.": {
+  "en": "Nothing flagged as critical.",
+  "ro": "Nimic marcat critic.",
+  "de": "Nichts als kritisch markiert."
+ },
+ "Live operational signals from your on-premise knowledge platform.": {
+  "en": "Live operational signals from your on-premise knowledge platform.",
+  "ro": "Sinteză operațională în timp real pe infrastructura locală.",
+  "de": "Betriebssignale in Echtzeit aus Ihrer lokalen Plattform."
+ },
+ "Sănătatea spațiului de lucru": {
+  "en": "Workspace health",
+  "ro": "Sănătatea spațiului de lucru",
+  "de": "Zustand des Arbeitsbereichs"
+ },
+ "Încredere AI (30 zile)": {
+  "en": "AI confidence (30 days)",
+  "ro": "Încredere AI (30 zile)",
+  "de": "KI-Konfidenz (30 Tage)"
+ },
+ "Documente complete": {
+  "en": "Complete documents",
+  "ro": "Documente complete",
+  "de": "Vollständige Dokumente"
+ },
+ "Acțiuni rapide": {
+  "en": "Quick actions",
+  "ro": "Acțiuni rapide",
+  "de": "Schnellaktionen"
+ },
+ "Starea operațională": {
+  "en": "Operational status",
+  "ro": "Starea operațională",
+  "de": "Betriebszustand"
+ },
+ "needs attention": {
+  "en": "needs attention",
+  "ro": "necesită atenție",
+  "de": "Handlungsbedarf"
+ },
+ "all clear": {
+  "en": "all clear",
+  "ro": "totul în regulă",
+  "de": "alles in Ordnung"
+ },
+ "no audit yet": {
+  "en": "no audit yet",
+  "ro": "niciun audit încă",
+  "de": "noch kein Audit"
+ },
+ "Academy": {
+  "en": "Academy",
+  "ro": "Academy",
+  "de": "Academy"
+ }
+};
+function useTr() {
+  const { lang } = useT();
+  return (k: string) => DASH_TR[k]?.[lang as "en"|"ro"|"de"] ?? k;
+}
 
 export const Route = createFileRoute("/_authenticated/app/")({
   head: () => ({
@@ -96,6 +324,7 @@ function readFilters(): DashboardFilterState {
 }
 
 function Dashboard() {
+  const tr = useTr();
   const probe = useServerFn(getOnboardingOverview);
   const { data } = useQuery({
     queryKey: ["dashboard-overview"],
@@ -205,7 +434,7 @@ function Dashboard() {
        <div className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10">
          <div className="inline-flex items-center gap-2 rounded-sm border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
           <Sparkles className="h-3 w-3" />
-          {isEmptyWorkspace ? "Get started" : "Operational overview"}
+          {isEmptyWorkspace ? tr("Get started") : tr("Operational overview")}
         </div>
         <div className="mt-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {todayLabel}
@@ -213,14 +442,14 @@ function Dashboard() {
         <PageHeader
           title={
             isEmptyWorkspace
-              ? `Welcome to OPSQAI, ${name}`
-              : `Hello, ${name}${company ? ` — ${company}` : ""}`
+              ? `${tr("Welcome to OPSQAI")}, ${name}`
+              : `${tr("Hello")}, ${name}${company ? ` — ${company}` : ""}`
           }
           description={
             isEmptyWorkspace
               ? (company ? `Your ${company} workspace is ready. ` : "Your workspace is ready. ") +
                 "Complete the steps below to get the most out of your platform."
-              : "Live operational signals from your on-premise knowledge platform."
+              : tr("Live operational signals from your on-premise knowledge platform.")
           }
           className="mt-4"
         />
@@ -303,6 +532,7 @@ const QUICK_ACTIONS = [
 ];
 
 function DashboardWidgets() {
+  const tr = useTr();
   const [filters, setFilters] = useState<DashboardFilterState>(DEFAULT_FILTERS);
   useEffect(() => setFilters(readFilters()), []);
 
@@ -346,9 +576,9 @@ function DashboardWidgets() {
 
   const knowledgeSplit = status
     ? [
-        { name: "Complete", value: status.complete },
-        { name: "In progress", value: status.inProgress },
-        { name: "Missing", value: status.missing },
+        { name: tr("Complete"), value: status.complete },
+        { name: tr("In progress"), value: status.inProgress },
+        { name: tr("Missing"), value: status.missing },
       ].filter((s) => Number(s.value) > 0)
     : [];
 
@@ -358,9 +588,9 @@ function DashboardWidgets() {
   const totalDocs = status ? status.complete + status.inProgress + status.missing : 0;
   const completePct = totalDocs ? Math.round((status!.complete / totalDocs) * 100) : 0;
   const bars = [
-    { label: "Sănătatea spațiului de lucru", value: healthScore },
-    { label: "Încredere AI (30 zile)", value: confidencePct },
-    { label: "Documente complete", value: completePct },
+    { label: tr("Sănătatea spațiului de lucru"), value: healthScore },
+    { label: tr("Încredere AI (30 zile)"), value: confidencePct },
+    { label: tr("Documente complete"), value: completePct },
   ];
 
   return (
@@ -368,7 +598,7 @@ function DashboardWidgets() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ControlCenter />
-          <Panel title="Acțiuni rapide" icon={Sparkles}>
+          <Panel title={tr("Acțiuni rapide")} icon={Sparkles}>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {QUICK_ACTIONS.map((a) => (
                 <Link
@@ -379,14 +609,14 @@ function DashboardWidgets() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
                     <a.icon className="h-4 w-4" />
                   </span>
-                  <span className="truncate">{a.label}</span>
+                  <span className="truncate">{tr(a.label)}</span>
                 </Link>
               ))}
             </div>
           </Panel>
         </div>
         <aside className="space-y-6">
-          <Panel title="Starea operațională" icon={Activity}>
+          <Panel title={tr("Starea operațională")} icon={Activity}>
             <div className="space-y-4">
               {bars.map((b) => (
                 <div key={b.label}>
@@ -423,7 +653,7 @@ function DashboardWidgets() {
             <>
               <BentoItem span={3} index={0}>
                 <MetricTile
-                  label="Questions (30d)"
+                  label={tr("Questions (30d)")}
                   value={kpis?.questions30d ?? "—"}
                   icon={MessageSquare}
                   hint={`${kpis?.questionsToday ?? 0} today`}
@@ -432,35 +662,35 @@ function DashboardWidgets() {
               </BentoItem>
               <BentoItem span={3} index={1}>
                 <MetricTile
-                  label="Documents"
+                  label={tr("Documents")}
                   value={kpis?.documents ?? "—"}
                   icon={FileText}
                   hint={status ? `${status.complete} complete` : undefined}
                 />
               </BentoItem>
               <BentoItem span={3} index={2}>
-                <MetricTile label="FAQ entries" value={kpis?.faqs ?? "—"} icon={HelpCircle} />
+                <MetricTile label={tr("FAQ entries")} value={kpis?.faqs ?? "—"} icon={HelpCircle} />
               </BentoItem>
               <BentoItem span={3} index={3}>
                 <MetricTile
-                  label="Open gaps"
+                  label={tr("Open gaps")}
                   value={kpis?.openGaps ?? "—"}
                   icon={AlertTriangle}
                   tone={kpis && kpis.openGaps > 0 ? "warning" : "default"}
-                  hint={kpis && kpis.openGaps > 0 ? "needs attention" : "all clear"}
+                  hint={kpis && kpis.openGaps > 0 ? tr("needs attention") : tr("all clear")}
                 />
               </BentoItem>
 
               <BentoItem span={3} index={4}>
                 <MetricTile
-                  label="Active users (30d)"
+                  label={tr("Active users (30d)")}
                   value={kpis?.activeUsers ?? "—"}
                   icon={Users}
                 />
               </BentoItem>
               <BentoItem span={3} index={5}>
                 <MetricTile
-                  label="AI confidence (30d)"
+                  label={tr("AI confidence (30d)")}
                   value={
                     kpis?.avgConfidence != null && kpis.avgConfidence > 0
                       ? `${Math.round(kpis.avgConfidence * 100)}%`
@@ -473,17 +703,17 @@ function DashboardWidgets() {
                 />
               </BentoItem>
               <BentoItem span={3} index={6}>
-                <MetricTile label="AI audits" value={kpis?.aiAudits ?? "—"} icon={Activity} />
+                <MetricTile label={tr("AI audits")} value={kpis?.aiAudits ?? "—"} icon={Activity} />
               </BentoItem>
               <BentoItem span={3} index={7}>
                 <MetricTile
-                  label="Last audit score"
+                  label={tr("Last audit score")}
                   value={overviewQ.data?.lastAudit?.score ?? "—"}
                   icon={ShieldCheck}
                   hint={
                     overviewQ.data?.lastAudit?.createdAt
                       ? new Date(overviewQ.data.lastAudit.createdAt).toLocaleDateString()
-                      : "no audit yet"
+                      : tr("no audit yet")
                   }
                 />
               </BentoItem>
@@ -494,23 +724,21 @@ function DashboardWidgets() {
         {show("activity") && (
           <BentoItem span={8} index={8}>
             <Panel
-              title={`Activity — last ${filters.range}`}
-              description="Questions asked versus assistant responses."
+              title={`${tr("Activity")} — ${filters.range}`}
+              description={tr("Questions asked versus assistant responses.")}
               icon={Activity}
               className="h-full"
             >
               {activityQ.isLoading ? (
                 <Skeleton className="h-56 w-full rounded-md" />
               ) : activityRows.length === 0 ? (
-                <p className="py-16 text-center text-sm text-muted-foreground">
-                  No activity in this window.
-                </p>
+                <p className="py-16 text-center text-sm text-muted-foreground">{tr("No activity in this window.")}</p>
               ) : (
                 <>
                   <AreaTrend data={activityRows} xKey="bucket" yKey="questions" height={224} />
                   <ChartLegend
                     className="mt-2"
-                    items={[{ label: "Questions" }, { label: "AI responses" }]}
+                    items={[{ label: tr("Questions") }, { label: tr("AI responses") }]}
                   />
                 </>
               )}
@@ -523,7 +751,7 @@ function DashboardWidgets() {
           <BentoItem span={4} index={9}>
             <Panel
               glass
-              title="Workspace health"
+              title={tr("Workspace health")}
               icon={ShieldCheck}
               className="h-full"
               actions={<Badge variant="outline">{health?.label ?? "—"}</Badge>}
@@ -534,7 +762,7 @@ function DashboardWidgets() {
                   size={132}
                   thickness={10}
                   label={health?.score ?? "—"}
-                  sublabel="of 100"
+                  sublabel={tr("of 100")}
                 />
                 {status && (
                   <p className="text-center text-xs text-muted-foreground">
@@ -550,11 +778,9 @@ function DashboardWidgets() {
         {/* Knowledge donut */}
         {show("health") && (
           <BentoItem span={4} index={10}>
-            <Panel title="Knowledge coverage" icon={BookOpen} className="h-full">
+            <Panel title={tr("Knowledge coverage")} icon={BookOpen} className="h-full">
               {knowledgeSplit.length === 0 ? (
-                <p className="py-14 text-center text-sm text-muted-foreground">
-                  No knowledge status recorded yet.
-                </p>
+                <p className="py-14 text-center text-sm text-muted-foreground">{tr("No knowledge status recorded yet.")}</p>
               ) : (
                 <>
                   <DonutBreakdown data={knowledgeSplit} nameKey="name" valueKey="value" />
@@ -571,7 +797,7 @@ function DashboardWidgets() {
         {/* Insights */}
         {show("insights") && (
           <BentoItem span={8} index={11}>
-            <Panel title="Executive insights" icon={Sparkles} className="h-full">
+            <Panel title={tr("Executive insights")} icon={Sparkles} className="h-full">
               {insightsQ.isLoading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 3 }).map((_, i) => (
@@ -579,9 +805,7 @@ function DashboardWidgets() {
                   ))}
                 </div>
               ) : (insightsQ.data?.insights ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Not enough signal yet — insights appear once the workspace is in daily use.
-                </p>
+                <p className="text-sm text-muted-foreground">{tr("Not enough signal yet — insights appear once the workspace is in daily use.")}</p>
               ) : (
                 <ul className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                   {(insightsQ.data?.insights ?? []).map((line, i) => (
@@ -601,7 +825,7 @@ function DashboardWidgets() {
 
         {/* Quick actions */}
         <BentoItem span={4} index={12}>
-          <Panel title="Quick actions" icon={ArrowRight} className="h-full">
+          <Panel title={tr("Quick actions")} icon={ArrowRight} className="h-full">
             <div className="grid grid-cols-2 gap-2">
               {QUICK_ACTIONS.map((a) => (
                 <Link
@@ -610,7 +834,7 @@ function DashboardWidgets() {
                   className="oq-lift flex flex-col gap-2 rounded-lg border border-border bg-muted/25 p-3 text-xs font-medium text-foreground"
                 >
                   <a.icon className="h-4 w-4 text-gold" strokeWidth={1.75} />
-                  {a.label}
+                  {tr(a.label)}
                 </Link>
               ))}
             </div>
@@ -619,19 +843,19 @@ function DashboardWidgets() {
 
         {show("topSops") && (
           <BentoItem span={6} index={13}>
-            <Panel title="Top SOPs" icon={BookOpen} className="h-full">
+            <Panel title={tr("Top SOPs")} icon={BookOpen} className="h-full">
               <ul className="space-y-2">
                 {(overviewQ.data?.topSops ?? []).map((s, i) => (
                   <li
                     key={i}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-2 text-sm"
                   >
-                    <span className="truncate">{s.title ?? s.code ?? "Untitled"}</span>
+                    <span className="truncate">{s.title ?? s.code ?? tr("Untitled")}</span>
                     <span className="tabular-nums text-muted-foreground">{s.usage}</span>
                   </li>
                 ))}
                 {(overviewQ.data?.topSops ?? []).length === 0 && (
-                  <li className="text-sm text-muted-foreground">No usage recorded yet.</li>
+                  <li className="text-sm text-muted-foreground">{tr("No usage recorded yet.")}</li>
                 )}
               </ul>
             </Panel>
@@ -640,7 +864,7 @@ function DashboardWidgets() {
 
         {show("criticalSops") && (
           <BentoItem span={6} index={14}>
-            <Panel title="Critical SOPs" icon={AlertTriangle} className="h-full">
+            <Panel title={tr("Critical SOPs")} icon={AlertTriangle} className="h-full">
               <ul className="space-y-2">
                 {(overviewQ.data?.criticalSops ?? []).map((s) => (
                   <li
@@ -654,7 +878,7 @@ function DashboardWidgets() {
                   </li>
                 ))}
                 {(overviewQ.data?.criticalSops ?? []).length === 0 && (
-                  <li className="text-sm text-muted-foreground">Nothing flagged as critical.</li>
+                  <li className="text-sm text-muted-foreground">{tr("Nothing flagged as critical.")}</li>
                 )}
               </ul>
             </Panel>
