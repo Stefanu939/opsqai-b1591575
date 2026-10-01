@@ -369,4 +369,10 @@ export async function bootstrapSelfHosted(): Promise<void> {
   void import("@/lib/microsoft/sharepoint-sync.server")
     .then((m) => m.startSharePointScheduler())
     .catch(() => undefined);
+
+  // Email Intelligence polls the configured team inbox on its own interval
+  // (no-op until an inbox is configured in the Email Intelligence page).
+  void import("@/lib/microsoft/email-sync.server")
+    .then((m) => m.startEmailScheduler())
+    .catch(() => undefined);
 }
