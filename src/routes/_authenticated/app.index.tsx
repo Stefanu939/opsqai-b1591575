@@ -523,12 +523,12 @@ function Dashboard() {
 }
 
 const QUICK_ACTIONS = [
-  { to: "/app/chat", label: tr("Ask the assistant"), icon: MessageSquare },
-  { to: "/app/knowledge", label: tr("Add knowledge"), icon: BookOpen },
-  { to: "/app/faq", label: tr("Curate FAQ"), icon: HelpCircle },
-  { to: "/app/academy", label: tr("Academy"), icon: GraduationCap },
-  { to: "/app/audit", label: tr("Run AI audit"), icon: LineChart },
-  { to: "/app/users", label: tr("Manage users"), icon: Users },
+  { to: "/app/chat", label: "Ask the assistant", icon: MessageSquare },
+  { to: "/app/knowledge", label: "Add knowledge", icon: BookOpen },
+  { to: "/app/faq", label: "Curate FAQ", icon: HelpCircle },
+  { to: "/app/academy", label: "Academy", icon: GraduationCap },
+  { to: "/app/audit", label: "Run AI audit", icon: LineChart },
+  { to: "/app/users", label: "Manage users", icon: Users },
 ];
 
 function DashboardWidgets() {
