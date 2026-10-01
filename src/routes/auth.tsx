@@ -334,6 +334,7 @@ function AuthPage() {
               >
                 {submitLabel}
               </Button>
+              {isSelfHosted && <MicrosoftSignIn lang={lang} />}
             </form>
           )}
 
@@ -360,5 +361,51 @@ function AuthPage() {
         </Card>
       </main>
     </div>
+  );
+}
+
+const SSO_ERRORS: Record<string, Record<"ro" | "en" | "de", string>> = {
+  no_account: {
+    ro: "Contul Microsoft nu are un cont OPSQAI. Cere administratorului o invitație.",
+    en: "This Microsoft account has no OPSQAI account. Ask your administrator for an invitation.",
+    de: "Für dieses Microsoft-Konto gibt es kein OPSQAI-Konto. Bitten Sie Ihren Administrator um eine Einladung.",
+  },
+  default: {
+    ro: "Conectarea cu Microsoft nu a reușit. Încearcă din nou.",
+    en: "Microsoft sign-in failed. Please try again.",
+    de: "Die Anmeldung mit Microsoft ist fehlgeschlagen. Bitte erneut versuchen.",
+  },
+};
+
+function MicrosoftSignIn({ lang }: { lang: string }) {
+  const [enabled, setEnabled] = useState(false);
+  const l = (lang === "ro" || lang === "de" ? lang : "en") as "ro" | "en" | "de";
+  useEffect(() => {
+    fetch("/api/auth/microsoft/status")
+      .then((r) => r.json())
+      .then((j: { enabled?: boolean }) => setEnabled(Boolean(j.enabled)))
+      .catch(() => undefined);
+    const err = new URLSearchParams(window.location.search).get("sso_error");
+    if (err) toast.error((SSO_ERRORS[err] ?? SSO_ERRORS.default)[l]);
+  }, [l]);
+  if (!enabled) return null;
+  const label = { ro: "Conectare cu Microsoft", en: "Sign in with Microsoft", de: "Mit Microsoft anmelden" }[l];
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="w-full h-12 md:h-10 rounded-xl md:rounded-md"
+      onClick={() => {
+        window.location.href = "/api/auth/microsoft/start";
+      }}
+    >
+      <svg viewBox="0 0 21 21" className="h-4 w-4 mr-2" aria-hidden>
+        <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+        <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+        <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+        <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+      </svg>
+      {label}
+    </Button>
   );
 }
