@@ -340,7 +340,8 @@ function MyTrainingHome() {
         onOpenChange={setCreateOpen}
         onCreated={(pathId) => {
           void loadCourses();
-          void navigate({ to: "/app/academy/path/$pathId", params: { pathId } })}
+          void navigate({ to: "/app/academy/path/$pathId", params: { pathId } });
+        }}
       />
     </div>
   );
