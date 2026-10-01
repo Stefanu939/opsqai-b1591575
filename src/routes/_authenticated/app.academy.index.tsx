@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyTraining, getMyTrainingSummary } from "@/lib/academy-lms.functions";
+import { listAcademyPaths } from "@/lib/academy.functions";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
 import { Card } from "@/components/ui/card";
@@ -87,6 +88,25 @@ function MyTrainingHome() {
   const [q, setQ] = useState("");
   const [assignOpen, setAssignOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const canManage = hasPermission("academy.manage");
+  const listPaths = useServerFn(listAcademyPaths);
+  const [courses, setCourses] = useState<any[]>([]);
+  const loadCourses = async () => {
+    if (!canManage) return;
+    try {
+      const p = ((await listPaths({ data: {} })) as any[]) ?? [];
+      setCourses(
+        p
+          .filter((c) => c.publish_status !== "archived")
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))),
+      );
+    } catch {
+      /* library stays empty; the Library page shows the error */
+    }
+  };
+  useEffect(() => {
+    void loadCourses();
+  }, [canManage]);
 
   const name = (user?.metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
 
@@ -209,6 +229,53 @@ function MyTrainingHome() {
           </BentoItem>
         </BentoGrid>
 
+        {canManage && (
+          <section className="mt-8 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-semibold">Courses library</h2>
+                <p className="text-xs text-muted-foreground">
+                  Every course you create or generate is saved here automatically — drafts included.
+                </p>
+              </div>
+              <Button asChild variant="ghost" size="sm" className="gap-1">
+                <Link to="/app/academy/kb">
+                  Open library <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </div>
+            {courses.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No courses yet. Use “Create course”.</p>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {courses.slice(0, 6).map((c) => (
+                  <Link
+                    key={c.id}
+                    to="/app/academy/path/$pathId"
+                    params={{ pathId: c.id }}
+                    className="block"
+                  >
+                    <Card className="p-4 h-full hover:bg-accent/40 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-medium text-sm line-clamp-2">{c.title}</div>
+                        <Badge variant={c.publish_status === "published" ? "default" : "outline"}>
+                          {c.publish_status === "published" ? "Published" : "Draft"}
+                        </Badge>
+                      </div>
+                      {c.description && (
+                        <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{c.description}</p>
+                      )}
+                      <div className="mt-2 text-[11px] text-muted-foreground">
+                        Passing {c.passing_score}% · {c.difficulty}
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* Filters + search */}
         <div className="mt-8 flex flex-wrap items-center gap-2">
           {FILTERS.map((f) => {
@@ -271,7 +338,9 @@ function MyTrainingHome() {
       <CreateCourseDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={(pathId) => navigate({ to: "/app/academy/path/$pathId", params: { pathId } })}
+        onCreated={(pathId) => {
+          void loadCourses();
+          void navigate({ to: "/app/academy/path/$pathId", params: { pathId } })}
       />
     </div>
   );
