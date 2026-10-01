@@ -14,12 +14,6 @@ export interface MicrosoftConfig {
   clientId?: string;
   clientSecret?: string;
   ssoEnabled?: boolean;
-  /** Hide the password form for non-admins once SSO works. */
-  ssoOnly?: boolean;
-  /** Create a local account on first Entra sign-in (otherwise invite-only). */
-  autoProvision?: boolean;
-  /** Allowed e-mail domains for auto-provisioning (lowercase). */
-  allowedDomains?: string[];
 }
 
 export function getMicrosoftConfig(): MicrosoftConfig {

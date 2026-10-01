@@ -51,6 +51,11 @@ export interface SignInResult {
 
 export interface IAuthProvider extends Provider {
   signIn(input: SignInInput): Promise<SignInResult>;
+  /**
+   * Self-Hosted only: issue a local session for an existing, enabled account
+   * whose identity was already verified by an external IdP (Entra ID).
+   */
+  signInVerified?(email: string, method: string): Promise<SignInResult>;
   signOut(refreshToken: string): Promise<void>;
   refresh(refreshToken: string): Promise<SignInResult>;
   requestPasswordReset(email: string): Promise<void>;
