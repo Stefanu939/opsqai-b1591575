@@ -1,61 +1,10 @@
-# Current design — Graphite Precision
+# OPSQAI — Current design: Midnight Command
 
-This file describes the design implemented in the codebase today. It is a consistency reference, not an immutable design lock. An explicitly approved visual change replaces this description; history remains in version control.
+Confirmed by the user on 2026-10-01 from a reference dashboard image. Applies to every scope (Self-Hosted, all workspaces incl. HR/Transport, Management Center, Portal, public site).
 
-Source of truth for values: `src/styles.css`.
-
-## Product-wide direction
-
-- **Scope:** the public website, Windows Self-Hosted product, first-run flow, native installer and desktop shell, Management Center, and Customer Portal.
-- **Direction:** light-first European enterprise editorial design with quiet, structured surfaces and factual system diagrams.
-- **Palette:** Graphite `#101315` / `#252B2D`, paper `#F1F3EF`, operational green `#26A67A`, and supporting teal `#247D91`. Dark mode uses the same palette with inverted foundations.
-- **Typography:** Instrument Serif for editorial display headings and Work Sans for navigation, body copy, controls, and data labels.
-- **Layout:** magazine-like hierarchy, restrained cards, clear section rules, generous whitespace, and compact factual labels.
-- **Motion:** non-blog public pages remain calm and static. Blog links and cards retain interactive feedback. Focus indicators remain visible everywhere.
-- **Navigation:** complete desktop navigation plus a mobile sheet with routes, EN/DE/RO language controls, theme control, contact, and sign-in actions.
-- **Visuals:** static diagrams explain the Windows Self-Hosted product, Core, licensed Products, Add-ons, and cloud support boundaries. No decorative 3D or unsupported performance/compliance claims.
-
-Primary public primitives:
-
-- `src/components/oix/oix-layout.tsx`
-- `src/components/oix/nav-shell.tsx`
-- `src/components/oix/footer-oix.tsx`
-- `src/components/oix/editorial-headline.tsx`
-- `src/components/oix/section-shell.tsx`
-- `src/components/oix/buttons.tsx`
-- `src/components/oix/enterprise-intelligence.tsx`
-
-## Authenticated products
-
-Authenticated scopes use the same Graphite Precision tokens and enterprise component language:
-
-- Self-Hosted: `/app/*`
-- Management Center: `/management/*`
-- Customer Portal: `/portal/*`
-
-Their licensing, entitlements, RBAC, product architecture, data access, deployment boundaries, and workflows remain independent and unchanged. Visual alignment never merges product responsibilities.
-
-## Product surfaces
-
-- **Self-Hosted:** operational application with a compact navigation rail, editorial page hierarchy, flat data panels, restrained charts, and licensed Product Workspaces.
-- **Management Center:** OPSQAI staff workspace with dense customer, installation, license, release, support, ownership, and audit views.
-- **Customer Portal:** customer-contact workspace for status, downloads, subscription, releases, documentation, calendar, and support.
-- **Setup:** both the web first-run flow and native Windows installer use the same graphite/paper/green/teal language and compact progress patterns.
-- **Compatibility:** old `gold`, `oq-soft`, and `glass` API names may remain temporarily in code, but render as teal, flat Graphite Precision surfaces rather than a separate visual system.
-
-## Product truth
-
-- Windows Self-Hosted is the customer product.
-- Core capabilities are permanent platform capabilities.
-- Products are Operations, Quality & Compliance, Logistics, HR, Finance, and Inventory; availability is shown truthfully.
-- Optional Add-ons are separately entitled.
-- Management Center is an OPSQAI staff support service.
-- Customer Portal is a support surface for designated customer contacts.
-- Public content is maintained in EN, DE, and RO.
-## Interaction pattern
-
-- Details and forms inside Product Workspaces (Transport, HR) open in a right-hand slide-over panel (`src/components/ui/side-panel.tsx`, Dialog-compatible API), keeping the list visible. Small confirmations and signature capture may stay as centered dialogs.
-- The HR employee file opens as a wide slide-over over the staff list.
-- The Self-Hosted dashboard control center shows clickable Critical / Attention / Informational tiles that filter the lanes; each item opens in a side panel with a link to its module.
-- Transport opens with a dispatch strip: vehicles as red / yellow / green tiles by worst document alert, each opening a vehicle side panel.
-- Icons stay on the single Lucide set, used consistently at size 4 in panels and lists.
+- Palette: deep midnight navy background (oklch 0.15 0.025 275), slightly lighter cards, violet primary (oklch 0.6 0.2 285), teal success, amber warning, red critical. Thin translucent borders, no heavy shadows.
+- Type: Space Grotesk for headings/display, Inter for body. Small uppercase tracked violet eyebrow labels ("CENTRU DE COMANDĂ").
+- Layout: dark sidebar with grouped sections (Spațiu de lucru / Aplicații / Administrare), every item with a Lucide icon at size 4; active item has a subtle violet-tinted fill and left accent. Top bar: context label, centered universal search (Ctrl/Cmd+K), local status dot on the right.
+- Pages: greeting + one-line summary, priority list with colored left severity bars and "Deschide →" text actions, quick-action tiles, side status column with progress bars.
+- Interaction: slide-over side panels for details, at most two clicks to any action.
+- Tokens live only in `src/styles.css` (`:root`); there is a single dark theme.
