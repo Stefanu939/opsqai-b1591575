@@ -30,6 +30,54 @@ interface SourceRef {
   similarity: number;
 }
 
+interface EmailListRow {
+  id: string;
+  subject: string | null;
+  from_name: string | null;
+  from_email: string | null;
+  received_at: string | null;
+  preview: string | null;
+  has_attachments: boolean;
+  attachment_names: string[] | null;
+  classification: string | null;
+  priority: string | null;
+  status: string;
+  summary: string | null;
+  draft_id: string | null;
+  draft_status: string | null;
+  draft_grounded: boolean | null;
+}
+
+interface EmailMessageRow {
+  id: string;
+  message_id: string | null;
+  subject: string | null;
+  from_name: string | null;
+  from_email: string | null;
+  received_at: string | null;
+  preview: string | null;
+  has_attachments: boolean;
+  attachment_names: string[] | null;
+  body_text: string | null;
+  classification: string | null;
+  priority: string | null;
+  summary: string | null;
+  status: string;
+}
+
+interface EmailDraftRow {
+  id: string;
+  draft: string;
+  sources: SourceRef[] | null;
+  grounded: boolean | null;
+  status: string;
+  edited_by: string | null;
+  edited_at: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_at: string | null;
+}
+
 /** Platform-admin + Self-Hosted gate, mirroring the Microsoft 365 module. */
 async function guard(context: { supabase: unknown; userId: string }) {
   await requirePlatformAdmin(context);
