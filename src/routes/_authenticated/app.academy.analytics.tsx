@@ -89,7 +89,7 @@ function AnalyticsPage() {
     return (
       <div className="flex flex-col">
         <AcademySubnav />
-        <div className="p-6 max-w-6xl mx-auto w-full space-y-4">
+        <div className="px-4 py-8 md:px-6 max-w-7xl mx-auto w-full space-y-4">
           <button
             onClick={() => setSelected(null)}
             className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
@@ -191,10 +191,11 @@ function AnalyticsPage() {
   return (
     <div className="flex flex-col">
       <AcademySubnav />
-      <div className="p-6 max-w-6xl mx-auto w-full space-y-6">
+      <div className="px-4 py-8 md:px-6 max-w-7xl mx-auto w-full space-y-6">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
+            <div className="mb-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary"><span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />OPSQAI Academy</div>
+<h1 className="font-display text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-3">
               <BarChart3 className="h-5 w-5 text-primary" /> Course analytics
             </h1>
             <p className="text-xs text-muted-foreground mt-1">
