@@ -45,11 +45,12 @@ export function createPgThreadRepository(deps: PgThreadRepositoryDeps): IThreadR
         created_at: Date;
         updated_at: Date;
         company_id: string;
+        pinned: boolean;
       }>(
-        `SELECT id, title, created_at, updated_at, company_id
+        `SELECT id, title, created_at, updated_at, company_id, pinned
            FROM public.threads
           WHERE user_id = $1
-          ORDER BY updated_at DESC
+          ORDER BY pinned DESC, updated_at DESC
           LIMIT $2`,
         [userId, limit],
       );
@@ -59,6 +60,7 @@ export function createPgThreadRepository(deps: PgThreadRepositoryDeps): IThreadR
         createdAt: toIso(r.created_at),
         updatedAt: toIso(r.updated_at),
         companyId: r.company_id,
+        pinned: r.pinned === true,
       }));
     },
     async renameOwned(id, userId, title) {
@@ -66,6 +68,12 @@ export function createPgThreadRepository(deps: PgThreadRepositoryDeps): IThreadR
         `UPDATE public.threads SET title = $3, updated_at = NOW()
           WHERE id = $1 AND user_id = $2`,
         [id, userId, title],
+      );
+    },
+    async setPinned(id, userId, pinned) {
+      await pool.query(
+        `UPDATE public.threads SET pinned = $3 WHERE id = $1 AND user_id = $2`,
+        [id, userId, pinned],
       );
     },
   };

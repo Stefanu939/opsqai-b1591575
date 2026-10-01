@@ -15,6 +15,13 @@
       "when": 1789747262485,
       "tag": "0001_chunk_citation_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790870543213,
+      "tag": "0002_thread_pinned",
+      "breakpoints": true
     }
   ]
 }

@@ -381,9 +381,14 @@ export interface IThreadRepository {
     userId: string,
     opts?: { companyId?: string | null; limit?: number },
   ): Promise<
-    Array<Pick<ThreadRecord, "id" | "title" | "createdAt" | "updatedAt" | "companyId">>
+    Array<
+      Pick<ThreadRecord, "id" | "title" | "createdAt" | "updatedAt" | "companyId"> & {
+        pinned: boolean;
+      }
+    >
   >;
   renameOwned(id: string, userId: string, title: string): Promise<void>;
+  setPinned(id: string, userId: string, pinned: boolean): Promise<void>;
 }
 
 export interface AssistantMessage {

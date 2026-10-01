@@ -68,6 +68,21 @@ export const renameThread = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Pin/unpin a conversation for this user, server-side so it follows devices. */
+export const setThreadPinned = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: { id: string; pinned: boolean }) =>
+    z.object({ id: uuidString(), pinned: z.boolean() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await getThreadRepository(context.supabase).setPinned(
+      data.id,
+      context.userId,
+      data.pinned,
+    );
+    return { ok: true };
+  });
+
 /** Ordered transcript for a thread, resolved through the active data provider. */
 export const listThreadMessages = createServerFn({ method: "POST" })
   .middleware([requireAuth])
