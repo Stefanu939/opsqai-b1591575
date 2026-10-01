@@ -53,7 +53,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users, UserPlus, Trash2, KeyRound, Mail, Camera } from "lucide-react";
+import { Users, UserPlus, Trash2, KeyRound, Mail, Camera, Download } from "lucide-react";
+import { exportUserData } from "@/lib/gdpr-export.functions";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
@@ -116,6 +117,7 @@ function UsersPage() {
   const getModulesFn = useServerFn(getUserModuleAccess);
   const getRightsFn = useServerFn(getUserAreaRights);
   const setRightsFn = useServerFn(setUserAreaRights);
+  const exportFn = useServerFn(exportUserData);
   const qc = useQueryClient();
   const selfHosted = getClientDeploymentMode() === "selfhost";
 
@@ -841,6 +843,30 @@ function UsersPage() {
                     </DialogContent>
                   </Dialog>
 
+                  {getClientDeploymentMode() !== "mc" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          const json = await exportFn({ data: { user_id: detailUser.id } });
+                          const url = URL.createObjectURL(
+                            new Blob([json], { type: "application/json" }),
+                          );
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `gdpr-export-${detailUser.id}.json`;
+                          a.click();
+                          setTimeout(() => URL.revokeObjectURL(url), 4000);
+                          toast.success("GDPR export downloaded");
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Export failed");
+                        }
+                      }}
+                    >
+                      <Download className="h-3.5 w-3.5 mr-1" /> GDPR export
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="destructive"
