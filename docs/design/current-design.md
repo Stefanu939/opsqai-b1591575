@@ -56,3 +56,6 @@ Their licensing, entitlements, RBAC, product architecture, data access, deployme
 
 - Details and forms inside Product Workspaces (Transport, HR) open in a right-hand slide-over panel (`src/components/ui/side-panel.tsx`, Dialog-compatible API), keeping the list visible. Small confirmations and signature capture may stay as centered dialogs.
 - The HR employee file opens as a wide slide-over over the staff list.
+- The Self-Hosted dashboard control center shows clickable Critical / Attention / Informational tiles that filter the lanes; each item opens in a side panel with a link to its module.
+- Transport opens with a dispatch strip: vehicles as red / yellow / green tiles by worst document alert, each opening a vehicle side panel.
+- Icons stay on the single Lucide set, used consistently at size 4 in panels and lists.
