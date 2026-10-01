@@ -56,15 +56,15 @@ export function ModulePage({
           />
         </div>
 
-        {tabs && <div className="mb-4 flex flex-wrap items-center gap-2">{tabs}</div>}
+        {tabs && <div className="mb-6 flex flex-wrap items-center gap-2">{tabs}</div>}
 
         {toolbar && (
-           <div className="sticky top-0 z-10 -mx-1 mb-4 flex flex-wrap items-center gap-2 border border-border bg-card px-2 py-2 shadow-xs">
+           <div className="sticky top-0 z-10 mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card/95 px-3 py-2 backdrop-blur">
             {toolbar}
           </div>
         )}
 
-        <div className="space-y-4">{children}</div>
+        <div className="space-y-6">{children}</div>
       </div>
     </div>
   );

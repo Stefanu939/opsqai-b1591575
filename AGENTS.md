@@ -10,3 +10,5 @@
 > the editor, so keep the branch in a working state.
 
 <!-- LOVABLE:END -->
+
+- Every /app page (Core and any workspace, current or future) renders inside `ModulePage` with `Panel` sections; page styling changes go into those shared components, never per page — keeps all screens identical.

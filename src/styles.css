@@ -207,6 +207,7 @@
 
 
 @layer base {
+  main h1 { font-family: var(--font-display); letter-spacing: -0.01em; }
   * {
     border-color: var(--color-border);
   }
