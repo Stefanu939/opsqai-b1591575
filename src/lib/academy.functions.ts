@@ -1197,7 +1197,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
             pathTitle: pathResult?.path.title,
             score: finalScore,
             certificateUrl: "https://opsqai.de/app/academy",
-            verifyUrl: `https://opsqai.de/verify/${cert.code}`,
+            verifyUrl: `${(await import("@/lib/academy-certificate.server")).resolveCertificateVerifyBase()}/verify/${cert.code}`,
           },
         });
       }

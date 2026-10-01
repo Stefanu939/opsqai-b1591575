@@ -67,7 +67,15 @@ export async function requirePermission(
   context: { supabase: any; userId: string },
   permission: string,
 ) {
-  if (!(await hasPermission(context, permission))) throw new Error("Forbidden");
+  if (await hasPermission(context, permission)) return;
+  // Say *why* — a bare "Forbidden" made blocked saves look like silent bugs.
+  const { isMutatingPermission, isLicenseReadOnly } = await import("@/lib/license-readonly.server");
+  if (isMutatingPermission(permission) && (await isLicenseReadOnly())) {
+    throw new Error(
+      `Licence is in read-only mode (expired or grace period) — changes are blocked until the licence is renewed. (${permission})`,
+    );
+  }
+  throw new Error(`Forbidden: your account is missing the "${permission}" right.`);
 }
 
 export async function requireAnyPermission(

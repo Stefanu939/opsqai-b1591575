@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Server-only: build a branded certificate PDF and store it via the storage provider.
+import { getRequest } from "@tanstack/react-start/server";
 import { getAcademyRepository, getCompanyRepository, getProfileRepository, getStorageProvider } from "@/lib/providers/registry";
 
 const BUCKET = "academy-certificates";
@@ -61,12 +62,7 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const QRCode = (await import("qrcode")).default;
 
-  const verifyBase = (
-    (typeof template.verifyBaseUrl === "string" && template.verifyBaseUrl) ||
-    process.env["APP_URL"] ||
-    "https://opsqai.de"
-  ).replace(/\/+$/, "");
-  const verifyUrl = `${verifyBase}/verify/${code}`;
+  const verifyUrl = `${resolveCertificateVerifyBase()}/verify/${code}`;
   const qrPng = await QRCode.toBuffer(verifyUrl, { width: 220, margin: 1 });
 
 
@@ -268,4 +264,24 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
   await academyRepo.markCertificatePdf(certId, pdfPath, verifyUrl);
 
   return { id: certId, code, path: pdfPath };
+}
+
+/**
+ * Standard, non-configurable verification address for certificate QR codes:
+ * always this installation itself (APP_URL from the installer, otherwise the
+ * public host the request arrived on via Caddy).
+ */
+export function resolveCertificateVerifyBase(): string {
+  const fromEnv = process.env["APP_URL"];
+  if (fromEnv) return fromEnv.replace(/\/+$/, "");
+  try {
+    const req = getRequest();
+    const h = req.headers;
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const proto = (h.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(":", "")).split(",")[0];
+    if (host) return `${proto}://${host.split(",")[0].trim()}`;
+    return new URL(req.url).origin;
+  } catch {
+    return "https://opsqai.de";
+  }
 }
