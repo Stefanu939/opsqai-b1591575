@@ -52,3 +52,7 @@ Their licensing, entitlements, RBAC, product architecture, data access, deployme
 - Management Center is an OPSQAI staff support service.
 - Customer Portal is a support surface for designated customer contacts.
 - Public content is maintained in EN, DE, and RO.
+## Interaction pattern
+
+- Details and forms inside Product Workspaces (Transport, HR) open in a right-hand slide-over panel (`src/components/ui/side-panel.tsx`, Dialog-compatible API), keeping the list visible. Small confirmations and signature capture may stay as centered dialogs.
+- The HR employee file opens as a wide slide-over over the staff list.

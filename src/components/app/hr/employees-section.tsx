@@ -28,6 +28,7 @@ import { contractTypes, type EmployeeStatus, type HrEmployee, type HrEmployeeFil
 import type { HrUi } from "@/i18n/pages/hr";
 import { hrPayrollUi } from "@/i18n/pages/hr-payroll";
 import { EmployeeDialog } from "./employee-dialog";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { EditableField } from "./editable-field";
 import { PayrollCard } from "./payroll-card";
 import { SignatureCard } from "./signature-card";
@@ -66,20 +67,6 @@ export function EmployeesSection({ t }: { t: HrUi }) {
   const grants = query.data?.grants ?? [];
   const country = query.data?.settings.country ?? "generic";
   const employees = useMemo(() => query.data?.employees ?? [], [query.data]);
-
-  if (selected) {
-    return (
-      <EmployeeDetail
-        t={t}
-        id={selected}
-        onBack={() => setSelected(null)}
-        onEdit={(employee) => {
-          setEditing(employee);
-          setDialogOpen(true);
-        }}
-      />
-    );
-  }
 
   const picker = (
     key: "departmentId" | "positionId" | "locationId",
@@ -276,6 +263,23 @@ export function EmployeesSection({ t }: { t: HrUi }) {
           </div>
         </Panel>
       )}
+
+      <Sheet open={selected !== null} onOpenChange={(o) => !o && setSelected(null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-3xl">
+          <SheetTitle className="sr-only">{t.overview}</SheetTitle>
+          {selected ? (
+            <EmployeeDetail
+              t={t}
+              id={selected}
+              onBack={() => setSelected(null)}
+              onEdit={(employee) => {
+                setEditing(employee);
+                setDialogOpen(true);
+              }}
+            />
+          ) : null}
+        </SheetContent>
+      </Sheet>
 
       <EmployeeDialog
         t={t}

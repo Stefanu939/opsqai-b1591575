@@ -9,7 +9,7 @@ import { MatchSemaphore } from "./semaphore";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/side-panel";
 import { askHrCandidate, compareHrCandidates, exportHrCandidatePdf, updateHrCandidate } from "@/lib/hr-ext.functions";
 import { downloadBase64 } from "@/components/app/transport/download";
 import type { HrCandidate } from "@/lib/hr/types-ext";

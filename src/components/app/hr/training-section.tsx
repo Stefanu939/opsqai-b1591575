@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/side-panel";
 import { deleteHrTraining, deleteHrTrainingRecord, saveHrTraining, saveHrTrainingRecord } from "@/lib/hr-ws.functions";
 import type { HrTraining } from "@/lib/hr/types-ws";
 import type { HrWsUi } from "@/i18n/pages/hr-ws";

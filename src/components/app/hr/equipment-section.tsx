@@ -16,7 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/side-panel";
 import { assignHrAsset, deleteHrAsset, saveHrAsset } from "@/lib/hr-ext.functions";
 import type { HrExtUi } from "@/i18n/pages/hr-ext";
 import type { HrWsUi } from "@/i18n/pages/hr-ws";
