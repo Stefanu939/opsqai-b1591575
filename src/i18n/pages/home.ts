@@ -161,6 +161,9 @@ const en = {
       "Documented disaster recovery with bootstrap tokens",
       "Role-based access control across the workspace",
       "Multilingual UI (EN/DE/RO) and PWA support",
+      "Microsoft Entra ID sign-in and incremental SharePoint folder sync",
+      "Email Intelligence with human-approved drafts and Microsoft Teams access",
+      "Configurable retention, personal-data export and anonymisation workflows",
     ],
   },
   faq: {
@@ -371,6 +374,9 @@ const de: HomeCopy = {
       "Dokumentiertes Disaster Recovery mit Bootstrap-Tokens",
       "Rollenbasierte Zugriffskontrolle im gesamten Workspace",
       "Zweisprachige Oberfläche (DE/EN) und PWA-Unterstützung",
+      "Microsoft-Entra-ID-Anmeldung und inkrementelle SharePoint-Ordnersynchronisierung",
+      "Email Intelligence mit menschlich freigegebenen Entwürfen und Microsoft-Teams-Zugriff",
+      "Konfigurierbare Aufbewahrung, Personendatenexport und Anonymisierungsabläufe",
     ],
   },
   faq: {
@@ -579,6 +585,9 @@ const ro: HomeCopy = {
       "Disaster recovery documentat cu token-uri bootstrap",
       "Control al accesului bazat pe roluri în tot workspace-ul",
       "Interfață bilingvă (EN/DE) și suport PWA",
+      "Autentificare Microsoft Entra ID și sincronizare incrementală a folderelor SharePoint",
+      "Email Intelligence cu drafturi aprobate de oameni și acces prin Microsoft Teams",
+      "Retenție configurabilă, export de date personale și fluxuri de anonimizare",
     ],
   },
   faq: {

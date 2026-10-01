@@ -1,6 +1,6 @@
 # OPSQAI
 
-> OPSQAI builds your workspace around your problems. You tell us the problem; we analyze the root cause, design the solution and build it into your OPSQAI Workspace — a Windows Self-Hosted product your employees actually use. OPSQAI Cloud (Management Center and Customer Portal) exists only for licensing, releases, installer distribution and customer support. Customers own their data, documents, embeddings and AI provider.
+> OPSQAI builds your workspace around your problems. It is not limited to logistics: banking, financial services, HR, manufacturing and other regulated or complex operations can start from one diagnosed workflow. The result is a Windows Self-Hosted product employees actually use. OPSQAI Cloud (Management Center and Customer Portal) exists only for licensing, releases, installer distribution and customer support. Customers own their data, documents, embeddings and AI provider.
 
 ## The model
 
@@ -11,14 +11,15 @@
 
 - Management Center (cloud, OPSQAI staff only): companies, installations, licenses, releases, signing keys, activation bundles, ownership, support, audit.
 - Customer Portal (cloud, customer contacts): installer downloads, updates, activation bundles, documentation, release notes, subscription and support.
-- Self-Hosted (Windows, the actual product): AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, Subscription, Updates, Modules.
+- Self-Hosted (Windows, the actual product): grounded AI Chat with citations, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, signed updates and recovery, GDPR data workflows, Microsoft Entra ID, incremental SharePoint sync, Email Intelligence with human approval, Teams access and licensed company-specific workspaces.
 
 ## Pages
 
 - [Home](/): Your Workspace. Built around your problems.
 - [Discovery](/discovery): Problem → Diagnosis → Solution → Workspace. Deliverables and how to start.
 - [Product](/product): Windows Self-Hosted customer product and its supporting cloud services.
-- [Platform](/modules): Core Platform, licensed OPSQAI Products and optional Add-ons.
+- [Platform](/modules): permanently included Core Platform, licensed OPSQAI Products and optional Add-ons.
+- [Solutions](/solutions): examples across banking, financial services, logistics, HR, finance and transport; not the limit of configurable workspaces.
 - [Self-hosted](/self-hosted): Windows deployment, data flow, requirements.
 - [Security](/security): Ed25519 licenses, hash-chained audit, CRL, chunk-level ACL.
 - [Pricing](/pricing): Core Platform, OPSQAI Products, optional Add-ons and Annual Maintenance.
