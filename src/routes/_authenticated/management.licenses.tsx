@@ -862,7 +862,7 @@ function CustomerEntitlementsPanel({
               <p className="mt-1 font-mono text-xs text-muted-foreground">{selectedCompany.install_id ?? slugify(selectedCompany.name)}</p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" disabled={coreMut.isPending} onClick={async () => { if (dirty) await coreMut.mutateAsync(); onIssueFor({ company_name: selectedCompany.name, install_id: (selectedCompany.install_id ?? slugify(selectedCompany.name)).toLowerCase(), seats: selectedCompany.max_users }); }}>
+              <Button size="sm" disabled={coreMut.isPending} onClick={async () => { await coreMut.mutateAsync(); onIssueFor({ company_name: selectedCompany.name, install_id: (selectedCompany.install_id ?? slugify(selectedCompany.name)).toLowerCase(), seats: selectedCompany.max_users }); }}>
                 <KeyRound className="mr-1.5 h-3.5 w-3.5" />{coreMut.isPending ? "Saving…" : lic ? "Save & reissue JWT" : "Save & issue JWT"}
               </Button>
             </div>

@@ -58,6 +58,14 @@ export const flushMyCriticalAlertEmails = createServerFn({ method: "POST" })
         });
         sent += 1;
       } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        // Suppressed recipients are an expected outcome: keep the stamp, no retry.
+        if (msg === "recipient_suppressed") continue;
+        // Real failure: release the stamp so a later run can retry.
+        await context.supabase
+          .from("notifications")
+          .update({ emailed_at: null } as never)
+          .eq("id", row.id);
         console.error("[critical-alerts] email failed", e instanceof Error ? e.message : e);
       }
     }
