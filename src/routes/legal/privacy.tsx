@@ -75,11 +75,13 @@ export const Route = createFileRoute("/legal/privacy")({
           Tag, Google Ads, retargeting pixels, or newsletter open/click tracking.
         </li>
         <li>
-          <strong>No product telemetry from the self-hosted instance</strong> — the OPSQAI software
-          running on the customer's Windows Server does not send usage telemetry to us. The only
-          outbound call to our infrastructure is a periodic licence heartbeat to the Management
-          Center, which carries the licence identifier and heartbeat timestamp; no customer content
-          and no end-user identifiers.
+          <strong>No customer content from the self-hosted instance</strong> — the OPSQAI software
+          running on the customer's server contacts our Management Center only for licence
+          validation, signed update checks and, if the customer leaves it enabled, aggregate usage
+          figures (for example number of questions, documents and active seats). These carry the
+          installation and licence identifiers, software version and counters — never documents,
+          questions, answers, names or email addresses of end users. Aggregate reporting can be
+          switched off by the customer at any time.
         </li>
         <li>
           <strong>No AI subprocessing by OPSQAI</strong> — opsqai.de does not use AI. The AI
