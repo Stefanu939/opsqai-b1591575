@@ -6,6 +6,7 @@ import { listMyTraining, getMyTrainingSummary } from "@/lib/academy-lms.function
 import { listAcademyPaths } from "@/lib/academy.functions";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
+import { translateLabel } from "@/i18n/ui-labels";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -233,7 +234,7 @@ function MyTrainingHome() {
           <section className="mt-8 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <h2 className="text-sm font-semibold">Courses library</h2>
+                <h2 className="text-sm font-semibold">{translateLabel("Courses library", lang)}</h2>
                 <p className="text-xs text-muted-foreground">
                   Every course you create or generate is saved here automatically — drafts included.
                 </p>

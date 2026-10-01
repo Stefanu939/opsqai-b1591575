@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useUiLabel } from "@/i18n/ui-labels";
 
 interface PanelProps {
   title?: ReactNode;
@@ -33,10 +34,11 @@ export function Panel({
   bodyClassName,
   children,
 }: PanelProps) {
+  const tl = useUiLabel();
   return (
     <section
       className={cn(
-         "relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
+         "relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-[border-color,box-shadow] duration-200 hover:border-primary/30 hover:shadow-[0_0_32px_-12px_color-mix(in_oklch,var(--primary)_40%,transparent)]",
          glass && "bg-card",
         className,
       )}
@@ -52,12 +54,12 @@ export function Panel({
             <div className="min-w-0">
               {title && (
                 <h2 className="truncate font-display text-[15px] font-semibold tracking-tight text-foreground">
-                  {title}
+                  {tl(title)}
                 </h2>
               )}
               {description && (
                 <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                  {description}
+                  {tl(description)}
                 </p>
               )}
             </div>

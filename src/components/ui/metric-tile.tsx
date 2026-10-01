@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { useUiLabel } from "@/i18n/ui-labels";
 
 export interface MetricTileProps {
   label: string;
@@ -40,6 +41,7 @@ export function MetricTile({
   onClick,
   className,
 }: MetricTileProps) {
+  const tl = useUiLabel();
   const data = (series ?? []).map((v, i) => ({ i, v }));
   const id = `spark-${label.replace(/\W+/g, "-").toLowerCase()}`;
 
@@ -49,7 +51,7 @@ export function MetricTile({
     <Root
       {...(onClick ? { type: "button" as const, onClick } : {})}
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-lg border bg-card p-4 text-left shadow-xs oq-lift",
+        "group relative flex h-full flex-col overflow-hidden rounded-lg border bg-card p-4 text-left shadow-xs oq-lift transition-shadow duration-200 hover:border-primary/40 hover:shadow-[0_0_24px_-8px_color-mix(in_oklch,var(--primary)_45%,transparent)]",
         onClick &&
           "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         toneRing[tone],
@@ -58,7 +60,7 @@ export function MetricTile({
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          {label}
+          {tl(label)}
         </span>
         {Icon && (
           <Icon
@@ -68,7 +70,7 @@ export function MetricTile({
         )}
       </div>
 
-      <div className="mt-2 font-display text-[26px] font-semibold leading-none tabular-nums text-foreground">
+      <div className="mt-2 font-display text-[30px] font-semibold tracking-tight leading-none tabular-nums text-foreground">
         {value}
       </div>
 
@@ -89,7 +91,7 @@ export function MetricTile({
               {delta.value}
             </span>
           )}
-          {hint && <span className="truncate">{hint}</span>}
+          {hint && <span className="truncate">{tl(hint)}</span>}
         </div>
       )}
 
