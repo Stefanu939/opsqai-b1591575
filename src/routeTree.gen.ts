@@ -59,6 +59,7 @@ import { Route as DocumentationEngineeringRouteImport } from './routes/documenta
 import { Route as DocumentationArchitectureRouteImport } from './routes/documentation.architecture'
 import { Route as DocumentationAdministratorGuideRouteImport } from './routes/documentation.administrator-guide'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AuthMicrosoftRouteImport } from './routes/auth.microsoft'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
@@ -140,6 +141,10 @@ import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
 import { Route as ApiPublicResourcesFileRouteImport } from './routes/api/public/resources.$file'
 import { Route as ApiPublicCalendarTokenRouteImport } from './routes/api/public/calendar.$token'
+import { Route as ApiAuthMicrosoftStatusRouteImport } from './routes/api/auth/microsoft.status'
+import { Route as ApiAuthMicrosoftStartRouteImport } from './routes/api/auth/microsoft.start'
+import { Route as ApiAuthMicrosoftExchangeRouteImport } from './routes/api/auth/microsoft.exchange'
+import { Route as ApiAuthMicrosoftCallbackRouteImport } from './routes/api/auth/microsoft.callback'
 import { Route as AuthenticatedPortalNewsSlugRouteImport } from './routes/_authenticated/portal.news.$slug'
 import { Route as AuthenticatedPortalAdminDownloadsRouteImport } from './routes/_authenticated/portal.admin.downloads'
 import { Route as AuthenticatedManagementValueIdRouteImport } from './routes/_authenticated/management.value.$id'
@@ -419,6 +424,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BlogRoute,
+} as any)
+const AuthMicrosoftRoute = AuthMicrosoftRouteImport.update({
+  id: '/microsoft',
+  path: '/microsoft',
+  getParentRoute: () => AuthRoute,
 } as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
@@ -867,6 +877,28 @@ const ApiPublicCalendarTokenRoute = ApiPublicCalendarTokenRouteImport.update({
   path: '/api/public/calendar/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthMicrosoftStatusRoute = ApiAuthMicrosoftStatusRouteImport.update({
+  id: '/api/auth/microsoft/status',
+  path: '/api/auth/microsoft/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthMicrosoftStartRoute = ApiAuthMicrosoftStartRouteImport.update({
+  id: '/api/auth/microsoft/start',
+  path: '/api/auth/microsoft/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthMicrosoftExchangeRoute =
+  ApiAuthMicrosoftExchangeRouteImport.update({
+    id: '/api/auth/microsoft/exchange',
+    path: '/api/auth/microsoft/exchange',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAuthMicrosoftCallbackRoute =
+  ApiAuthMicrosoftCallbackRouteImport.update({
+    id: '/api/auth/microsoft/callback',
+    path: '/api/auth/microsoft/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedPortalNewsSlugRoute =
   AuthenticatedPortalNewsSlugRouteImport.update({
     id: '/$slug',
@@ -1032,7 +1064,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
@@ -1071,6 +1103,7 @@ export interface FileRoutesByFullPath {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
@@ -1162,6 +1195,10 @@ export interface FileRoutesByFullPath {
   '/management/value/$id': typeof AuthenticatedManagementValueIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
+  '/api/auth/microsoft/callback': typeof ApiAuthMicrosoftCallbackRoute
+  '/api/auth/microsoft/exchange': typeof ApiAuthMicrosoftExchangeRoute
+  '/api/auth/microsoft/start': typeof ApiAuthMicrosoftStartRoute
+  '/api/auth/microsoft/status': typeof ApiAuthMicrosoftStatusRoute
   '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
   '/api/public/resources/$file': typeof ApiPublicResourcesFileRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1191,7 +1228,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
   '/compare': typeof CompareRoute
@@ -1225,6 +1262,7 @@ export interface FileRoutesByTo {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
@@ -1314,6 +1352,10 @@ export interface FileRoutesByTo {
   '/management/value/$id': typeof AuthenticatedManagementValueIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
+  '/api/auth/microsoft/callback': typeof ApiAuthMicrosoftCallbackRoute
+  '/api/auth/microsoft/exchange': typeof ApiAuthMicrosoftExchangeRoute
+  '/api/auth/microsoft/start': typeof ApiAuthMicrosoftStartRoute
+  '/api/auth/microsoft/status': typeof ApiAuthMicrosoftStatusRoute
   '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
   '/api/public/resources/$file': typeof ApiPublicResourcesFileRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1345,7 +1387,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
@@ -1384,6 +1426,7 @@ export interface FileRoutesById {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
@@ -1475,6 +1518,10 @@ export interface FileRoutesById {
   '/_authenticated/management/value/$id': typeof AuthenticatedManagementValueIdRoute
   '/_authenticated/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/_authenticated/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
+  '/api/auth/microsoft/callback': typeof ApiAuthMicrosoftCallbackRoute
+  '/api/auth/microsoft/exchange': typeof ApiAuthMicrosoftExchangeRoute
+  '/api/auth/microsoft/start': typeof ApiAuthMicrosoftStartRoute
+  '/api/auth/microsoft/status': typeof ApiAuthMicrosoftStatusRoute
   '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
   '/api/public/resources/$file': typeof ApiPublicResourcesFileRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1545,6 +1592,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/auth/microsoft'
     | '/blog/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
@@ -1636,6 +1684,10 @@ export interface FileRouteTypes {
     | '/management/value/$id'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
+    | '/api/auth/microsoft/callback'
+    | '/api/auth/microsoft/exchange'
+    | '/api/auth/microsoft/start'
+    | '/api/auth/microsoft/status'
     | '/api/public/calendar/$token'
     | '/api/public/resources/$file'
     | '/api/public/v1/faqs'
@@ -1699,6 +1751,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/auth/microsoft'
     | '/blog/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
@@ -1788,6 +1841,10 @@ export interface FileRouteTypes {
     | '/management/value/$id'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
+    | '/api/auth/microsoft/callback'
+    | '/api/auth/microsoft/exchange'
+    | '/api/auth/microsoft/start'
+    | '/api/auth/microsoft/status'
     | '/api/public/calendar/$token'
     | '/api/public/resources/$file'
     | '/api/public/v1/faqs'
@@ -1857,6 +1914,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/auth/microsoft'
     | '/blog/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
@@ -1948,6 +2006,10 @@ export interface FileRouteTypes {
     | '/_authenticated/management/value/$id'
     | '/_authenticated/portal/admin/downloads'
     | '/_authenticated/portal/news/$slug'
+    | '/api/auth/microsoft/callback'
+    | '/api/auth/microsoft/exchange'
+    | '/api/auth/microsoft/start'
+    | '/api/auth/microsoft/status'
     | '/api/public/calendar/$token'
     | '/api/public/resources/$file'
     | '/api/public/v1/faqs'
@@ -1979,7 +2041,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LegalRouteRoute: typeof LegalRouteRouteWithChildren
   AcceptInviteRoute: typeof AcceptInviteRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   BlogRoute: typeof BlogRouteWithChildren
   BrandRoute: typeof BrandRoute
   CompanyRoute: typeof CompanyRoute
@@ -2037,6 +2099,10 @@ export interface RootRouteChildren {
   ApiPublicStudySubmitRoute: typeof ApiPublicStudySubmitRoute
   ApiPublicVerifyCertificateRoute: typeof ApiPublicVerifyCertificateRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
+  ApiAuthMicrosoftCallbackRoute: typeof ApiAuthMicrosoftCallbackRoute
+  ApiAuthMicrosoftExchangeRoute: typeof ApiAuthMicrosoftExchangeRoute
+  ApiAuthMicrosoftStartRoute: typeof ApiAuthMicrosoftStartRoute
+  ApiAuthMicrosoftStatusRoute: typeof ApiAuthMicrosoftStatusRoute
   ApiPublicCalendarTokenRoute: typeof ApiPublicCalendarTokenRoute
   ApiPublicResourcesFileRoute: typeof ApiPublicResourcesFileRoute
   ApiPublicV1FaqsRoute: typeof ApiPublicV1FaqsRoute
@@ -2403,6 +2469,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/auth/microsoft': {
+      id: '/auth/microsoft'
+      path: '/microsoft'
+      fullPath: '/auth/microsoft'
+      preLoaderRoute: typeof AuthMicrosoftRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/api/workspace-chat': {
       id: '/api/workspace-chat'
@@ -2971,6 +3044,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCalendarTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/microsoft/status': {
+      id: '/api/auth/microsoft/status'
+      path: '/api/auth/microsoft/status'
+      fullPath: '/api/auth/microsoft/status'
+      preLoaderRoute: typeof ApiAuthMicrosoftStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/microsoft/start': {
+      id: '/api/auth/microsoft/start'
+      path: '/api/auth/microsoft/start'
+      fullPath: '/api/auth/microsoft/start'
+      preLoaderRoute: typeof ApiAuthMicrosoftStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/microsoft/exchange': {
+      id: '/api/auth/microsoft/exchange'
+      path: '/api/auth/microsoft/exchange'
+      fullPath: '/api/auth/microsoft/exchange'
+      preLoaderRoute: typeof ApiAuthMicrosoftExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/microsoft/callback': {
+      id: '/api/auth/microsoft/callback'
+      path: '/api/auth/microsoft/callback'
+      fullPath: '/api/auth/microsoft/callback'
+      preLoaderRoute: typeof ApiAuthMicrosoftCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/portal/news/$slug': {
       id: '/_authenticated/portal/news/$slug'
       path: '/$slug'
@@ -3437,6 +3538,16 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
+interface AuthRouteChildren {
+  AuthMicrosoftRoute: typeof AuthMicrosoftRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthMicrosoftRoute: AuthMicrosoftRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -3478,7 +3589,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LegalRouteRoute: LegalRouteRouteWithChildren,
   AcceptInviteRoute: AcceptInviteRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   BlogRoute: BlogRouteWithChildren,
   BrandRoute: BrandRoute,
   CompanyRoute: CompanyRoute,
@@ -3537,6 +3648,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStudySubmitRoute: ApiPublicStudySubmitRoute,
   ApiPublicVerifyCertificateRoute: ApiPublicVerifyCertificateRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
+  ApiAuthMicrosoftCallbackRoute: ApiAuthMicrosoftCallbackRoute,
+  ApiAuthMicrosoftExchangeRoute: ApiAuthMicrosoftExchangeRoute,
+  ApiAuthMicrosoftStartRoute: ApiAuthMicrosoftStartRoute,
+  ApiAuthMicrosoftStatusRoute: ApiAuthMicrosoftStatusRoute,
   ApiPublicCalendarTokenRoute: ApiPublicCalendarTokenRoute,
   ApiPublicResourcesFileRoute: ApiPublicResourcesFileRoute,
   ApiPublicV1FaqsRoute: ApiPublicV1FaqsRoute,
