@@ -193,8 +193,8 @@ const WIZARD_SHELL_HTML = String.raw`
             </select>
           </label>
           <div class="grid-2">
-            <label>Chat model<input id="ai-chat-model" value="qwen2.5:7b" spellcheck="false" /></label>
-            <label>Fast model<input id="ai-fast-model" value="qwen2.5:3b" spellcheck="false" /></label>
+            <label>Chat model<input id="ai-chat-model" value="qwen2.5:3b" spellcheck="false" /></label>
+            <label>Fast model<input id="ai-fast-model" value="qwen2.5:1.5b" spellcheck="false" /></label>
           </div>
           <div class="grid-2">
             <label>Embedding model<input id="ai-embedding-model" value="bge-m3" spellcheck="false" /></label>
