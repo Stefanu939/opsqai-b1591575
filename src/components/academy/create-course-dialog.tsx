@@ -136,9 +136,14 @@ export function CreateCourseDialog({
           passing_score: passingScore,
           difficulty,
           mandatory,
+          publish_status: publishStatus,
         },
       })) as any;
-      notifySaved("Course generated and saved as draft in the Academy library —");
+      notifySaved(
+        publishStatus === "published"
+          ? "Course generated and published in the Academy library —"
+          : "Course generated and saved as draft in the Academy library —",
+      );
       reset();
       onOpenChange(false);
       const id = created?.path_id ?? created?.id ?? created?.pathId;

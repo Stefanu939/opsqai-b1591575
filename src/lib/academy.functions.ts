@@ -594,6 +594,9 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
         passing_score: z.number().int().min(0).max(100).optional().nullable(),
         mandatory: z.boolean().optional().default(false),
         difficulty: z.string().optional().default("standard"),
+        // Honour the creator's choice: a generated course can go straight to
+        // the library as published instead of always landing as a draft.
+        publish_status: z.enum(["draft", "published"]).optional().default("draft"),
       })
       .parse(d),
   )
@@ -684,7 +687,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
       passingScore:
         data.passing_score ?? (await academyRepo.getSettings(companyId))?.passing_score ?? 70,
       difficulty: data.difficulty ?? "standard",
-      publishStatus: "draft",
+      publishStatus: data.publish_status,
       createdBy: context.userId,
     });
     const pathId = path.id;
@@ -712,7 +715,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
           summary: ls.summary,
           language: data.language,
           estimatedMinutes: 10,
-          publishStatus: "draft",
+          publishStatus: data.publish_status,
           orderIndex: li,
           createdBy: context.userId,
         });
