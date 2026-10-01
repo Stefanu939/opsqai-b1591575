@@ -48,6 +48,13 @@ describe("grounded prompt", () => {
     expect(p).toMatch(/ONLY source of truth/);
     expect(p).toContain("SOP-1");
   });
+
+  it("evaluates concrete cases against documented SOP and FAQ rules only", () => {
+    const p = groundedSystemPrompt("[Document 1] SOP-CR\nminim 12 luni", "ro");
+    expect(p).toMatch(/CASE EVALUATION/);
+    expect(p).toMatch(/\[FAQ N\]/);
+    expect(p).toMatch(/Never invent a threshold/);
+  });
 });
 
 describe("answer validation", () => {
