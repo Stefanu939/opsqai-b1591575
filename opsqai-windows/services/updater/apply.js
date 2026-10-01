@@ -36,7 +36,7 @@ const path = require("path");
 const https = require("https");
 const crypto = require("crypto");
 const { execFileSync, spawnSync, spawn } = require("child_process");
-const { loadConfig, programData, programFiles } = require("../common/config");
+const { loadConfig, saveConfig, programData, programFiles } = require("../common/config");
 
 // --- Constants -------------------------------------------------------------
 
@@ -47,7 +47,17 @@ const HEALTH_TIMEOUT_MS = 90_000;
 const MIN_FREE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GiB
 const RETENTION_DAYS = 7;
 
-const SERVICES_TO_CYCLE = ["OpsqaiWorker", "OpsqaiPlatform"];
+// When started by runner.js (out-of-tree copy) every OPSQAI service except the
+// database is stopped, including the updater itself and the proxy, so no file
+// under Program Files stays locked. In-process (legacy) only app + worker.
+const IS_RUNNER = process.env.OPSQAI_UPDATE_RUNNER === "1";
+const SERVICES_TO_CYCLE = IS_RUNNER
+  ? ["OpsqaiPlatform", "OpsqaiWorker", "OpsqaiCaddy", "OpsqaiHello", "OpsqaiUpdater"]
+  : ["OpsqaiWorker", "OpsqaiPlatform"];
+const NOTICE = programData("updates", "notice.json");
+const STATE_FILE = programData("updates", "state.json");
+const PROGRESS = programData("updates", "progress.json");
+const VERSION_MARKER = ".opsqai-version";
 
 // --- Utilities -------------------------------------------------------------
 
@@ -91,6 +101,11 @@ function svc(name, action) {
 }
 function stopServices() {
   for (const s of [...SERVICES_TO_CYCLE].reverse()) svc(s, "stop");
+  if (IS_RUNNER) {
+    // Give Windows a moment to release handles held by the stopped services.
+    const until = Date.now() + 3000;
+    while (Date.now() < until) {}
+  }
 }
 function startServices() {
   for (const s of SERVICES_TO_CYCLE) svc(s, "start");
@@ -195,7 +210,33 @@ function snapshot(stamp) {
   return { dir, events };
 }
 
-function copyBinaries(stamp) {
+function writeJson(p, v) {
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify(v, null, 2));
+  } catch (e) {
+    console.warn(`[updater/apply] cannot write ${p}: ${e.message}`);
+  }
+}
+
+function latestRollbackDir() {
+  const root = programData("rollback");
+  if (!fs.existsSync(root)) return null;
+  const dirs = fs
+    .readdirSync(root)
+    .map((n) => path.join(root, n))
+    .filter((p) => {
+      try {
+        return fs.statSync(p).isDirectory() && fs.existsSync(path.join(p, "app"));
+      } catch {
+        return false;
+      }
+    })
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  return dirs[0] || null;
+}
+
+function copyBinaries(stamp, fromVersion) {
   const events = [];
   const src = programFiles();
   const dest = programData("rollback", stamp);
@@ -203,11 +244,14 @@ function copyBinaries(stamp) {
   events.push(log("rollback", `copying ${src} -> ${dest}`));
   const r = spawnSync(
     "robocopy.exe",
-    [src, dest, "/MIR", "/NFL", "/NDL", "/NP", "/R:1", "/W:1"],
+    [src, dest, "/MIR", "/NFL", "/NDL", "/NP", "/R:5", "/W:2"],
     { stdio: "inherit" },
   );
   // robocopy exit codes 0-7 are success ranges.
   if ((r.status ?? 16) >= 8) throw new Error(`robocopy failed (exit ${r.status})`);
+  try {
+    fs.writeFileSync(path.join(dest, VERSION_MARKER), String(fromVersion || ""));
+  } catch {}
   return { dir: dest, events };
 }
 
@@ -252,7 +296,7 @@ function runArchive(zipPath, stamp) {
   events.push(log("install", `copying payload -> ${programFiles()}`));
   const r = spawnSync(
     "robocopy.exe",
-    [src, programFiles(), "/E", "/NFL", "/NDL", "/NP", "/R:1", "/W:1"],
+    [src, programFiles(), "/E", "/NFL", "/NDL", "/NP", "/R:5", "/W:2"],
     { stdio: "inherit" },
   );
   if ((r.status ?? 16) >= 8) throw new Error(`copying the payload failed (exit ${r.status})`);
@@ -279,7 +323,7 @@ function restoreBinaries(rollbackDir) {
   events.push(log("rollback", `restoring binaries from ${rollbackDir}`));
   const r = spawnSync(
     "robocopy.exe",
-    [rollbackDir, programFiles(), "/MIR", "/NFL", "/NDL", "/NP", "/R:1", "/W:1"],
+    [rollbackDir, programFiles(), "/MIR", "/XF", VERSION_MARKER, "/NFL", "/NDL", "/NP", "/R:5", "/W:2"],
     { stdio: "inherit" },
   );
   if ((r.status ?? 16) >= 8) events.push(fail("rollback", `robocopy exit ${r.status}`));
@@ -318,6 +362,85 @@ function appendHistory(row) {
 }
 
 // --- Main --------------------------------------------------------------------
+
+function finish(row, state, kind) {
+  writeJson(NOTICE, {
+    at: new Date().toISOString(),
+    version: row.to_version,
+    fromVersion: row.from_version,
+    outcome: row.outcome === "success" ? "success" : row.outcome,
+    kind,
+    automatic: true,
+    error: row.failed_step || null,
+  });
+  writeJson(PROGRESS, { phase: "done", version: row.to_version, at: new Date().toISOString() });
+  try {
+    const s = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
+    s.lastApply = { version: row.to_version, outcome: row.outcome, kind, at: row.finished_at };
+    writeJson(STATE_FILE, s);
+  } catch {
+    if (state) writeJson(STATE_FILE, { ...state, lastApply: { version: row.to_version, outcome: row.outcome, kind } });
+  }
+}
+
+/** Manual recovery: restore the most recent pre-update copy of the install. */
+async function rollbackMain() {
+  const cfg = loadConfig();
+  const dir = latestRollbackDir();
+  if (!dir) {
+    console.error("no previous version available to restore");
+    writeJson(NOTICE, { at: new Date().toISOString(), outcome: "rollback_unavailable", kind: "rollback" });
+    process.exit(5);
+  }
+  if (!acquireLock()) {
+    console.error(`another update is already running (${LOCK_FILE})`);
+    process.exit(3);
+  }
+  let prev = "";
+  try {
+    prev = fs.readFileSync(path.join(dir, VERSION_MARKER), "utf8").trim();
+  } catch {}
+  const row = {
+    started_at: new Date().toISOString(),
+    from_version: cfg.version || "0.0.0",
+    to_version: prev || "previous",
+    kind: "rollback",
+    rollback_dir: dir,
+    outcome: "running",
+    step_log: [],
+  };
+  writeJson(PROGRESS, { phase: "rolling_back", version: row.to_version, at: row.started_at });
+  try {
+    row.step_log.push(log("rollback", `restoring ${dir}`));
+    stopServices();
+    restoreBinaries(dir).forEach((e) => row.step_log.push(e));
+    if (prev) {
+      try {
+        const c = loadConfig();
+        c.version = prev;
+        saveConfig(c);
+      } catch (e) {
+        row.step_log.push(fail("config", e));
+      }
+    }
+    startServices();
+    const h = await httpsHealth();
+    row.outcome = h.ok ? "rolled_back" : "failed_no_rollback";
+    if (!h.ok) row.failed_step = `health probe failed after rollback: ${h.error || h.status}`;
+  } catch (e) {
+    row.step_log.push(fail("rollback", e));
+    row.outcome = "failed_no_rollback";
+    row.failed_step = e instanceof Error ? e.message : String(e);
+    try {
+      startServices();
+    } catch {}
+  } finally {
+    row.finished_at = new Date().toISOString();
+    appendHistory(row);
+    finish(row, null, "rollback");
+    releaseLock();
+  }
+}
 
 async function main() {
   const stamp = ts();
@@ -361,7 +484,7 @@ async function main() {
     row.snapshot_dir = snapshotDir;
     push(snap.events);
 
-    const rb = copyBinaries(stamp);
+    const rb = copyBinaries(stamp, row.from_version);
     rollbackDir = rb.dir;
     row.rollback_dir = rollbackDir;
     push(rb.events);
@@ -416,14 +539,19 @@ async function main() {
     process.exitCode = 4;
   } finally {
     appendHistory(row);
+    if (IS_RUNNER) finish(row, state, "update");
     releaseLock();
   }
 }
 
-module.exports = { main, _internal: { preFlight, snapshot, copyBinaries, retentionPrune, runArchive } };
+module.exports = {
+  main,
+  rollbackMain,
+  _internal: { preFlight, snapshot, copyBinaries, retentionPrune, runArchive, latestRollbackDir },
+};
 
 if (require.main === module) {
-  main().catch((e) => {
+  (process.argv.includes("--rollback") ? rollbackMain() : main()).catch((e) => {
     console.error(`[updater/apply] fatal: ${e.stack || e.message}`);
     releaseLock();
     process.exit(99);
