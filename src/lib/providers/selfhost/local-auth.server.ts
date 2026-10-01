@@ -343,10 +343,9 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
                   WHERE user_id = $1 AND created_at > now() - interval '1 hour') < 3`,
         [user.id, sha256Hex(token), expiresAt],
       );
-      // The token is returned via a side channel (SMTP provider or Windows
-      // Event Log for air-gapped installs). Callers of requestPasswordReset
-      // are responsible for wiring the delivery. We deliberately do not
-      // return the plaintext token here.
+      // The plaintext token is never logged, returned, or written to the
+      // Windows Event Log. Delivery is only by the configured SMTP provider;
+      // without SMTP an administrator resets the password from the Users page.
     },
 
     async confirmPasswordReset(token: string, newPassword: string): Promise<void> {
