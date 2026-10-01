@@ -358,7 +358,7 @@ const WIZARD_SHELL_HTML = String.raw`
         <li data-stage="postgres"><span class="stage-dot"></span>Installing bundled PostgreSQL</li>
         <li data-stage="services"><span class="stage-dot"></span>Installing OPSQAI services</li>
         <li data-stage="migrate"><span class="stage-dot"></span>Creating database &amp; applying migrations</li>
-        <li data-stage="ai-install"><span class="stage-dot"></span>Installing local AI runtime (Ollama)</li>
+        <li data-stage="ai-install"><span class="stage-dot"></span>Installing local AI runtime</li>
         <li data-stage="ai-start"><span class="stage-dot"></span>Starting local AI runtime</li>
         <li data-stage="ai-chat-model"><span class="stage-dot"></span>Downloading chat model</li>
         <li data-stage="ai-embed-model"><span class="stage-dot"></span>Downloading embedding model</li>
@@ -798,7 +798,7 @@ const STAGE_MARKERS = [
   { stage: "postgres", match: /postgres|initdb|pg_ctl/i,              pct: 22 },
   { stage: "services", match: /installing services|winsw|nssm/i,      pct: 40 },
   { stage: "migrate",  match: /running app migrations|migrate|admin seeded/i, pct: 62 },
-  { stage: "ai-install",     match: /ai engine: installing Ollama runtime/i,   pct: 66 },
+  { stage: "ai-install",     match: /ai engine: installing (Ollama|llama\.cpp) runtime/i,   pct: 66 },
   { stage: "ai-start",       match: /ai engine: starting local runtime/i,      pct: 70 },
   { stage: "ai-chat-model",  match: /ai engine: downloading chat model/i,      pct: 74 },
   { stage: "ai-embed-model", match: /ai engine: downloading embedding model/i, pct: 80 },
