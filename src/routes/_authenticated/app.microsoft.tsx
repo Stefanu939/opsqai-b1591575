@@ -248,7 +248,7 @@ function MicrosoftPage() {
                 await qc.invalidateQueries({ queryKey: ["teams-settings"] });
               }, L.saved)}>{L.teamsSave}</Button>
               <Button variant="outline" disabled={busy !== null || !qTeams.data?.configured} onClick={() => run("teams-test", async () => {
-                const r = await testTeams({ data: {} });
+                const r = await testTeams();
                 if (!r.ok) throw new Error(r.error);
               }, L.teamsOk)}>{L.teamsTest}</Button>
             </div>

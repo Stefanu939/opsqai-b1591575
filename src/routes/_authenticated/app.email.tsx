@@ -316,7 +316,7 @@ function EmailIntelligencePage() {
                 if (!r.ok) throw new Error(r.error);
               }, L.ok)}>{L.test}</Button>
               <Button variant="outline" disabled={busy !== null || !cfg} onClick={() => run("sync", async () => {
-                const r = await sync({ data: {} });
+                const r = await sync();
                 toast.success(`${L.syncDone}${r.added}`);
               })}>
                 <RefreshCw className={`mr-1 h-4 w-4 ${busy === "sync" ? "animate-spin" : ""}`} />
@@ -449,7 +449,7 @@ function EmailIntelligencePage() {
                             <Copy className="mr-1 h-4 w-4" />{L.copyDraft}
                           </Button>
                           <Button size="sm" variant="ghost" asChild>
-                            <a href={`mailto:${encodeURIComponent(selected.message.from_email ?? "")}?subject=${encodeURIComponent(selected.message.subject ?? "")}&body=${encodeURIComponent(draftText)}`}>
+                            <a href={`mailto:${encodeURIComponent(String(selected.message.from_email ?? ""))}?subject=${encodeURIComponent(selected.message.subject ?? "")}&body=${encodeURIComponent(draftText)}`}>
                               <MailOpen className="mr-1 h-4 w-4" />{L.openInMail}
                             </a>
                           </Button>
