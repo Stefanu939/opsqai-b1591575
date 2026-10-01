@@ -50,6 +50,10 @@ import {
 
 
 const DASH_TR: Record<string, Record<"en"|"ro"|"de", string>> = {
+ "Hello": {"en":"Hello","ro":"Bună ziua","de":"Guten Tag"},
+ "Welcome to OPSQAI": {"en":"Welcome to OPSQAI","ro":"Bun venit în OPSQAI","de":"Willkommen bei OPSQAI"},
+ "Activity": {"en":"Activity","ro":"Activitate","de":"Aktivität"},
+ "Questions asked versus assistant responses.": {"en":"Questions asked versus assistant responses.","ro":"Întrebări puse comparativ cu răspunsurile asistentului.","de":"Gestellte Fragen im Vergleich zu Antworten."},
  "Get started": {
   "en": "Get started",
   "ro": "Primii pași",
@@ -438,7 +442,7 @@ function Dashboard() {
         <PageHeader
           title={
             isEmptyWorkspace
-              ? `Welcome to OPSQAI, ${name}`
+              ? `${tr("Welcome to OPSQAI")}, ${name}`
               : `${tr("Hello")}, ${name}${company ? ` — ${company}` : ""}`
           }
           description={
@@ -720,8 +724,8 @@ function DashboardWidgets() {
         {show("activity") && (
           <BentoItem span={8} index={8}>
             <Panel
-              title={`Activity — last ${filters.range}`}
-              description="Questions asked versus assistant responses."
+              title={`${tr("Activity")} — ${filters.range}`}
+              description={tr("Questions asked versus assistant responses.")}
               icon={Activity}
               className="h-full"
             >
