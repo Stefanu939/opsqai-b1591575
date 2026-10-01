@@ -32,7 +32,7 @@ export const Route = createFileRoute("/solutions/$vertical")({
       title: v.meta.title,
       description: v.meta.description,
       path: `/solutions/${slug}`,
-      keywords: `${v.name}, self-hosted AI, operational knowledge, SOP answers, Romania, Germany, DACH`,
+      keywords: `${v.name}, self-hosted AI, governed AI, operational knowledge, source-cited procedures, Romania, Germany, DACH`,
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Solutions", path: "/solutions" },
@@ -159,7 +159,7 @@ function VerticalPage() {
 
         <div className="mt-14">
           <div className="oix-eyebrow mb-6">{t.labels.otherVerticals}</div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {others.map((slug) => (
               <Link
                 key={slug}

@@ -29,7 +29,7 @@ export const Route = createFileRoute("/pilot")({
       description: pilotCopyEn.meta.description,
       path: "/pilot",
       keywords:
-        "OPSQAI pilot, free trial operational AI, Windows self-hosted AI pilot, logistics AI pilot, HR AI pilot, Romania, Germany",
+        "OPSQAI pilot, banking AI pilot, financial services AI, Windows self-hosted AI pilot, logistics AI pilot, Romania, Germany",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Pilot Program", path: "/pilot" },
@@ -112,7 +112,7 @@ function PilotPage() {
                 {t.form.submit}
               </OixButton>
               <OixButton to="/contact?subject=demo" variant="ghost">
-                Book a demo
+                {t.form.bookDemo}
               </OixButton>
             </div>
           </div>

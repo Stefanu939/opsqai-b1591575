@@ -20,7 +20,7 @@ export const Route = createFileRoute("/solutions/")({
       description: solutionsCopyEn.labels.indexMetaDescription,
       path: "/solutions",
       keywords:
-        "operational AI solutions, logistics AI, HR AI, finance AI, transport fleet AI, self-hosted AI Romania Germany",
+        "operational AI solutions, banking AI, financial services AI, logistics AI, HR AI, self-hosted AI Romania Germany",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Solutions", path: "/solutions" },

@@ -1,7 +1,7 @@
 // Copy for the public vertical landing pages (/solutions/...).
 import { useT } from "@/i18n";
 
-export const SOLUTION_VERTICALS = ["logistics", "hr", "finance", "transport"] as const;
+export const SOLUTION_VERTICALS = ["banking", "logistics", "hr", "finance", "transport"] as const;
 export type SolutionVertical = (typeof SOLUTION_VERTICALS)[number];
 
 export function isSolutionVertical(value: string): value is SolutionVertical {
@@ -45,12 +45,12 @@ export const solutionsCopyEn: SolutionsCopy = {
   labels: {
     indexEyebrow: "Solutions",
     indexTitle: "One operational answer layer,",
-    indexAccent: "four operating realities.",
+    indexAccent: "many operating realities.",
     indexBody:
-      "OPSQAI runs on your own Windows Server and answers only from your approved documents. Choose the operation you are responsible for.",
-    indexMetaTitle: "Solutions by Operation — OPSQAI · Logistics, HR, Finance, Transport",
+      "OPSQAI adapts to the problem, not the other way around. Explore examples across banking, logistics, people and operational teams — or bring us a different workflow.",
+    indexMetaTitle: "Operational AI Solutions — OPSQAI · Banking, Logistics, HR and More",
     indexMetaDescription:
-      "Self-hosted operational AI for logistics, HR, finance and transport teams. Answers grounded in your own procedures, installed on your Windows Server.",
+      "Self-hosted operational AI for banking, logistics, HR, finance and other complex operations. Grounded answers from your procedures, on your Windows Server.",
     painsEyebrow: "The daily reality",
     painsTitle: "What this costs you today",
     capabilitiesEyebrow: "What OPSQAI does",
@@ -63,6 +63,41 @@ export const solutionsCopyEn: SolutionsCopy = {
     otherVerticals: "Other operations",
   },
   verticals: {
+    banking: {
+      name: "Banking & Financial Services",
+      tagline: "Internal procedures, evidence and learning — with accountable human decisions.",
+      meta: {
+        title: "Banking Operational AI, Self-Hosted — OPSQAI",
+        description: "Self-hosted operational AI for banks and financial services: source-cited policy answers, training, role-based access and local audit evidence.",
+      },
+      hero: {
+        eyebrow: "Banking & Financial Services",
+        headline: "Find the approved procedure",
+        serifAccent: "before the decision.",
+        body: "OPSQAI helps employees navigate internal policies, product rules and operating procedures with source-cited answers. It supports the work; accountable people remain responsible for every credit, risk and customer decision.",
+      },
+      pains: [
+        { title: "Policies are spread across systems", body: "Teams lose time reconciling document portals, email updates and local copies before acting." },
+        { title: "The current version is unclear", body: "A correct answer still creates risk when it comes from an outdated procedure." },
+        { title: "Training evidence takes manual work", body: "Policy changes require targeted learning, acknowledgement and proof for internal review." },
+        { title: "Public AI is outside the boundary", body: "Sensitive operating context needs role-based access, traceability and customer-controlled infrastructure." },
+      ],
+      capabilities: [
+        { title: "Grounded policy answers", body: "Answers cite the approved document and source location, or refuse when the available evidence is insufficient." },
+        { title: "SharePoint-connected knowledge", body: "Selected folders can sync incrementally; citations link employees back to the original permitted source." },
+        { title: "Controlled learning and evidence", body: "Academy turns approved procedures into assigned learning, records completion and keeps a local audit trail." },
+        { title: "Human control by design", body: "OPSQAI supports retrieval, drafting and training. It does not make autonomous credit, risk or customer decisions." },
+      ],
+      outcomes: [
+        { value: "Cited", label: "answers from approved internal sources" },
+        { value: "Human", label: "accountability for every decision" },
+        { value: "Local", label: "audit evidence inside your installation" },
+      ],
+      cta: {
+        title: "Pilot one internal procedure domain",
+        body: "Choose a bounded, non-customer-data use case, load approved procedures and evaluate answer quality, citations, adoption and audit evidence over 30 days.",
+      },
+    },
     logistics: {
       name: "Logistics & Warehouse",
       tagline: "Shift-proof procedures for picking, receiving and dispatch.",
@@ -214,12 +249,12 @@ const de: SolutionsCopy = {
   labels: {
     indexEyebrow: "Lösungen",
     indexTitle: "Eine Antwortebene,",
-    indexAccent: "vier operative Realitäten.",
+    indexAccent: "viele operative Realitäten.",
     indexBody:
-      "OPSQAI läuft auf Ihrem eigenen Windows Server und antwortet ausschließlich aus Ihren freigegebenen Dokumenten. Wählen Sie den Bereich, für den Sie verantwortlich sind.",
-    indexMetaTitle: "Lösungen nach Bereich — OPSQAI · Logistik, HR, Finanzen, Transport",
+      "OPSQAI passt sich dem Problem an, nicht umgekehrt. Entdecken Sie Beispiele für Banken, Logistik, Personal und operative Teams — oder bringen Sie einen anderen Ablauf mit.",
+    indexMetaTitle: "Operative KI-Lösungen — OPSQAI · Banken, Logistik, HR und mehr",
     indexMetaDescription:
-      "Self-hosted KI für Logistik, HR, Finanzen und Transport. Antworten aus Ihren eigenen Anweisungen, installiert auf Ihrem Windows Server.",
+      "Self-hosted operative KI für Banken, Logistik, HR, Finanzen und weitere komplexe Abläufe. Belegte Antworten auf Ihrem Windows Server.",
     painsEyebrow: "Der Alltag",
     painsTitle: "Was Sie das heute kostet",
     capabilitiesEyebrow: "Was OPSQAI leistet",
@@ -232,6 +267,41 @@ const de: SolutionsCopy = {
     otherVerticals: "Weitere Bereiche",
   },
   verticals: {
+    banking: {
+      name: "Banken & Finanzdienstleister",
+      tagline: "Interne Verfahren, Nachweise und Lernen — bei verantwortlicher menschlicher Entscheidung.",
+      meta: {
+        title: "Operative KI für Banken, Self-Hosted — OPSQAI",
+        description: "Self-hosted operative KI für Banken: belegte Richtlinienantworten, Schulung, Rollenrechte und lokale Auditnachweise.",
+      },
+      hero: {
+        eyebrow: "Banken & Finanzdienstleister",
+        headline: "Die freigegebene Anweisung finden",
+        serifAccent: "bevor entschieden wird.",
+        body: "OPSQAI hilft Mitarbeitenden, interne Richtlinien, Produktregeln und Verfahren mit Quellenangaben zu nutzen. Verantwortliche Menschen treffen weiterhin jede Kredit-, Risiko- und Kundenentscheidung.",
+      },
+      pains: [
+        { title: "Richtlinien liegen in mehreren Systemen", body: "Teams gleichen Portale, E-Mail-Updates und lokale Kopien ab, bevor sie handeln können." },
+        { title: "Die aktuelle Version ist unklar", body: "Auch eine richtige Antwort ist riskant, wenn sie aus einer veralteten Anweisung stammt." },
+        { title: "Schulungsnachweise sind Handarbeit", body: "Änderungen erfordern gezieltes Lernen, Bestätigung und Belege für interne Prüfungen." },
+        { title: "Öffentliche KI liegt außerhalb der Grenze", body: "Sensibler Kontext braucht Rollenrechte, Nachvollziehbarkeit und kundeneigene Infrastruktur." },
+      ],
+      capabilities: [
+        { title: "Belegte Richtlinienantworten", body: "Antworten zitieren das freigegebene Dokument und die Quelle oder verweigern bei unzureichender Evidenz." },
+        { title: "Mit SharePoint verbundenes Wissen", body: "Ausgewählte Ordner werden inkrementell synchronisiert; Zitate führen zur erlaubten Originalquelle." },
+        { title: "Kontrolliertes Lernen und Nachweise", body: "Academy macht aus Verfahren zugewiesenes Lernen und protokolliert Abschluss und Auditnachweis lokal." },
+        { title: "Menschliche Kontrolle by Design", body: "OPSQAI unterstützt Suche, Entwürfe und Schulung. Es trifft keine autonomen Kredit-, Risiko- oder Kundenentscheidungen." },
+      ],
+      outcomes: [
+        { value: "Belegt", label: "Antworten aus freigegebenen Quellen" },
+        { value: "Menschlich", label: "Verantwortung für jede Entscheidung" },
+        { value: "Lokal", label: "Auditnachweise in Ihrer Installation" },
+      ],
+      cta: {
+        title: "Einen internen Verfahrensbereich pilotieren",
+        body: "Wählen Sie einen begrenzten Anwendungsfall ohne Kundendaten und bewerten Sie Antworten, Quellen, Nutzung und Auditnachweise über 30 Tage.",
+      },
+    },
     logistics: {
       name: "Logistik & Lager",
       tagline: "Schichtfeste Anweisungen für Kommissionierung, Wareneingang und Versand.",
@@ -383,12 +453,12 @@ const ro: SolutionsCopy = {
   labels: {
     indexEyebrow: "Soluții",
     indexTitle: "Un singur strat de răspuns,",
-    indexAccent: "patru realități operaționale.",
+    indexAccent: "multiple realități operaționale.",
     indexBody:
-      "OPSQAI rulează pe serverul tău Windows și răspunde exclusiv din documentele aprobate. Alege operațiunea de care răspunzi.",
-    indexMetaTitle: "Soluții pe operațiuni — OPSQAI · Logistică, HR, Finanțe, Transport",
+      "OPSQAI se mulează pe problemă, nu invers. Vezi exemple pentru bănci, logistică, oameni și echipe operaționale — sau vino cu un flux diferit.",
+    indexMetaTitle: "Soluții AI operaționale — OPSQAI · Bănci, Logistică, HR și altele",
     indexMetaDescription:
-      "AI operațional self-hosted pentru logistică, HR, finanțe și transport. Răspunsuri din propriile proceduri, instalat pe serverul tău Windows.",
+      "AI operațional self-hosted pentru bănci, logistică, HR, finanțe și alte operațiuni complexe. Răspunsuri fundamentate pe propriul Windows Server.",
     painsEyebrow: "Realitatea zilnică",
     painsTitle: "Cât te costă asta astăzi",
     capabilitiesEyebrow: "Ce face OPSQAI",
@@ -401,6 +471,41 @@ const ro: SolutionsCopy = {
     otherVerticals: "Alte operațiuni",
   },
   verticals: {
+    banking: {
+      name: "Bănci & Servicii Financiare",
+      tagline: "Proceduri interne, dovezi și instruire — cu decizia responsabilă păstrată la oameni.",
+      meta: {
+        title: "AI operațional pentru bănci, Self-Hosted — OPSQAI",
+        description: "AI operațional self-hosted pentru bănci: răspunsuri cu surse, instruire, acces pe roluri și dovezi locale de audit.",
+      },
+      hero: {
+        eyebrow: "Bănci & Servicii Financiare",
+        headline: "Găsești procedura aprobată",
+        serifAccent: "înainte de decizie.",
+        body: "OPSQAI ajută angajații să navigheze politicile interne, regulile de produs și procedurile cu răspunsuri care citează sursa. Platforma sprijină munca; oamenii responsabili păstrează fiecare decizie de credit, risc sau client.",
+      },
+      pains: [
+        { title: "Politicile sunt împărțite între sisteme", body: "Echipele pierd timp reconciliind portaluri, actualizări prin e-mail și copii locale înainte să acționeze." },
+        { title: "Versiunea valabilă nu este clară", body: "Chiar și un răspuns corect creează risc dacă provine dintr-o procedură depășită." },
+        { title: "Dovada instruirii cere muncă manuală", body: "Schimbările de politică cer învățare țintită, confirmare și dovadă pentru control intern." },
+        { title: "AI-ul public este în afara graniței", body: "Contextul sensibil cere acces pe roluri, trasabilitate și infrastructură controlată de client." },
+      ],
+      capabilities: [
+        { title: "Răspunsuri fundamentate pe politici", body: "Răspunsurile citează documentul aprobat și locul sursei sau refuză când dovezile disponibile nu sunt suficiente." },
+        { title: "Cunoștințe conectate la SharePoint", body: "Folderele selectate se sincronizează incremental; citările duc utilizatorul la sursa originală permisă." },
+        { title: "Instruire controlată și dovezi", body: "Academy transformă procedurile în învățare atribuită și păstrează finalizarea și auditul local." },
+        { title: "Control uman prin design", body: "OPSQAI ajută la căutare, redactare și instruire. Nu ia autonom decizii de credit, risc sau client." },
+      ],
+      outcomes: [
+        { value: "Citat", label: "răspuns din surse interne aprobate" },
+        { value: "Uman", label: "responsabilitate pentru fiecare decizie" },
+        { value: "Local", label: "dovezi de audit în instalația ta" },
+      ],
+      cta: {
+        title: "Pilotează un domeniu intern de proceduri",
+        body: "Alege un caz delimitat, fără date financiare sau personale ale clienților, și evaluează timp de 30 de zile răspunsurile, citările, adopția și dovezile de audit.",
+      },
+    },
     logistics: {
       name: "Logistică & Depozit",
       tagline: "Proceduri valabile pe toate turele: preluare, recepție, expediere.",
