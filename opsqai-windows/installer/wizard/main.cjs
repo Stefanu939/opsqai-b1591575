@@ -640,6 +640,56 @@ function normalizeServerUrl(raw) {
   return `${u.protocol}//${u.host}`;
 }
 
+// -------- Pairing code (workstation in another location) --------------------
+// Format: OPSQ-XXXX-XXXX-<16 hex CA fingerprint>@host:port
+// The fingerprint lets us verify the main computer's certificate authority
+// before trusting it, so nobody in between can impersonate the server.
+let PINNED = null; // { base, caPem, fingerprint, secret }
+
+function fetchText(url, opts) {
+  const https = require("https");
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { timeout: 8000, ...opts }, (res) => {
+      let buf = "";
+      res.on("data", (c) => (buf += c));
+      res.on("end", () => resolve({ status: res.statusCode, body: buf }));
+    });
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", reject);
+  });
+}
+
+ipcMain.handle("wizard:usePairingCode", async (_e, { code }) => {
+  const m = /^\s*OPSQ-([A-Z0-9]{4})-([A-Z0-9]{4})-([0-9A-F]{16})@([A-Za-z0-9.-]+):(\d{2,5})\s*$/i.exec(String(code || ""));
+  if (!m) return { ok: false, error: "Pairing code format is not valid." };
+  const [, a, b, fp, host, port] = m;
+  const base = `https://${host}:${port}`;
+  try {
+    // Step 1: download the CA certificate (not trusted yet) …
+    const r = await fetchText(`${base}/api/public/station-ca`, { rejectUnauthorized: false });
+    if (r.status !== 200 || !/BEGIN CERTIFICATE/.test(r.body)) {
+      return { ok: false, error: "The main computer did not answer. Check that remote access is on and the code is recent." };
+    }
+    const crypto = require("crypto");
+    const got = new crypto.X509Certificate(r.body).fingerprint256.replace(/:/g, "").toLowerCase();
+    // … step 2: it must match the fingerprint inside the code.
+    if (!got.startsWith(fp.toLowerCase())) {
+      return { ok: false, error: "Security check failed: the certificate does not match the pairing code. Do not continue." };
+    }
+    // Step 3: the live connection must be signed by that same CA.
+    const v = await fetchText(`${base}/health`, { ca: r.body });
+    if (v.status >= 500) return { ok: false, error: `Main computer error (HTTP ${v.status}).` };
+    PINNED = { base, caPem: r.body, fingerprint: got, secret: `${a}${b}`.toUpperCase() };
+    return { ok: true, serverUrl: base };
+  } catch (e) {
+    return { ok: false, error: `Cannot reach the main computer: ${e.message}` };
+  }
+});
+
+function tlsOpts(base) {
+  return PINNED && PINNED.base === base ? { ca: PINNED.caPem } : { rejectUnauthorized: false };
+}
+
 ipcMain.handle("wizard:probeServer", async (_e, { serverUrl, claims }) => {
   let base;
   try {
@@ -657,8 +707,9 @@ ipcMain.handle("wizard:probeServer", async (_e, { serverUrl, claims }) => {
       `${base}/api/public/station-probe`,
       {
         method: "POST",
-        // The company server uses its own local certificate (Caddy internal CA).
-        rejectUnauthorized: false,
+        // The company server uses its own local certificate (Caddy internal CA);
+        // when paired by code it is pinned to the verified CA.
+        ...tlsOpts(base),
         timeout: 8000,
         headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
       },
@@ -741,7 +792,7 @@ function postJson(url, payload) {
       url,
       {
         method: "POST",
-        rejectUnauthorized: false, // main computer uses its own local certificate
+        ...tlsOpts(new URL(url).origin), // pinned CA when paired by code
         timeout: 10000,
         headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
       },
@@ -767,6 +818,8 @@ const REGISTER_ERRORS = {
   license_invalid: "License is not valid",
   other_company: "This server is activated with a different company licence.",
   seats_exhausted: "All workstation seats in the licence are used. Revoke an unused computer first.",
+  pairing_code_required: "This computer is outside the office network. Ask your administrator for a pairing code (Connected computers → Computers in other locations).",
+  pairing_code_invalid: "The pairing code is wrong, already used or expired. Ask your administrator for a new one.",
 };
 
 // Each workstation gets its own station id + Ed25519 key pair. The private
@@ -806,6 +859,7 @@ ipcMain.handle("wizard:installWorkstation", async (event, { serverUrl, license, 
       location: location ? String(location).slice(0, 120) : null,
       hostname: os.hostname(),
       public_key: pubPem,
+      pairing_secret: PINNED && PINNED.base === base ? PINNED.secret : undefined,
     });
     if (r.status !== 200 || !r.json?.ok) {
       const code = r.json?.error;
@@ -819,12 +873,19 @@ ipcMain.handle("wizard:installWorkstation", async (event, { serverUrl, license, 
     fs.writeFileSync(
       jsonPath,
       JSON.stringify(
-        { mode: "workstation", serverUrl: base, stationId, name: name || os.hostname(), location: location || null, pairedAt: new Date().toISOString() },
+        { mode: "workstation", serverUrl: base, stationId, caFingerprint: PINNED && PINNED.base === base ? PINNED.fingerprint : null, name: name || os.hostname(), location: location || null, pairedAt: new Date().toISOString() },
         null,
         2,
       ),
     );
     if (license) fs.writeFileSync(path.join(cfgDir, "license.opsqai"), String(license).trim());
+    if (PINNED && PINNED.base === base) {
+      const caFile = path.join(cfgDir, "server-ca.crt");
+      fs.writeFileSync(caFile, PINNED.caPem);
+      // Trust the company's own CA on this PC so the app opens without warnings.
+      spawnSync("certutil.exe", ["-addstore", "-f", "Root", caFile], { windowsHide: true });
+      send("> main computer certificate verified and trusted");
+    }
     send(`> workstation paired with ${base} (station ${stationId})`);
     send("> finalizing");
     return { code: 0, stationId };

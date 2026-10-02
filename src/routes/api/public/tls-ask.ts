@@ -27,7 +27,10 @@ export const Route = createFileRoute("/api/public/tls-ask")({
           .split(",")
           .map((s) => s.trim().toLowerCase())
           .filter(Boolean);
+        const { remoteHosts } = await import("@/lib/selfhost-remote.server");
+        const remote = await remoteHosts().catch(() => [] as string[]);
         const ok =
+          remote.includes(host) ||
           isPrivateIp(host) ||
           !host.includes(".") ||
           /\.(local|lan|internal|corp|home\.arpa)$/.test(host) ||

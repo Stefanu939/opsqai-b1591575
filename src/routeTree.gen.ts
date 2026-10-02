@@ -127,6 +127,7 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
+import { Route as ApiPublicStationCaRouteImport } from './routes/api/public/station-ca'
 import { Route as ApiPublicStationHeartbeatRouteImport } from './routes/api/public/station-heartbeat'
 import { Route as ApiPublicStationProbeRouteImport } from './routes/api/public/station-probe'
 import { Route as ApiPublicStationRegisterRouteImport } from './routes/api/public/station-register'
@@ -809,6 +810,11 @@ const ApiPublicSelfhostHeartbeatRoute =
     path: '/api/public/selfhost-heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicStationCaRoute = ApiPublicStationCaRouteImport.update({
+  id: '/api/public/station-ca',
+  path: '/api/public/station-ca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStationHeartbeatRoute =
   ApiPublicStationHeartbeatRouteImport.update({
     id: '/api/public/station-heartbeat',
@@ -1227,6 +1233,7 @@ export interface FileRoutesByFullPath {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-ca': typeof ApiPublicStationCaRoute
   '/api/public/station-heartbeat': typeof ApiPublicStationHeartbeatRoute
   '/api/public/station-probe': typeof ApiPublicStationProbeRoute
   '/api/public/station-register': typeof ApiPublicStationRegisterRoute
@@ -1392,6 +1399,7 @@ export interface FileRoutesByTo {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-ca': typeof ApiPublicStationCaRoute
   '/api/public/station-heartbeat': typeof ApiPublicStationHeartbeatRoute
   '/api/public/station-probe': typeof ApiPublicStationProbeRoute
   '/api/public/station-register': typeof ApiPublicStationRegisterRoute
@@ -1566,6 +1574,7 @@ export interface FileRoutesById {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-ca': typeof ApiPublicStationCaRoute
   '/api/public/station-heartbeat': typeof ApiPublicStationHeartbeatRoute
   '/api/public/station-probe': typeof ApiPublicStationProbeRoute
   '/api/public/station-register': typeof ApiPublicStationRegisterRoute
@@ -1740,6 +1749,7 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-ca'
     | '/api/public/station-heartbeat'
     | '/api/public/station-probe'
     | '/api/public/station-register'
@@ -1905,6 +1915,7 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-ca'
     | '/api/public/station-heartbeat'
     | '/api/public/station-probe'
     | '/api/public/station-register'
@@ -2078,6 +2089,7 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-ca'
     | '/api/public/station-heartbeat'
     | '/api/public/station-probe'
     | '/api/public/station-register'
@@ -2195,6 +2207,7 @@ export interface RootRouteChildren {
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
+  ApiPublicStationCaRoute: typeof ApiPublicStationCaRoute
   ApiPublicStationHeartbeatRoute: typeof ApiPublicStationHeartbeatRoute
   ApiPublicStationProbeRoute: typeof ApiPublicStationProbeRoute
   ApiPublicStationRegisterRoute: typeof ApiPublicStationRegisterRoute
@@ -3051,6 +3064,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSelfhostHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/station-ca': {
+      id: '/api/public/station-ca'
+      path: '/api/public/station-ca'
+      fullPath: '/api/public/station-ca'
+      preLoaderRoute: typeof ApiPublicStationCaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/station-heartbeat': {
       id: '/api/public/station-heartbeat'
       path: '/api/public/station-heartbeat'
@@ -3811,6 +3831,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
+  ApiPublicStationCaRoute: ApiPublicStationCaRoute,
   ApiPublicStationHeartbeatRoute: ApiPublicStationHeartbeatRoute,
   ApiPublicStationProbeRoute: ApiPublicStationProbeRoute,
   ApiPublicStationRegisterRoute: ApiPublicStationRegisterRoute,

@@ -243,3 +243,11 @@ try {
 } catch (e) {
   console.error(`[platform] discovery disabled: ${e && e.message}`);
 }
+
+// ── Remote access (other locations, no VPN) ────────────────────────────
+// Off until the administrator enables it in "Calculatoare conectate".
+try {
+  require("./remote-access").start();
+} catch (e) {
+  console.error(`[platform] remote access disabled: ${e && e.message}`);
+}

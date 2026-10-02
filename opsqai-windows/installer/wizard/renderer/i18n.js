@@ -51,6 +51,12 @@
     "Find the main computer": ["Caută calculatorul principal", "Hauptcomputer suchen"],
     "Searching the local network…": ["Se caută în rețeaua locală…", "Lokales Netzwerk wird durchsucht…"],
     "No main computer found on this network. Type its address below.": ["Nu s-a găsit niciun calculator principal în rețea. Scrie adresa mai jos.", "Kein Hauptcomputer im Netzwerk gefunden. Adresse unten eingeben."],
+    "Pairing code (only for computers in another location)": ["Cod de asociere (doar pentru calculatoare din altă locație)", "Kopplungscode (nur für Computer an einem anderen Standort)"],
+    "Pairing code format is not valid.": ["Formatul codului de asociere nu este valid.", "Das Format des Kopplungscodes ist ungültig."],
+    "The main computer did not answer. Check that remote access is on and the code is recent.": ["Calculatorul principal nu răspunde. Verifică dacă accesul din alte locații e pornit și codul e recent.", "Der Hauptcomputer antwortet nicht. Prüfen Sie, ob der Fernzugriff aktiv und der Code aktuell ist."],
+    "Security check failed: the certificate does not match the pairing code. Do not continue.": ["Verificarea de securitate a eșuat: certificatul nu corespunde codului. Nu continua.", "Sicherheitsprüfung fehlgeschlagen: Das Zertifikat passt nicht zum Code. Nicht fortfahren."],
+    "This computer is outside the office network. Ask your administrator for a pairing code (Connected computers → Computers in other locations).": ["Acest calculator nu e în rețeaua biroului. Cere administratorului un cod de asociere (Calculatoare conectate → Calculatoare din alte locații).", "Dieser Computer ist außerhalb des Büronetzes. Bitten Sie den Administrator um einen Kopplungscode (Verbundene Computer → Computer an anderen Standorten)."],
+    "The pairing code is wrong, already used or expired. Ask your administrator for a new one.": ["Codul de asociere e greșit, deja folosit sau expirat. Cere administratorului unul nou.", "Der Kopplungscode ist falsch, bereits benutzt oder abgelaufen. Bitten Sie um einen neuen."],
     "Main computer address (LAN, VPN or company domain)": ["Adresa calculatorului principal (rețea locală, VPN sau domeniul firmei)", "Adresse des Hauptcomputers (LAN, VPN oder Firmendomain)"],
     "Computer name for this workstation": ["Numele acestei stații", "Name dieses Arbeitsplatzes"],
     "Location (e.g. Romania – warehouse)": ["Locație (ex. România – depozit)", "Standort (z. B. Deutschland – Büro)"],
@@ -190,6 +196,7 @@
     ["System check failed: ", ["Verificarea sistemului a eșuat: ", "Systemprüfung fehlgeschlagen: "]],
     ["Installation failed — ", ["Instalarea a eșuat — ", "Installation fehlgeschlagen — "]],
     ["Connected · ", ["Conectat · ", "Verbunden · "]],
+    ["Cannot reach the main computer: ", ["Calculatorul principal nu poate fi contactat: ", "Hauptcomputer nicht erreichbar: "]],
     ["Cannot reach the server: ", ["Calculatorul principal nu poate fi contactat: ", "Hauptcomputer nicht erreichbar: "]],
   ];
 

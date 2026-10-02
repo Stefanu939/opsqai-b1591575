@@ -478,6 +478,10 @@ $$('input[name="install-role"]').forEach((r) =>
     updateNextButton();
   }),
 );
+$("#station-code")?.addEventListener("input", () => {
+  state.data.stationPaired = false;
+  updateNextButton();
+});
 $("#station-url").addEventListener("input", () => {
   state.data.stationPaired = false;
   updateNextButton();
@@ -513,6 +517,18 @@ $("#btn-station-test").addEventListener("click", async () => {
   }
   pill.textContent = "Connecting…";
   pill.className = "status-pill info";
+  const pairing = ($("#station-code")?.value || "").trim();
+  if (pairing) {
+    const pc = await window.opsqai.usePairingCode({ code: pairing });
+    if (!pc.ok) {
+      state.data.stationPaired = false;
+      pill.textContent = pc.error;
+      pill.className = "status-pill err";
+      updateNextButton();
+      return;
+    }
+    $("#station-url").value = pc.serverUrl;
+  }
   const r = await window.opsqai.probeServer({
     serverUrl: $("#station-url").value,
     claims: state.data.license?.claims,
