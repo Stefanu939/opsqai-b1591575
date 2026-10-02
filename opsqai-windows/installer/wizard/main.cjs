@@ -545,6 +545,38 @@ function resolveDataMode() {
   return answer === 1 ? "fresh" : "continue";
 }
 
+// Main computer: let the other company PCs reach OPSQAI over HTTPS, only
+// from the local network (Private/Domain profiles, LocalSubnet scope).
+// Removed again by the uninstaller (rule name is stable).
+const FIREWALL_RULE = "OPSQAI Workstations (HTTPS)";
+function openLanFirewall(send) {
+  try {
+    spawnSync("netsh", ["advfirewall", "firewall", "delete", "rule", `name=${FIREWALL_RULE}`], { windowsHide: true });
+    const r = spawnSync(
+      "netsh",
+      ["advfirewall", "firewall", "add", "rule", `name=${FIREWALL_RULE}`, "dir=in", "action=allow",
+       "protocol=TCP", "localport=443", "profile=private,domain", "remoteip=localsubnet"],
+      { windowsHide: true, encoding: "utf8" },
+    );
+    send(r.status === 0 ? "> firewall: workstation access allowed (local network)" : `! firewall rule failed: ${r.stdout || r.stderr}`);
+    // LAN discovery answers (UDP 41234), same scope.
+    spawnSync("netsh", ["advfirewall", "firewall", "delete", "rule", "name=OPSQAI Discovery"], { windowsHide: true });
+    spawnSync("netsh", ["advfirewall", "firewall", "add", "rule", "name=OPSQAI Discovery", "dir=in", "action=allow",
+      "protocol=UDP", "localport=41234", "profile=private,domain", "remoteip=localsubnet"], { windowsHide: true });
+  } catch (e) {
+    send(`! firewall rule failed: ${e.message}`);
+  }
+}
+
+// UI language chosen in the wizard → desktop app splash/error + platform default.
+function writeUiPrefs(config) {
+  try {
+    const dir = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "ui.json"), JSON.stringify({ language: config.options?.language || "ro" }));
+  } catch (_) {}
+}
+
 function runBootstrap(event, config, extraFlags = []) {
   const send = (line) => event.sender.send("wizard:install-log", line);
   const dataMode = config.dataMode || resolveDataMode();
@@ -583,6 +615,10 @@ function runBootstrap(event, config, extraFlags = []) {
     );
     child.on("exit", (code) => {
       win.__installing = false;
+      if (code === 0) {
+        writeUiPrefs(config);
+        if (config.options?.allowLan !== false) openLanFirewall(send);
+      }
       send(`> bootstrap exited with code ${code}`);
       resolve({ code: code ?? 1 });
     });

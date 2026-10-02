@@ -985,6 +985,7 @@ async function runInstall(withReset) {
     },
     license: state.data.license || null,
     smtp: null,
+    options: state.data.options || {},
   };
   lastConfig = config;
   lastFailure = null;
