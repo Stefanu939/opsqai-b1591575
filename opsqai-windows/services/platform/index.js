@@ -220,3 +220,26 @@ child.on("exit", (code) => {
   console.log(`[platform] app exited ${code}`);
   process.exit(code ?? 1);
 });
+
+// ── LAN discovery responder ────────────────────────────────────────────
+// Workstation installers on the same network broadcast "OPSQAI_DISCOVER"
+// on UDP 41234; the main computer answers with its name only (no data, no
+// licence). The firewall rule limits this to the local subnet.
+try {
+  const dgram = require("dgram");
+  const os = require("os");
+  const sock = dgram.createSocket({ type: "udp4", reuseAddr: true });
+  sock.on("message", (msg, rinfo) => {
+    if (String(msg).trim() !== "OPSQAI_DISCOVER") return;
+    const reply = JSON.stringify({
+      product: "opsqai-selfhost",
+      company: cfg.company?.name || null,
+      hostname: os.hostname(),
+    });
+    sock.send(reply, rinfo.port, rinfo.address);
+  });
+  sock.on("error", (e) => console.error(`[platform] discovery disabled: ${e.message}`));
+  sock.bind(41234, () => console.log("[platform] LAN discovery listening on udp/41234"));
+} catch (e) {
+  console.error(`[platform] discovery disabled: ${e && e.message}`);
+}
