@@ -24,3 +24,14 @@ localhost:443, 127.0.0.1:443 {
 
 	reverse_proxy 127.0.0.1:3000
 }
+
+# Company network access for workstations (LAN / VPN / company domain).
+:443 {
+	tls internal {
+		on_demand
+	}
+
+	encode gzip zstd
+
+	reverse_proxy 127.0.0.1:3000
+}
