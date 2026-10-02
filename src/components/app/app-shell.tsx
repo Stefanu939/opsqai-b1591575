@@ -23,6 +23,7 @@ import {
   ChevronDown,
   AlertTriangle,
   Mail,
+  Monitor,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { BuildProvenanceLine } from "@/components/app/build-provenance-line";
