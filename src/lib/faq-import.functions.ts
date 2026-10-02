@@ -137,36 +137,76 @@ async function parseXlsx(buffer: ArrayBuffer): Promise<FaqImportRow[]> {
   });
 }
 
+function chunkText(text: string, size = 5000): string[] {
+  const paras = text.replace(/\r\n/g, "\n").split(/\n{2,}/);
+  const chunks: string[] = [];
+  let cur = "";
+  for (const p of paras) {
+    if ((cur + "\n\n" + p).length > size && cur) {
+      chunks.push(cur);
+      cur = "";
+    }
+    if (p.length > size) {
+      for (let i = 0; i < p.length; i += size) chunks.push(p.slice(i, i + size));
+    } else {
+      cur = cur ? `${cur}\n\n${p}` : p;
+    }
+  }
+  if (cur.trim()) chunks.push(cur);
+  return chunks.slice(0, 24);
+}
+
 async function parseViaAi(text: string): Promise<FaqImportRow[]> {
   const { generateText } = await import("ai");
   const { resolveChatModel } = await import("@/lib/ai-provider.server");
   const { extractFaqItems } = await import("@/lib/faq-import-json");
-  const truncated = text.slice(0, 30000);
-  const { text: raw } = await generateText({
-    model: resolveChatModel("chat-fast"),
-    temperature: 0,
-    system:
-      "You extract FAQ question/answer pairs from documents. Respond with STRICT JSON only: " +
-      '{"items":[{"question":"...","answer":"...","category":"general"}]}. ' +
-      "Keep every pair in the SAME language as the source document. " +
-      "Extract all pairs you find, not just the first one. " +
-      "No markdown, no code fences, no commentary, just the JSON object.",
-    prompt: `Extract every distinct question/answer pair from this document text:\n\n${truncated}`,
-  });
+  const system =
+    "You build an internal FAQ from company documents (procedures, SOPs, policies). " +
+    "If the text already contains questions, extract them. Otherwise WRITE 2-6 practical questions an employee " +
+    "would ask about this text, each answered ONLY with facts stated in the text. Never invent facts, numbers or steps. " +
+    "Use the SAME language as the text. Respond with STRICT JSON only, no markdown: " +
+    '{"items":[{"question":"...","answer":"...","category":"general"}]}. ' +
+    'If the text has no usable content, respond {"items":[]}.';
 
-  const items = extractFaqItems(raw);
-  if (items.length === 0) {
+  const seen = new Set<string>();
+  const out: FaqImportRow[] = [];
+  let failures = 0;
+  const chunks = chunkText(text);
+  for (const chunk of chunks) {
+    let items: ReturnType<typeof extractFaqItems> | null = null;
+    for (let attempt = 0; attempt < 2 && items === null; attempt += 1) {
+      try {
+        const { text: raw } = await generateText({
+          model: resolveChatModel("chat-fast"),
+          temperature: 0,
+          system,
+          prompt: `Document section:\n\n${chunk}\n\nReturn the JSON object now.`,
+        });
+        items = extractFaqItems(raw);
+      } catch {
+        items = null;
+      }
+    }
+    if (items === null) {
+      failures += 1;
+      continue;
+    }
+    for (const it of items) {
+      const key = it.question.trim().toLowerCase().replace(/\s+/g, " ");
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(rowFromRecord({ question: it.question, answer: it.answer, category: it.category }));
+    }
+  }
+
+  if (out.length === 0) {
     throw new Error(
-      "No question/answer pairs could be extracted from this document. Check the file content or import a CSV/XLSX instead.",
+      failures === chunks.length
+        ? "The local AI engine did not return usable answers. Check that the AI engine is online (Organization › AI provider), or import a CSV/XLSX instead."
+        : "No question/answer pairs could be built from this document. Check the file content or import a CSV/XLSX instead.",
     );
   }
-  return items.map((it) =>
-    rowFromRecord({
-      question: it.question,
-      answer: it.answer,
-      category: it.category,
-    }),
-  );
+  return out;
 }
 
 

@@ -311,7 +311,7 @@ const config = {
     arg(
       "ai",
       JSON.stringify({
-        provider: "llamacpp",
+        provider: "ollama",
         chatModel: "qwen2.5:3b",
         chatFastModel: "qwen2.5:3b",
         embeddingModel: "bge-m3",
