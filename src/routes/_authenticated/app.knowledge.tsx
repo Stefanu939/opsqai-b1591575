@@ -180,7 +180,7 @@ function KnowledgePage() {
   const [metaInterval, setMetaInterval] = useState<string>("");
   const [metaSaving, setMetaSaving] = useState(false);
 
-  const process = useServerFn(processDocument);
+  const createDoc = useServerFn(createKnowledgeDocument);
   const del = useServerFn(deleteKnowledgeDocument);
   const reprocess = useServerFn(reprocessDocument);
   const replaceFn = useServerFn(replaceDocumentVersion);
@@ -188,7 +188,6 @@ function KnowledgePage() {
   const setCritical = useServerFn(setCriticalFlag);
   const fetchDocs = useServerFn(listKnowledgeDocuments);
   const fetchVersions = useServerFn(listDocumentVersions);
-  const uploadFile = useServerFn(uploadKnowledgeFile);
   const saveMetadata = useServerFn(updateKnowledgeMetadata);
   const markReviewed = useServerFn(markDocumentReviewed);
   const fetchDepartments = useServerFn(listDepartments);
@@ -233,15 +232,6 @@ function KnowledgePage() {
     }
   };
 
-  /** Read a File as base64 so it can travel through a server fn payload. */
-  const toBase64 = (f: File) =>
-    new Promise<string>((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
-      r.onerror = () => reject(new Error("Could not read file"));
-      r.readAsDataURL(f);
-    });
-
   const load = async () => {
     // Reads run through a server fn: Cloud resolves via Supabase/RLS,
     // Self-Hosted via the local Postgres repository.
@@ -253,9 +243,16 @@ function KnowledgePage() {
   };
   useEffect(() => {
     load();
-    const t = setInterval(load, 5000);
-    return () => clearInterval(t);
   }, [showInactive, scopeCompanyId]);
+
+  // Refresh only while something is being indexed — no constant polling.
+  const hasProcessing = docs.some((d) => d.status === "processing");
+  useEffect(() => {
+    if (!hasProcessing) return;
+    const t = setInterval(load, 6000);
+    return () => clearInterval(t);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [hasProcessing, showInactive, scopeCompanyId]);
 
   // Departments from Organization become selectable, so an SOP can be
   // published for a single team.
@@ -269,7 +266,7 @@ function KnowledgePage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast.error("Please select a file");
+      toast.error("Selectați un fișier");
       return;
     }
     setBusy(true);
@@ -280,15 +277,8 @@ function KnowledgePage() {
         setBusy(false);
         return;
       }
-      const { file_path: path } = await uploadFile({
-        data: {
-          filename: file.name,
-          content_type: file.type || "application/octet-stream",
-          data_base64: await toBase64(file),
-          company_id: scopeId,
-        },
-      });
-      await process({
+      const path = await uploadKbFile(file, scopeId);
+      const { id } = await createDoc({
         data: {
           title: title || file.name,
           category,
@@ -299,7 +289,17 @@ function KnowledgePage() {
           filename: file.name,
         },
       });
-      toast.success("Document processed and indexed");
+      // Indexing runs in the background; the list shows "processing".
+      void reprocess({ data: { id } })
+        .then(() => {
+          toast.success(`„${title || file.name}” a fost indexat`);
+          load();
+        })
+        .catch((err) => {
+          toast.error(err instanceof Error ? err.message : "Indexarea a eșuat");
+          load();
+        });
+      toast.success("Document încărcat — se indexează în fundal");
       setOpen(false);
       setTitle("");
       setDocCode("");
@@ -363,14 +363,7 @@ function KnowledgePage() {
     try {
       const scopeId = (isPlatformAdmin ? activeCompanyId : companyId) ?? companyId;
       if (!scopeId) throw new Error("No company");
-      const { file_path: path } = await uploadFile({
-        data: {
-          filename: replaceFile.name,
-          content_type: replaceFile.type || "application/octet-stream",
-          data_base64: await toBase64(replaceFile),
-          company_id: scopeId,
-        },
-      });
+      const path = await uploadKbFile(replaceFile, scopeId);
       await replaceFn({
         data: {
           previous_id: replaceTarget.id,
