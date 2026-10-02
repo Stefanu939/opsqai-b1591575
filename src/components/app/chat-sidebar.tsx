@@ -103,7 +103,8 @@ export function ChatSidebar() {
 
   const onNew = async () => {
     try {
-      const th = await create({ data: { companyId: scopeCompanyId ?? undefined } });
+      const title = lang === "de" ? "Neue Unterhaltung" : lang === "ro" ? "Conversație nouă" : "New conversation";
+      const th = await create({ data: { companyId: scopeCompanyId ?? undefined, title } });
       await reload();
       navigate({ to: "/app/chat/$threadId", params: { threadId: th.id } });
     } catch (e) {
@@ -254,7 +255,9 @@ export function ChatSidebar() {
                               className="flex-1 min-w-0 truncate"
                               title={t.title}
                             >
-                              {t.title || "Untitled"}
+                              {t.title === "New conversation"
+                                ? labels.newChat
+                                : t.title || (lang === "de" ? "Ohne Titel" : lang === "ro" ? "Fără titlu" : "Untitled")}
                             </Link>
                             <button
                               onClick={() => togglePin(t.id)}

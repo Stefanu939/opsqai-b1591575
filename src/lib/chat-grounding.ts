@@ -46,13 +46,16 @@ const NON_LATIN_SCRIPT =
   /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Devanagari}\p{Script=Thai}\p{Script=Greek}]/u;
 
 const STOPWORD_SETS: Record<string, RegExp> = {
-  en: /\b(the|and|is|are|you|must|should|with|from|this|that|not|for)\b/gi,
+  en: /\b(the|and|are|you|must|should|with|from|this|that|not|for)\b/gi,
   de: /\b(und|ist|sind|nicht|muss|müssen|wird|werden|der|die|das|für|mit|auf|bei)\b/gi,
-  ro: /\b(și|si|este|sunt|nu|trebuie|pentru|care|dacă|daca|din|cu|la|să|sa)\b/gi,
-  fr: /\b(et|est|sont|pas|doit|pour|avec|dans|les|des|une|que)\b/gi,
-  es: /\b(y|es|son|no|debe|para|con|los|las|una|que|del)\b/gi,
-  it: /\b(e|è|sono|non|deve|per|con|gli|una|che|del|nella)\b/gi,
-  nl: /\b(en|is|zijn|niet|moet|voor|met|het|de|een|dat)\b/gi,
+  // Keep only distinctive Romanian words here. Short words such as "la" and
+  // "cu" also occur frequently in French/Spanish and previously allowed a
+  // French answer to pass the Romanian post-generation language gate.
+  ro: /\b(și|si|este|sunt|trebuie|pentru|care|dacă|daca|din|să|sa|acest|această|aceste|toate|documente|firma|procedura)\b/gi,
+  fr: /\b(et|est|sont|doit|pour|avec|dans|les|des|une|que|cette|ces|leur|leurs|afin|toutefois)\b/gi,
+  es: /\b(es|son|debe|para|los|las|una|del|esta|estos|estas|todos)\b/gi,
+  it: /\b(sono|non|deve|per|gli|una|che|nella|questa|questi|tutti)\b/gi,
+  nl: /\b(zijn|niet|moet|voor|met|het|een|dat|deze|alle)\b/gi,
 };
 
 /** How many stopwords of each supported language the text contains. */
@@ -115,7 +118,7 @@ const REFUSALS: Record<string, string> = {
 export function detectLanguage(query: string, hint?: string | null): string {
   const q = ` ${query.toLowerCase()} `;
   const rules: Array<[string, RegExp]> = [
-    ["ro", /[ăâîșț]|\b(care|unde|cum|trebuie|pentru|și|să|nu|este|sunt)\b/],
+    ["ro", /[ăâîșț]|\b(care|unde|cum|trebuie|pentru|și|si|să|sa|dacă|daca|acest|această|aceste|toate|documente|firma|procedura)\b/],
     ["de", /[äöüß]|\b(wie|was|warum|welche|muss|nicht|und|ist|sind|der|die|das)\b/],
     ["fr", /\b(comment|pourquoi|quel|quelle|est-ce|dois|pas|et|le|la|les)\b/],
     ["es", /\b(cómo|como|por qué|cuál|debo|no|y|el|la|los)\b/],

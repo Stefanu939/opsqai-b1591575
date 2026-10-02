@@ -32,6 +32,7 @@ describe("answer language", () => {
     expect(detectLanguage("Care este procedura de returnare?", "en")).toBe("ro");
     expect(detectLanguage("Wie muss ich das Formular ausfüllen?", "en")).toBe("de");
     expect(detectLanguage("How should I escalate this?", "de")).toBe("en");
+    expect(detectLanguage("si daca le are pe toate aceste documente", "ro")).toBe("ro");
   });
 
   it("returns a localized refusal", () => {
@@ -66,6 +67,12 @@ describe("answer validation", () => {
     expect(
       answerLanguageMismatch(
         "Das Fahrzeug muss vor der Abfahrt geprüft werden und der Fahrer ist dafür verantwortlich, dass alle Dokumente vorliegen.",
+        "ro",
+      ),
+    ).toBe(true);
+    expect(
+      answerLanguageMismatch(
+        "Si tous ces documents sont disponibles, la procédure continue avec leur vérification et leur classification afin de confirmer les critères.",
         "ro",
       ),
     ).toBe(true);
