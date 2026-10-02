@@ -590,6 +590,90 @@ function runBootstrap(event, config, extraFlags = []) {
 }
 
 ipcMain.handle("wizard:install", (event, config) => runBootstrap(event, config, []));
+
+// -------- Workstation mode (PC 2, PC 3 …) ----------------------------------
+// The first machine is the company server (database, AI, first admin). Other
+// machines install the native desktop app only and point it at that server.
+// No database, no services, no administrator account are created here.
+function normalizeServerUrl(raw) {
+  let s = String(raw || "").trim();
+  if (!s) throw new Error("Server address is empty");
+  if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
+  const u = new URL(s);
+  if (u.protocol !== "https:") throw new Error("Use an https:// address");
+  return `${u.protocol}//${u.host}`;
+}
+
+ipcMain.handle("wizard:probeServer", async (_e, { serverUrl, claims }) => {
+  let base;
+  try {
+    base = normalizeServerUrl(serverUrl);
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+  const https = require("https");
+  const body = JSON.stringify({
+    customer: claims?.customer ?? null,
+    install_id: claims?.install_id ?? null,
+  });
+  return new Promise((resolve) => {
+    const req = https.request(
+      `${base}/api/public/station-probe`,
+      {
+        method: "POST",
+        // The company server uses its own local certificate (Caddy internal CA).
+        rejectUnauthorized: false,
+        timeout: 8000,
+        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+      },
+      (res) => {
+        let buf = "";
+        res.on("data", (c) => (buf += c));
+        res.on("end", () => {
+          try {
+            const j = JSON.parse(buf);
+            if (j.product !== "opsqai-selfhost") {
+              return resolve({ ok: false, error: "This address is not an OPSQAI Self-Hosted server." });
+            }
+            if (!j.activated) {
+              return resolve({ ok: false, error: "The server is not activated yet. Finish the server installation first." });
+            }
+            if (!j.match) {
+              return resolve({ ok: false, error: "This server is activated with a different company licence." });
+            }
+            resolve({ ok: true, serverUrl: base, company: j.company_name });
+          } catch {
+            resolve({ ok: false, error: `Unexpected answer from server (HTTP ${res.statusCode}).` });
+          }
+        });
+      },
+    );
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", (e) => resolve({ ok: false, error: `Cannot reach the server: ${e.message}` }));
+    req.write(body);
+    req.end();
+  });
+});
+
+ipcMain.handle("wizard:installWorkstation", async (event, { serverUrl, license }) => {
+  const send = (line) => event.sender.send("wizard:install-log", line);
+  try {
+    const base = normalizeServerUrl(serverUrl);
+    const cfgDir = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config");
+    fs.mkdirSync(cfgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(cfgDir, "station.json"),
+      JSON.stringify({ mode: "workstation", serverUrl: base, pairedAt: new Date().toISOString() }, null, 2),
+    );
+    if (license) fs.writeFileSync(path.join(cfgDir, "license.opsqai"), String(license).trim());
+    send(`> workstation paired with ${base}`);
+    send("> finalizing");
+    return { code: 0 };
+  } catch (e) {
+    send(`! workstation setup failed: ${e.message}`);
+    return { code: 1 };
+  }
+});
 ipcMain.handle("wizard:resetAndInstall", (event, config) =>
   runBootstrap(event, config, ["--reset-embedded-db"]),
 );
