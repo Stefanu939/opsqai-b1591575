@@ -7,5 +7,5 @@
 - [x] Workstation heartbeat (revoked PC is cut off), main PC kept awake
 - [x] App menu + page titles in RO/DE
 - [ ] Full translation of texts inside every app page (ongoing, module by module)
-- [ ] Different-location link without VPN (OpsqaiLink / WireGuard) — not started
+- [x] Different-location link without VPN (router auto-setup + one-time pairing code + pinned certificate)
 - [ ] Real Windows test of installer, workstation pairing, Academy flow — needs user's PC
