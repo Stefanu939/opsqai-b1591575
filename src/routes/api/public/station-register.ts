@@ -15,6 +15,7 @@ const Body = z.object({
   location: z.string().trim().max(120).nullable().optional(),
   hostname: z.string().trim().max(120).nullable().optional(),
   public_key: z.string().min(40).max(1000).regex(/BEGIN PUBLIC KEY/),
+  pairing_secret: z.string().trim().max(40).optional(),
 });
 
 const json = (body: unknown, status = 200) =>
@@ -51,6 +52,20 @@ export const Route = createFileRoute("/api/public/station-register")({
         if (!key || key !== owner.companyKey) return json({ error: "other_company" }, 403);
 
         const stations = await import("@/lib/selfhost-stations.server");
+        const remote = await import("@/lib/selfhost-remote.server");
+        // Caddy sets X-Forwarded-For to the real client address. Computers
+        // outside the office network also need a one-time pairing code
+        // created by the administrator.
+        const callerIp = (request.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim();
+        const fromOffice = remote.isPrivateAddress(callerIp);
+        const known = (await stations.listStations()).some(
+          (s) => s.id === input.station_id && !s.revoked_at,
+        );
+        if (!fromOffice && !known) {
+          if (!input.pairing_secret) return json({ error: "pairing_code_required" }, 403);
+          const okCode = await remote.consumePairingSecret(input.pairing_secret, input.station_id);
+          if (!okCode) return json({ error: "pairing_code_invalid" }, 403);
+        }
         const active = await stations.countActiveStations();
         const already = (await stations.listStations()).some(
           (s) => s.id === input.station_id && !s.revoked_at,
