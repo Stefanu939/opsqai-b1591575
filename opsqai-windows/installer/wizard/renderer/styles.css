@@ -799,3 +799,11 @@ body {
 }
 .checks li[data-state="warn"] i { background: var(--warning, #e6b422); border-color: var(--warning, #e6b422); }
 .checks li[data-state="warn"] i::after { content: "!"; color: var(--bg); font-size: 11px; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+/* Installation role (server vs workstation) */
+.role-choice { border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 12px 14px; margin-top: 14px; display: grid; gap: 8px; }
+.role-choice .radio { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.role-choice .radio input { margin-top: 3px; }
+#station-box { margin-top: 12px; display: grid; gap: 10px; }
+#station-box[hidden] { display: none; }
+#station-box .hint { font-size: 12px; opacity: .75; margin: 0; }

@@ -126,9 +126,11 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
+import { Route as ApiPublicStationProbeRouteImport } from './routes/api/public/station-probe'
 import { Route as ApiPublicStudyContactRouteImport } from './routes/api.public.study-contact'
 import { Route as ApiPublicStudySubmitRouteImport } from './routes/api.public.study-submit'
 import { Route as ApiPublicTeamsRouteImport } from './routes/api/public/teams'
+import { Route as ApiPublicTlsAskRouteImport } from './routes/api/public/tls-ask'
 import { Route as ApiPublicVerifyCertificateRouteImport } from './routes/api/public/verify-certificate'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
@@ -798,6 +800,11 @@ const ApiPublicSelfhostHeartbeatRoute =
     path: '/api/public/selfhost-heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicStationProbeRoute = ApiPublicStationProbeRouteImport.update({
+  id: '/api/public/station-probe',
+  path: '/api/public/station-probe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStudyContactRoute = ApiPublicStudyContactRouteImport.update({
   id: '/api/public/study-contact',
   path: '/api/public/study-contact',
@@ -811,6 +818,11 @@ const ApiPublicStudySubmitRoute = ApiPublicStudySubmitRouteImport.update({
 const ApiPublicTeamsRoute = ApiPublicTeamsRouteImport.update({
   id: '/api/public/teams',
   path: '/api/public/teams',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTlsAskRoute = ApiPublicTlsAskRouteImport.update({
+  id: '/api/public/tls-ask',
+  path: '/api/public/tls-ask',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicVerifyCertificateRoute =
@@ -1193,9 +1205,11 @@ export interface FileRoutesByFullPath {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-probe': typeof ApiPublicStationProbeRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
+  '/api/public/tls-ask': typeof ApiPublicTlsAskRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
@@ -1353,9 +1367,11 @@ export interface FileRoutesByTo {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-probe': typeof ApiPublicStationProbeRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
+  '/api/public/tls-ask': typeof ApiPublicTlsAskRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app': typeof AuthenticatedAppIndexRoute
@@ -1522,9 +1538,11 @@ export interface FileRoutesById {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-probe': typeof ApiPublicStationProbeRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
+  '/api/public/tls-ask': typeof ApiPublicTlsAskRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
@@ -1691,9 +1709,11 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-probe'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
+    | '/api/public/tls-ask'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app/'
@@ -1851,9 +1871,11 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-probe'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
+    | '/api/public/tls-ask'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app'
@@ -2019,9 +2041,11 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-probe'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
+    | '/api/public/tls-ask'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/_authenticated/app/'
@@ -2132,9 +2156,11 @@ export interface RootRouteChildren {
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
+  ApiPublicStationProbeRoute: typeof ApiPublicStationProbeRoute
   ApiPublicStudyContactRoute: typeof ApiPublicStudyContactRoute
   ApiPublicStudySubmitRoute: typeof ApiPublicStudySubmitRoute
   ApiPublicTeamsRoute: typeof ApiPublicTeamsRoute
+  ApiPublicTlsAskRoute: typeof ApiPublicTlsAskRoute
   ApiPublicVerifyCertificateRoute: typeof ApiPublicVerifyCertificateRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiAuthMicrosoftCallbackRoute: typeof ApiAuthMicrosoftCallbackRoute
@@ -2977,6 +3003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSelfhostHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/station-probe': {
+      id: '/api/public/station-probe'
+      path: '/api/public/station-probe'
+      fullPath: '/api/public/station-probe'
+      preLoaderRoute: typeof ApiPublicStationProbeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/study-contact': {
       id: '/api/public/study-contact'
       path: '/api/public/study-contact'
@@ -2996,6 +3029,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/teams'
       fullPath: '/api/public/teams'
       preLoaderRoute: typeof ApiPublicTeamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/tls-ask': {
+      id: '/api/public/tls-ask'
+      path: '/api/public/tls-ask'
+      fullPath: '/api/public/tls-ask'
+      preLoaderRoute: typeof ApiPublicTlsAskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/verify-certificate': {
@@ -3707,9 +3747,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
+  ApiPublicStationProbeRoute: ApiPublicStationProbeRoute,
   ApiPublicStudyContactRoute: ApiPublicStudyContactRoute,
   ApiPublicStudySubmitRoute: ApiPublicStudySubmitRoute,
   ApiPublicTeamsRoute: ApiPublicTeamsRoute,
+  ApiPublicTlsAskRoute: ApiPublicTlsAskRoute,
   ApiPublicVerifyCertificateRoute: ApiPublicVerifyCertificateRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiAuthMicrosoftCallbackRoute: ApiAuthMicrosoftCallbackRoute,

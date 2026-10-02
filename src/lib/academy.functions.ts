@@ -1009,7 +1009,28 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
       });
     }
 
-    return { score, passed, passingScore, results };
+    // Detect course completion so the client can finalize and jump straight
+    // to the diploma instead of leaving the learner on the syllabus.
+    let courseComplete = false;
+    if (passed && data.enrollment_id) {
+      try {
+        const enroll = await repo.getEnrollment(data.enrollment_id);
+        if (enroll && enroll.user_id === context.userId) {
+          const pathResult: any = await repo.getLearningPath(enroll.path_id);
+          const lessonIds: string[] = (pathResult?.lessons ?? []).map((l: any) => l.id);
+          const done = new Set(
+            (await repo.listLessonProgress(data.enrollment_id))
+              .filter((p) => p.status === "completed")
+              .map((p) => p.lesson_id),
+          );
+          courseComplete = lessonIds.length > 0 && lessonIds.every((id) => done.has(id));
+        }
+      } catch {
+        courseComplete = false;
+      }
+    }
+
+    return { score, passed, passingScore, results, courseComplete };
   });
 
 /* ----------------------------- Enrollments --------------------------- */

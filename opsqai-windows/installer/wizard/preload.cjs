@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld("opsqai", {
   runSystemChecks: () => ipcRenderer.invoke("wizard:runSystemChecks"),
   testDatabase: (cfg) => ipcRenderer.invoke("wizard:testDatabase", cfg),
   install: (cfg) => ipcRenderer.invoke("wizard:install", cfg),
+  probeServer: (args) => ipcRenderer.invoke("wizard:probeServer", args),
+  installWorkstation: (args) => ipcRenderer.invoke("wizard:installWorkstation", args),
   resetAndInstall: (cfg) => ipcRenderer.invoke("wizard:resetAndInstall", cfg),
   onInstallLog: (fn) => ipcRenderer.on("wizard:install-log", (_e, line) => fn(line)),
   finish: (launch) => ipcRenderer.invoke("wizard:finish", launch),

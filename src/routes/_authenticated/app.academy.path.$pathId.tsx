@@ -6,7 +6,7 @@
 // edit lessons, delete them. A freshly created course starts empty, so the
 // editor is what turns "Create course" into a usable flow instead of a blank
 // page.
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -103,6 +103,8 @@ function PathPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
+  const [enrollmentStatus, setEnrollmentStatus] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [done, setDone] = useState<Record<string, any>>({});
 
   const [chapterOpen, setChapterOpen] = useState(false);
@@ -123,6 +125,7 @@ function PathPage() {
         const mineEnr = list.find((e) => e.academy_learning_paths?.id === pathId);
         if (mineEnr) {
           setEnrollmentId(mineEnr.id);
+          setEnrollmentStatus(mineEnr.status ?? null);
           const p = ((await progress({ data: { enrollment_id: mineEnr.id } })) as any[]) ?? [];
           setDone(Object.fromEntries(p.map((r) => [r.lesson_id, r])));
         }
@@ -211,7 +214,7 @@ function PathPage() {
     if (!enrollmentId) return;
     try {
       await complete({ data: { enrollment_id: enrollmentId } });
-      await load();
+      navigate({ to: "/app/academy/certificates", search: { completed: "1" } as any });
     } catch (err) {
       notifyFailed("complete this course", err);
     }
@@ -304,9 +307,18 @@ function PathPage() {
           <Button onClick={handleEnroll}>
             <PlayCircle className="h-4 w-4 mr-1" /> Enroll &amp; start
           </Button>
+        ) : enrollmentStatus === "completed" ? (
+          <div className="flex items-center gap-2">
+            <Badge className="bg-success text-success-foreground">Finalizat</Badge>
+            <Button asChild>
+              <Link to="/app/academy/certificates">
+                <Award className="h-4 w-4 mr-1" /> Vezi / descarcă diploma
+              </Link>
+            </Button>
+          </div>
         ) : allDone ? (
           <Button onClick={finish}>
-            <Award className="h-4 w-4 mr-1" /> Finish &amp; get certificate
+            <Award className="h-4 w-4 mr-1" /> Finalizează și primește diploma
           </Button>
         ) : (
           <Badge variant="secondary">In progress</Badge>
