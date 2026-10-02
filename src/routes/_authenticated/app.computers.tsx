@@ -22,8 +22,8 @@ export const Route = createFileRoute("/_authenticated/app/computers")({
 });
 
 function ComputersPage() {
-  const t = useT();
-  const L = (en: string, ro: string, de: string) => t({ en, ro, de } as any);
+  const { lang } = useT();
+  const L = (en: string, ro: string, de: string) => (lang === "ro" ? ro : lang === "de" ? de : en);
   const list = useServerFn(listConnectedComputers);
   const save = useServerFn(updateConnectedComputer);
   const revoke = useServerFn(revokeConnectedComputer);
