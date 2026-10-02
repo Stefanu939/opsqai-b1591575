@@ -2,6 +2,12 @@
 	admin off
 	auto_https disable_redirects
 	local_certs
+	# Workstations (PC 2, PC 3 …) reach the company server by its LAN name,
+	# IP or company domain. Certificates for those names are issued by the
+	# internal CA on first use, only for hosts the platform approves.
+	on_demand_tls {
+		ask http://127.0.0.1:3000/api/public/tls-ask
+	}
 }
 
 # Redirect plain HTTP to HTTPS.
