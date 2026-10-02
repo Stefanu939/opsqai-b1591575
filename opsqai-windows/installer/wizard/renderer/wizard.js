@@ -482,6 +482,27 @@ $("#station-url").addEventListener("input", () => {
   state.data.stationPaired = false;
   updateNextButton();
 });
+$("#btn-station-discover").addEventListener("click", async () => {
+  const box = $("#station-found");
+  box.textContent = "Searching the local network…";
+  const list = await window.opsqai.discoverServers();
+  box.innerHTML = "";
+  if (!list.length) {
+    box.textContent = "No main computer found on this network. Type its address below.";
+    return;
+  }
+  for (const s of list) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn found-item";
+    b.textContent = `OPSQAI – ${s.company || s.hostname || s.serverUrl} (${s.serverUrl.replace("https://", "")})`;
+    b.addEventListener("click", () => {
+      $("#station-url").value = s.serverUrl;
+      $("#btn-station-test").click();
+    });
+    box.appendChild(b);
+  }
+});
 $("#btn-station-test").addEventListener("click", async () => {
   const pill = $("#station-status");
   pill.hidden = false;
@@ -911,6 +932,8 @@ async function runWorkstationInstall() {
   const res = await window.opsqai.installWorkstation({
     serverUrl: state.data.station.serverUrl,
     license: state.data.license?.contents || "",
+    name: ($("#station-name")?.value || "").trim() || null,
+    location: ($("#station-location")?.value || "").trim() || null,
   });
   if (res.code === 0) {
     for (let i = 0; i < STAGE_MARKERS.length; i++) markStage(i, "done");
@@ -925,6 +948,7 @@ async function runWorkstationInstall() {
     wireFinish();
   } else {
     $("#install-title").textContent = "Workstation setup failed";
+    if (res.error) $("#install-sub").textContent = res.error;
     $("#btn-cancel").disabled = false;
   }
 }

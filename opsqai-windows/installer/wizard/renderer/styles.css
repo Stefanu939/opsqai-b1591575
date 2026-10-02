@@ -807,3 +807,8 @@ body {
 #station-box { margin-top: 12px; display: grid; gap: 10px; }
 #station-box[hidden] { display: none; }
 #station-box .hint { font-size: 12px; opacity: .75; margin: 0; }
+.found-list { display: grid; gap: 6px; font-size: 13px; }
+.found-item { text-align: left; }
+#lang-picker { position: fixed; top: 10px; right: 12px; display: flex; gap: 4px; z-index: 50; }
+#lang-picker button { background: transparent; border: 1px solid rgba(255,255,255,.18); color: inherit; border-radius: 6px; font-size: 11px; padding: 3px 7px; cursor: pointer; opacity: .7; }
+#lang-picker button.active { opacity: 1; border-color: currentColor; }

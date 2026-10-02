@@ -691,23 +691,146 @@ ipcMain.handle("wizard:probeServer", async (_e, { serverUrl, claims }) => {
   });
 });
 
-ipcMain.handle("wizard:installWorkstation", async (event, { serverUrl, license }) => {
+ipcMain.handle("wizard:discoverServers", async () => {
+  const dgram = require("dgram");
+  return new Promise((resolve) => {
+    const found = new Map();
+    const sock = dgram.createSocket("udp4");
+    sock.on("message", (msg, rinfo) => {
+      try {
+        const j = JSON.parse(String(msg));
+        if (j.product !== "opsqai-selfhost") return;
+        found.set(rinfo.address, {
+          company: j.company || null,
+          hostname: j.hostname || null,
+          serverUrl: `https://${rinfo.address}`,
+        });
+      } catch (_) {}
+    });
+    sock.on("error", () => {
+      try { sock.close(); } catch (_) {}
+      resolve([]);
+    });
+    sock.bind(0, () => {
+      sock.setBroadcast(true);
+      const ping = Buffer.from("OPSQAI_DISCOVER");
+      const targets = new Set(["255.255.255.255"]);
+      // Subnet broadcasts for every IPv4 interface (more reliable on Windows).
+      for (const list of Object.values(os.networkInterfaces())) {
+        for (const a of list || []) {
+          if (a.family !== "IPv4" || a.internal || !a.netmask) continue;
+          const ip = a.address.split(".").map(Number);
+          const m = a.netmask.split(".").map(Number);
+          targets.add(ip.map((o, i) => (o & m[i]) | (~m[i] & 255)).join("."));
+        }
+      }
+      for (const t of targets) sock.send(ping, 41234, t, () => {});
+    });
+    setTimeout(() => {
+      try { sock.close(); } catch (_) {}
+      resolve(Array.from(found.values()));
+    }, 2500);
+  });
+});
+
+function postJson(url, payload) {
+  const https = require("https");
+  const body = JSON.stringify(payload);
+  return new Promise((resolve) => {
+    const req = https.request(
+      url,
+      {
+        method: "POST",
+        rejectUnauthorized: false, // main computer uses its own local certificate
+        timeout: 10000,
+        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+      },
+      (res) => {
+        let buf = "";
+        res.on("data", (c) => (buf += c));
+        res.on("end", () => {
+          let j = null;
+          try { j = JSON.parse(buf); } catch (_) {}
+          resolve({ status: res.statusCode, json: j });
+        });
+      },
+    );
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", (e) => resolve({ status: 0, error: e.message }));
+    req.write(body);
+    req.end();
+  });
+}
+
+const REGISTER_ERRORS = {
+  not_activated: "The server is not activated yet. Finish the server installation first.",
+  license_invalid: "License is not valid",
+  other_company: "This server is activated with a different company licence.",
+  seats_exhausted: "All workstation seats in the licence are used. Revoke an unused computer first.",
+};
+
+// Each workstation gets its own station id + Ed25519 key pair. The private
+// key never leaves this computer; the main computer stores the public key
+// and can revoke the station at any time.
+ipcMain.handle("wizard:installWorkstation", async (event, { serverUrl, license, name, location }) => {
   const send = (line) => event.sender.send("wizard:install-log", line);
   try {
+    const crypto = require("crypto");
     const base = normalizeServerUrl(serverUrl);
     const cfgDir = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config");
     fs.mkdirSync(cfgDir, { recursive: true });
+    const keyPath = path.join(cfgDir, "station.key");
+    const jsonPath = path.join(cfgDir, "station.json");
+
+    let stationId = null;
+    let privPem = null;
+    try {
+      const prev = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+      if (prev.stationId && fs.existsSync(keyPath)) {
+        stationId = prev.stationId;
+        privPem = fs.readFileSync(keyPath, "utf8");
+      }
+    } catch (_) {}
+    if (!stationId) {
+      stationId = crypto.randomUUID();
+      const kp = crypto.generateKeyPairSync("ed25519");
+      privPem = kp.privateKey.export({ type: "pkcs8", format: "pem" });
+    }
+    const pubPem = crypto.createPublicKey(privPem).export({ type: "spki", format: "pem" });
+
+    send(`> registering workstation ${stationId} with ${base}`);
+    const r = await postJson(`${base}/api/public/station-register`, {
+      license: String(license || "").trim(),
+      station_id: stationId,
+      name: String(name || os.hostname()).slice(0, 80),
+      location: location ? String(location).slice(0, 120) : null,
+      hostname: os.hostname(),
+      public_key: pubPem,
+    });
+    if (r.status !== 200 || !r.json?.ok) {
+      const code = r.json?.error;
+      send(`! ${REGISTER_ERRORS[code] || r.error || `HTTP ${r.status}`}`);
+      return { code: 1, error: REGISTER_ERRORS[code] || r.error || `HTTP ${r.status}` };
+    }
+
+    fs.writeFileSync(keyPath, privPem, { mode: 0o600 });
+    // Restrict the private key to SYSTEM + Administrators + the current user.
+    spawnSync("icacls", [keyPath, "/inheritance:r", "/grant:r", "*S-1-5-18:F", "*S-1-5-32-544:F", `${os.userInfo().username}:R`], { windowsHide: true });
     fs.writeFileSync(
-      path.join(cfgDir, "station.json"),
-      JSON.stringify({ mode: "workstation", serverUrl: base, pairedAt: new Date().toISOString() }, null, 2),
+      jsonPath,
+      JSON.stringify(
+        { mode: "workstation", serverUrl: base, stationId, name: name || os.hostname(), location: location || null, pairedAt: new Date().toISOString() },
+        null,
+        2,
+      ),
     );
     if (license) fs.writeFileSync(path.join(cfgDir, "license.opsqai"), String(license).trim());
-    send(`> workstation paired with ${base}`);
+    send(`> workstation paired with ${base} (station ${stationId})`);
     send("> finalizing");
-    return { code: 0 };
+    return { code: 0, stationId };
   } catch (e) {
     send(`! workstation setup failed: ${e.message}`);
-    return { code: 1 };
+    return { code: 1, error: e.message };
   }
 });
 ipcMain.handle("wizard:resetAndInstall", (event, config) =>
