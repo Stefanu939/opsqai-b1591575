@@ -133,6 +133,25 @@ const WIZARD_SHELL_HTML = String.raw`
           </div>
           <div class="claims-grid" id="claims-grid"></div>
         </div>
+
+        <fieldset class="role-choice">
+          <legend class="label-row">What is this computer?</legend>
+          <label class="radio"><input type="radio" name="install-role" value="server" checked />
+            <span><b>Company server (first computer)</b> — database, local AI and the first administrator account.</span></label>
+          <label class="radio"><input type="radio" name="install-role" value="workstation" />
+            <span><b>Workstation (PC 2, PC 3 …)</b> — native OPSQAI app connected to your company server. No account is created here.</span></label>
+        </fieldset>
+        <div id="station-box" hidden>
+          <label>
+            <span class="label-row">Company server address (LAN, VPN or company domain)</span>
+            <input id="station-url" type="text" placeholder="https://opsqai-server  or  https://192.168.1.10" />
+          </label>
+          <div class="row">
+            <button type="button" class="btn" id="btn-station-test">Connect to server</button>
+            <span id="station-status" class="status-pill" hidden></span>
+          </div>
+          <p class="hint">Your principal administrator creates your access account on the server. After installation, sign in with that account.</p>
+        </div>
       </div>
     </section>
 
@@ -442,6 +461,47 @@ $("#btn-license-load").addEventListener("click", async () => {
   await checkLicense();
 });
 $("#btn-license-check").addEventListener("click", checkLicense);
+
+// ── Installation role: company server vs workstation ──────────────
+state.data.role = "server";
+$$('input[name="install-role"]').forEach((r) =>
+  r.addEventListener("change", () => {
+    state.data.role = r.value;
+    state.data.stationPaired = false;
+    $("#station-box").hidden = r.value !== "workstation";
+    updateNextButton();
+  }),
+);
+$("#station-url").addEventListener("input", () => {
+  state.data.stationPaired = false;
+  updateNextButton();
+});
+$("#btn-station-test").addEventListener("click", async () => {
+  const pill = $("#station-status");
+  pill.hidden = false;
+  if (!state.data.licenseValidated) {
+    pill.textContent = "Validate the licence first";
+    pill.dataset.kind = "err";
+    return;
+  }
+  pill.textContent = "Connecting…";
+  pill.dataset.kind = "info";
+  const r = await window.opsqai.probeServer({
+    serverUrl: $("#station-url").value,
+    claims: state.data.license?.claims,
+  });
+  if (r.ok) {
+    state.data.station = { serverUrl: r.serverUrl, company: r.company };
+    state.data.stationPaired = true;
+    pill.textContent = `Licence already activated by your administrator${r.company ? ` (${r.company})` : ""}`;
+    pill.dataset.kind = "ok";
+  } else {
+    state.data.stationPaired = false;
+    pill.textContent = r.error || "Server not reachable";
+    pill.dataset.kind = "err";
+  }
+  updateNextButton();
+});
 $("#license-key").addEventListener("input", () => {
   state.data.licenseValidated = false;
   $("#license-claims").hidden = true;
@@ -655,7 +715,9 @@ function updateNextButton() {
 function isStepValid() {
   switch (state.step) {
     case 2:
-      return state.data.licenseValidated === true;
+      if (state.data.licenseValidated !== true) return false;
+      if (state.data.role === "workstation") return state.data.stationPaired === true;
+      return true;
     case 3:
       return state.data.systemChecksPassed;
     case 4:
@@ -817,8 +879,46 @@ let lastFailure = null;
 
 async function onNext() {
   if (!isStepValid()) return;
+  if (state.step === 2 && state.data.role === "workstation") {
+    goto(8);
+    await runWorkstationInstall();
+    return;
+  }
   if (state.step === 7) { goto(8); await runInstall(false); return; }
   goto(state.step + 1);
+}
+
+// Workstation (PC 2, PC 3 …): native desktop app only, paired with the
+// company server. No database, no AI services, no administrator account.
+async function runWorkstationInstall() {
+  $("#btn-cancel").disabled = true;
+  $("#btn-next").disabled = true;
+  $("#install-title").textContent = "Installing OPSQAI workstation…";
+  $("#install-sub").textContent = "Connecting this computer to your company's OPSQAI server.";
+  const log = $("#log");
+  window.opsqai.onInstallLog((line) => {
+    log.textContent += line + "\n";
+  });
+  setPct(40);
+  const res = await window.opsqai.installWorkstation({
+    serverUrl: state.data.station.serverUrl,
+    license: state.data.license?.contents || "",
+  });
+  if (res.code === 0) {
+    for (let i = 0; i < STAGE_MARKERS.length; i++) markStage(i, "done");
+    setPct(100);
+    await sleep(300);
+    goto(9);
+    const sub = document.querySelector('[data-pane="9"] .lead, [data-pane="9"] p');
+    if (sub) {
+      sub.textContent =
+        "This computer is connected to your company's OPSQAI server. The licence is already activated by your administrator — sign in with the account your principal administrator creates for you.";
+    }
+    wireFinish();
+  } else {
+    $("#install-title").textContent = "Workstation setup failed";
+    $("#btn-cancel").disabled = false;
+  }
 }
 
 function parseFailLine(line) {
