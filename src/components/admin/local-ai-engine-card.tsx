@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getAiEngineStatus, saveAiEngineConfig } from "@/lib/ai-engine.functions";
+import { getAiEngineStatus, saveAiEngineConfig, pullMissingModels } from "@/lib/ai-engine.functions";
 import { SectionCard } from "@/components/ui/section-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,15 @@ export function LocalAiEngineCard() {
   const qc = useQueryClient();
   const status = useServerFn(getAiEngineStatus);
   const save = useServerFn(saveAiEngineConfig);
+  const pull = useServerFn(pullMissingModels);
+  const pullMut = useMutation({
+    mutationFn: () => pull() as Promise<{ pulled: string[] }>,
+    onSuccess: (r: { pulled: string[] }) => {
+      toast.success(r.pulled.length ? `Downloaded: ${r.pulled.join(", ")}` : "All models are already installed");
+      qc.invalidateQueries({ queryKey: ["selfhost-ai-engine"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ["selfhost-ai-engine"],
@@ -95,6 +104,10 @@ export function LocalAiEngineCard() {
             >
               <RefreshCw className={`mr-2 h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
               Re-check
+            </Button>
+            <Button size="sm" onClick={() => pullMut.mutate()} disabled={pullMut.isPending}>
+              <RefreshCw className={`mr-2 h-3.5 w-3.5 ${pullMut.isPending ? "animate-spin" : ""}`} />
+              {pullMut.isPending ? "Downloading models…" : "Download missing models"}
             </Button>
           </div>
 

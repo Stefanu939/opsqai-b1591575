@@ -98,3 +98,32 @@ export const saveAiEngineConfig = createServerFn({ method: "POST" })
 
     return { ok: true, embedding_dim: dim, realigned, warning: null as string | null };
   });
+
+/** Download any configured model missing from the local Ollama engine. */
+export const pullMissingModels = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context);
+    selfHostedOnly();
+    const { ollamaBaseUrl, ollamaModels } = await import("@/lib/ai-adapters/ollama");
+    const base = ollamaBaseUrl();
+    const m = ollamaModels();
+    const wanted = Array.from(new Set([m.chat, m["chat-fast"], m.embedding]));
+    const tags = await fetch(`${base}/api/tags`).then((r) => {
+      if (!r.ok) throw new Error("The local AI engine is not running.");
+      return r.json() as Promise<{ models?: { name: string }[] }>;
+    });
+    const have = new Set((tags.models ?? []).map((x) => x.name.replace(/:latest$/, "")));
+    const pulled: string[] = [];
+    for (const name of wanted) {
+      if (have.has(name.replace(/:latest$/, ""))) continue;
+      const r = await fetch(`${base}/api/pull`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name, stream: false }),
+      });
+      if (!r.ok) throw new Error(`Could not download ${name} (HTTP ${r.status}).`);
+      pulled.push(name);
+    }
+    return { pulled };
+  });
