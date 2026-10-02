@@ -4,7 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { getAcademyLesson, generateAcademyQuiz, submitAcademyQuiz } from "@/lib/academy.functions";
+import {
+  getAcademyLesson,
+  generateAcademyQuiz,
+  submitAcademyQuiz,
+  completeEnrollment,
+} from "@/lib/academy.functions";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -159,6 +164,7 @@ function TeacherChat({
   // and is intentionally decoupled from the UI language.
   const genQuiz = useServerFn(generateAcademyQuiz);
   const submit = useServerFn(submitAcademyQuiz);
+  const completeEnr = useServerFn(completeEnrollment);
 
   const [quiz, setQuiz] = useState<Q[] | null>(null);
   const [attemptId, setAttemptId] = useState<string | null>(null);
