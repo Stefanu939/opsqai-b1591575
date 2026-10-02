@@ -1,3 +1,4 @@
+import { translateLabel } from "@/i18n/ui-labels";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useMyModuleAccess } from "@/hooks/use-module-access";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
@@ -324,11 +325,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <ChevronDown
                     className={`h-3 w-3 shrink-0 transition-transform duration-150 ${collapsed ? "-rotate-90" : ""}`}
                   />
-                  <span className="truncate">{section.label}</span>
+                  <span className="truncate">{translateLabel(section.label, lang)}</span>
                 </button>
               ) : (
                 <div className="pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-                  {section.label}
+                  {translateLabel(section.label, lang)}
                 </div>
               )}
               {!collapsed &&
@@ -343,7 +344,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <ActiveIndicator />
                     <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 transition-colors duration-150 group-data-[status=active]:text-primary" />
 
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{translateLabel(item.label, lang)}</span>
                   </Link>
                 ))}
             </div>
@@ -544,7 +545,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className="group flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-sidebar-foreground/60 data-[status=active]:text-sidebar-primary transition-colors"
               >
                 <item.icon className="h-5 w-5" />
-                <span className="truncate max-w-[64px]">{item.label}</span>
+                <span className="truncate max-w-[64px]">{translateLabel(item.label, lang)}</span>
               </Link>
             </li>
           ))}
