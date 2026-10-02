@@ -55,15 +55,15 @@ import {
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  processDocument,
+  createKnowledgeDocument,
   deleteKnowledgeDocument,
   reprocessDocument,
   listKnowledgeDocuments,
   listDocumentVersions,
-  uploadKnowledgeFile,
   updateKnowledgeMetadata,
   markDocumentReviewed,
 } from "@/lib/kb.functions";
+import { uploadKbFile } from "@/lib/kb-upload-client";
 import {
   documentLifecycle,
   lifecycleBadgeClass,
