@@ -34,6 +34,17 @@
 
 **În ambele cazuri** rămân regulile actuale: licența e activată o singură dată, pe PC-ul principal, iar conturile le creează doar administratorul principal.
 
+## 4. Fiecare calculator are identitate proprie (ID de stație)
+
+Astăzi o stație reține doar adresa serverului. Planul adaugă:
+- **ID de instalare** (există deja): unul singur pe firmă, al PC-ului principal, legat de licență și de firmă. Management Center vede doar acest ID.
+- **ID de stație** (nou): fiecare PC 2, PC 3 etc. primește la asociere un ID unic și o cheie proprie, păstrate pe acel calculator.
+- Serverul ține lista stațiilor firmei: nume calculator, locație (de exemplu „Germania – birou”, „România – depozit”), data asocierii și ultima conectare.
+- Exemplu: PC-ul principal e în Germania, iar PC 2 în România. Serverul din Germania rămâne singurul care deține licența și datele. PC-ul din România e doar „stația 2” a aceleiași firme. Licența nu se dublează, iar clienții nu se amestecă, pentru că o stație poate fi asociată doar cu serverul firmei care are aceeași licență.
+- Numărul de stații respectă limita de locuri din licență.
+- Pagină nouă de administrare, „Calculatoare conectate”: listă, redenumire și **revocare** (un PC pierdut sau furat e deconectat imediat).
+- Fiecare acțiune făcută de pe o stație apare în jurnalul de audit cu ID-ul stației.
+
 ## Ordinea livrării
 1. Instalare în română + găsire automată în rețea + firewall automat (cazul cel mai des întâlnit).
 2. Traducerea aplicației, modul cu modul.
