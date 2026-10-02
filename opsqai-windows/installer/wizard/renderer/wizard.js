@@ -481,11 +481,11 @@ $("#btn-station-test").addEventListener("click", async () => {
   pill.hidden = false;
   if (!state.data.licenseValidated) {
     pill.textContent = "Validate the licence first";
-    pill.dataset.kind = "err";
+    pill.className = "status-pill err";
     return;
   }
   pill.textContent = "Connecting…";
-  pill.dataset.kind = "info";
+  pill.className = "status-pill info";
   const r = await window.opsqai.probeServer({
     serverUrl: $("#station-url").value,
     claims: state.data.license?.claims,
@@ -494,11 +494,11 @@ $("#btn-station-test").addEventListener("click", async () => {
     state.data.station = { serverUrl: r.serverUrl, company: r.company };
     state.data.stationPaired = true;
     pill.textContent = `Licence already activated by your administrator${r.company ? ` (${r.company})` : ""}`;
-    pill.dataset.kind = "ok";
+    pill.className = "status-pill ok";
   } else {
     state.data.stationPaired = false;
     pill.textContent = r.error || "Server not reachable";
-    pill.dataset.kind = "err";
+    pill.className = "status-pill err";
   }
   updateNextButton();
 });
