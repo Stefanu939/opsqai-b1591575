@@ -812,6 +812,8 @@ function buildConfig() {
   state.data.options = {
     installDir: ($("#opt-install-dir")?.textContent || "C:\\Program Files\\OPSQAI").trim(),
     dataDir: ($("#opt-data-dir")?.textContent || "C:\\ProgramData\\OPSQAI").trim(),
+    allowLan: $("#opt-firewall") ? $("#opt-firewall").checked : true,
+    language: window.opsqaiI18n?.lang || "ro",
   };
 
   state.data.database = dbMode === "external"
