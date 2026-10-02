@@ -129,6 +129,7 @@ import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppGapsRouteImport } from './routes/_authenticated/app.gaps'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppEmailRouteImport } from './routes/_authenticated/app.email'
+import { Route as AuthenticatedAppComputersRouteImport } from './routes/_authenticated/app.computers'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppCalendarRouteImport } from './routes/_authenticated/app.calendar'
 import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
@@ -817,6 +818,12 @@ const AuthenticatedAppEmailRoute = AuthenticatedAppEmailRouteImport.update({
   path: '/email',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppComputersRoute =
+  AuthenticatedAppComputersRouteImport.update({
+    id: '/computers',
+    path: '/computers',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -1173,6 +1180,7 @@ export interface FileRoutesByFullPath {
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
+  '/app/computers': typeof AuthenticatedAppComputersRoute
   '/app/email': typeof AuthenticatedAppEmailRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/gaps': typeof AuthenticatedAppGapsRoute
@@ -1338,6 +1346,7 @@ export interface FileRoutesByTo {
   '/app/activity': typeof AuthenticatedAppActivityRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
+  '/app/computers': typeof AuthenticatedAppComputersRoute
   '/app/email': typeof AuthenticatedAppEmailRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/gaps': typeof AuthenticatedAppGapsRoute
@@ -1510,6 +1519,7 @@ export interface FileRoutesById {
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
   '/_authenticated/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
+  '/_authenticated/app/computers': typeof AuthenticatedAppComputersRoute
   '/_authenticated/app/email': typeof AuthenticatedAppEmailRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/gaps': typeof AuthenticatedAppGapsRoute
@@ -1683,6 +1693,7 @@ export interface FileRouteTypes {
     | '/app/audit'
     | '/app/calendar'
     | '/app/chat'
+    | '/app/computers'
     | '/app/email'
     | '/app/faq'
     | '/app/gaps'
@@ -1848,6 +1859,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/audit'
     | '/app/calendar'
+    | '/app/computers'
     | '/app/email'
     | '/app/faq'
     | '/app/gaps'
@@ -2019,6 +2031,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/audit'
     | '/_authenticated/app/calendar'
     | '/_authenticated/app/chat'
+    | '/_authenticated/app/computers'
     | '/_authenticated/app/email'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/gaps'
@@ -3052,6 +3065,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppEmailRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/computers': {
+      id: '/_authenticated/app/computers'
+      path: '/computers'
+      fullPath: '/app/computers'
+      preLoaderRoute: typeof AuthenticatedAppComputersRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/chat': {
       id: '/_authenticated/app/chat'
       path: '/chat'
@@ -3423,6 +3443,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAuditRoute: typeof AuthenticatedAppAuditRoute
   AuthenticatedAppCalendarRoute: typeof AuthenticatedAppCalendarRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
+  AuthenticatedAppComputersRoute: typeof AuthenticatedAppComputersRoute
   AuthenticatedAppEmailRoute: typeof AuthenticatedAppEmailRoute
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppGapsRoute: typeof AuthenticatedAppGapsRoute
@@ -3455,6 +3476,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAuditRoute: AuthenticatedAppAuditRoute,
   AuthenticatedAppCalendarRoute: AuthenticatedAppCalendarRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
+  AuthenticatedAppComputersRoute: AuthenticatedAppComputersRoute,
   AuthenticatedAppEmailRoute: AuthenticatedAppEmailRoute,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppGapsRoute: AuthenticatedAppGapsRoute,
