@@ -11,6 +11,8 @@ import { downloadBase64 } from "@/components/app/transport/download";
 
 export const Route = createFileRoute("/_authenticated/app/academy/certificates")({
   component: CertificatesPage,
+  validateSearch: (s: Record<string, unknown>): { completed?: string } =>
+    typeof s.completed === "string" ? { completed: s.completed } : {},
   head: () => ({ meta: [{ title: "Certificates · Academy" }] }),
 });
 
@@ -18,6 +20,7 @@ function CertificatesPage() {
   const list = useServerFn(listMyCertificates);
   const url = useServerFn(certificateSignedUrl);
   const [certs, setCerts] = useState<any[]>([]);
+  const { completed } = Route.useSearch();
 
   useEffect(() => {
     void (async () => setCerts(((await list()) as any[]) ?? []))();
@@ -40,6 +43,11 @@ function CertificatesPage() {
 <h1 className="font-display text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-3">
           <Award className="h-5 w-5 text-primary" /> Your certificates
         </h1>
+        {completed && (
+          <Card className="p-4 border-success/40 bg-success/10 text-sm">
+            <strong>Felicitări!</strong> Ai finalizat cursul cu succes. Diploma ta a fost emisă!
+          </Card>
+        )}
         {certs.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
             No certificates yet — complete a learning path to earn one.
