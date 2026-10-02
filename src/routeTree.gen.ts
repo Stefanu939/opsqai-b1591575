@@ -50,6 +50,7 @@ import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
+import { Route as ApiKbUploadRouteImport } from './routes/api/kb-upload'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as AuthMicrosoftRouteImport } from './routes/auth.microsoft'
@@ -386,6 +387,11 @@ const ApiCustomerWriterRoute = ApiCustomerWriterRouteImport.update({
 const ApiInternalChatRoute = ApiInternalChatRouteImport.update({
   id: '/api/internal-chat',
   path: '/api/internal-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKbUploadRoute = ApiKbUploadRouteImport.update({
+  id: '/api/kb-upload',
+  path: '/api/kb-upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTtsRoute = ApiTtsRouteImport.update({
@@ -1159,6 +1165,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/kb-upload': typeof ApiKbUploadRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
@@ -1327,6 +1334,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/kb-upload': typeof ApiKbUploadRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
@@ -1500,6 +1508,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/kb-upload': typeof ApiKbUploadRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
@@ -1675,6 +1684,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
+    | '/api/kb-upload'
     | '/api/tts'
     | '/api/workspace-chat'
     | '/auth/microsoft'
@@ -1843,6 +1853,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
+    | '/api/kb-upload'
     | '/api/tts'
     | '/api/workspace-chat'
     | '/auth/microsoft'
@@ -2015,6 +2026,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
+    | '/api/kb-upload'
     | '/api/tts'
     | '/api/workspace-chat'
     | '/auth/microsoft'
@@ -2187,6 +2199,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
   ApiInternalChatRoute: typeof ApiInternalChatRoute
+  ApiKbUploadRoute: typeof ApiKbUploadRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   SolutionsVerticalRoute: typeof SolutionsVerticalRoute
@@ -2523,6 +2536,13 @@ declare module '@tanstack/react-router' {
       path: '/api/internal-chat'
       fullPath: '/api/internal-chat'
       preLoaderRoute: typeof ApiInternalChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/kb-upload': {
+      id: '/api/kb-upload'
+      path: '/api/kb-upload'
+      fullPath: '/api/kb-upload'
+      preLoaderRoute: typeof ApiKbUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/tts': {
@@ -3811,6 +3831,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
   ApiInternalChatRoute: ApiInternalChatRoute,
+  ApiKbUploadRoute: ApiKbUploadRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   SolutionsVerticalRoute: SolutionsVerticalRoute,

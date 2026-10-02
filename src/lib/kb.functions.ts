@@ -44,7 +44,14 @@ export async function runProcessingPipeline(
   const { extractDocument, chunkDocument } = await import("@/lib/doc-processing.server");
   const extracted = await extractDocument(toArrayBuffer(bytes), filename, fileType);
   const text = extracted.text;
-  if (!text.trim()) throw new Error("No text extracted from document");
+  if (!text.trim()) {
+    const isPdf = /\.pdf$/i.test(filename) || fileType.includes("pdf");
+    throw new Error(
+      isPdf
+        ? "Documentul nu conține text digital selectabil (este o scanare/imagine). Vă rugăm să folosiți un document cu text sau să rulați OCR."
+        : "Documentul nu conține text care să poată fi citit.",
+    );
+  }
 
   const chunks = chunkDocument(extracted, 1000, 200);
   if (chunks.length === 0) throw new Error("Document produced no chunks");
@@ -174,6 +181,39 @@ export const processDocument = createServerFn({ method: "POST" })
       );
       throw err;
     }
+  });
+
+/**
+ * Create the document row instantly (status "processing") without indexing.
+ * The client then triggers `reprocessDocument` in the background, so the
+ * upload dialog never waits on extraction + embeddings.
+ */
+export const createKnowledgeDocument = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => DocInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.create"]);
+    const companyId = await resolveCompanyForWrite(
+      context,
+      companyFromStoragePath(data.file_path),
+    );
+    const repo = getKnowledgeRepository(context.supabase);
+    const doc = await repo.insertDocument({
+      company_id: companyId,
+      title: data.title,
+      category: data.category,
+      doc_code: data.doc_code ?? null,
+      file_path: data.file_path,
+      file_type: data.file_type,
+      uploaded_by: context.userId,
+    });
+    if (data.department_id) {
+      await repo
+        .updateMetadata(doc.id, { department_id: data.department_id })
+        .catch(() => undefined);
+    }
+    return { id: doc.id };
   });
 
 export const reprocessDocument = createServerFn({ method: "POST" })
