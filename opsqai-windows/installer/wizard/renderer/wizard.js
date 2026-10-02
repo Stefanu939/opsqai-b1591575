@@ -188,8 +188,8 @@ const WIZARD_SHELL_HTML = String.raw`
           </p>
           <label>AI engine
             <select id="ai-engine">
-              <option value="llamacpp">llama.cpp — lightweight, fastest on CPU (recommended)</option>
-              <option value="ollama">Ollama</option>
+              <option value="ollama">Ollama — installed and configured automatically (recommended)</option>
+              <option value="llamacpp">llama.cpp (advanced)</option>
             </select>
           </label>
           <label>Performance preset
@@ -764,7 +764,7 @@ function buildConfig() {
     const v = el && el.value ? el.value.trim() : "";
     return v || fallback;
   };
-  const engine = val("#ai-engine", "llamacpp");
+  const engine = val("#ai-engine", "ollama");
   state.data.ai = {
     provider: engine,
     ...(engine === "ollama" ? { baseUrl: val("#ai-base-url", "http://127.0.0.1:11434") } : {}),
