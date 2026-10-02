@@ -40,8 +40,25 @@ const { spawn, spawnSync } = require("child_process");
 // ---------------------------------------------------------------------------
 // Land directly on the Self-Hosted sign-in surface. The marketing
 // site must never render inside the installed desktop app.
-const APP_URL = "https://localhost/auth?audience=company";
-const HEALTH_URL = "https://localhost/health";
+// Workstation mode (PC 2, PC 3 …): station.json written by the installer
+// points the app at the company server instead of this machine.
+function readStation() {
+  try {
+    const p = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config", "station.json");
+    const j = JSON.parse(fs.readFileSync(p, "utf8"));
+    if (j && j.mode === "workstation" && /^https:\/\//.test(j.serverUrl)) return j;
+  } catch (_) {}
+  return null;
+}
+const STATION = readStation();
+const BASE_URL = STATION ? STATION.serverUrl : "https://localhost";
+const SERVER_HOST = STATION ? new URL(STATION.serverUrl).hostname.toLowerCase() : "localhost";
+const APP_URL = `${BASE_URL}/auth?audience=company`;
+const HEALTH_URL = `${BASE_URL}/health`;
+function isTrustedHost(h) {
+  const host = String(h || "").toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === SERVER_HOST;
+}
 
 const LICENSE_FILE_PATH = path.join(
   process.env.ProgramData || "C:\\ProgramData",
