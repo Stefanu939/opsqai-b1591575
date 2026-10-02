@@ -196,6 +196,7 @@
     ["System check failed: ", ["Verificarea sistemului a eșuat: ", "Systemprüfung fehlgeschlagen: "]],
     ["Installation failed — ", ["Instalarea a eșuat — ", "Installation fehlgeschlagen — "]],
     ["Connected · ", ["Conectat · ", "Verbunden · "]],
+    ["Cannot reach the main computer: ", ["Calculatorul principal nu poate fi contactat: ", "Hauptcomputer nicht erreichbar: "]],
     ["Cannot reach the server: ", ["Calculatorul principal nu poate fi contactat: ", "Hauptcomputer nicht erreichbar: "]],
   ];
 

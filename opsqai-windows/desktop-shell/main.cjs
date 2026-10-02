@@ -135,6 +135,20 @@ function installCertificateHandler() {
     if (host === "localhost" || host === "127.0.0.1") {
       // 0 = trusted, use certificate. -2 = fail. -3 = use verificationResult.
       callback(0);
+    } else if (STATION && host === SERVER_HOST) {
+      // Workstation: accept the main computer only if its chain ends in the
+      // company CA pinned at pairing (or, for LAN pairing without a code,
+      // any certificate from the configured main computer, as before).
+      const pin = STATION.caFingerprint;
+      if (!pin) return callback(0);
+      let c = request.certificate;
+      let ok = false;
+      for (let i = 0; c && i < 6; i++) {
+        const fp = String(c.fingerprint || "").replace(/^sha256\//, "");
+        if (Buffer.from(fp, "base64").toString("hex") === pin) { ok = true; break; }
+        c = c.issuerCert;
+      }
+      callback(ok ? 0 : -2);
     } else {
       callback(-3);
     }
@@ -563,6 +577,14 @@ async function loadSplashAndBoot() {
   }
 }
 
+function stationTls() {
+  try {
+    const caFile = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config", "server-ca.crt");
+    if (STATION && STATION.caFingerprint && fs.existsSync(caFile)) return { ca: fs.readFileSync(caFile, "utf8") };
+  } catch (_) {}
+  return { rejectUnauthorized: false };
+}
+
 // Workstation proof: sign "<stationId>.<ts>" with the station private key.
 function stationHeartbeat() {
   return new Promise((resolve) => {
@@ -576,7 +598,7 @@ function stationHeartbeat() {
       const body = JSON.stringify({ station_id: STATION.stationId, ts, signature: sig });
       const req = https.request(
         `${BASE_URL}/api/public/station-heartbeat`,
-        { method: "POST", rejectUnauthorized: false, timeout: 8000, headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
+        { method: "POST", ...stationTls(), timeout: 8000, headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
         (res) => {
           let buf = "";
           res.on("data", (c) => (buf += c));
