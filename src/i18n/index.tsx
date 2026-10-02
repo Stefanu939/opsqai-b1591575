@@ -559,7 +559,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("lang") : null;
-    if (isLang(stored)) setLangState(stored);
+    if (isLang(stored)) {
+      setLangState(stored);
+      return;
+    }
+    // First start in the Self-Hosted desktop app: the language chosen in the
+    // installer arrives as ?lang=xx and becomes the default for this device.
+    const fromUrl = new URLSearchParams(window.location.search).get("lang");
+    if (isLang(fromUrl)) {
+      setLangState(fromUrl);
+      localStorage.setItem("lang", fromUrl);
+    }
   }, []);
 
 

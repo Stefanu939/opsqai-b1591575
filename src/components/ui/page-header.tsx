@@ -1,3 +1,4 @@
+import { useUiLabel } from "@/i18n/ui-labels";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
@@ -29,6 +30,7 @@ export function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
+  const tl = useUiLabel();
   return (
     <header
       className={cn(
@@ -49,10 +51,10 @@ export function PageHeader({
                     to={c.to}
                     className="hover:text-foreground transition-colors"
                   >
-                    {c.label}
+                    {tl(c.label)}
                   </Link>
                 ) : (
-                  <span className="text-foreground">{c.label}</span>
+                  <span className="text-foreground">{tl(c.label)}</span>
                 )}
                 {i < breadcrumbs.length - 1 && (
                   <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
@@ -64,15 +66,15 @@ export function PageHeader({
         {eyebrow && (
           <div className="mb-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {eyebrow}
+            {tl(eyebrow)}
           </div>
         )}
         <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-          {title}
+          {tl(title)}
         </h1>
         {description && (
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            {description}
+            {tl(description)}
           </p>
         )}
       </div>

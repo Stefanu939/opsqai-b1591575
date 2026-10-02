@@ -78,6 +78,7 @@ import { Route as AuthenticatedAppActivityRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
 import { Route as AuthenticatedAppCalendarRouteImport } from './routes/_authenticated/app.calendar'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
+import { Route as AuthenticatedAppComputersRouteImport } from './routes/_authenticated/app.computers'
 import { Route as AuthenticatedAppEmailRouteImport } from './routes/_authenticated/app.email'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppGapsRouteImport } from './routes/_authenticated/app.gaps'
@@ -126,7 +127,9 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
+import { Route as ApiPublicStationHeartbeatRouteImport } from './routes/api/public/station-heartbeat'
 import { Route as ApiPublicStationProbeRouteImport } from './routes/api/public/station-probe'
+import { Route as ApiPublicStationRegisterRouteImport } from './routes/api/public/station-register'
 import { Route as ApiPublicStudyContactRouteImport } from './routes/api.public.study-contact'
 import { Route as ApiPublicStudySubmitRouteImport } from './routes/api.public.study-submit'
 import { Route as ApiPublicTeamsRouteImport } from './routes/api/public/teams'
@@ -530,6 +533,12 @@ const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppComputersRoute =
+  AuthenticatedAppComputersRouteImport.update({
+    id: '/computers',
+    path: '/computers',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppEmailRoute = AuthenticatedAppEmailRouteImport.update({
   id: '/email',
   path: '/email',
@@ -800,11 +809,23 @@ const ApiPublicSelfhostHeartbeatRoute =
     path: '/api/public/selfhost-heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicStationHeartbeatRoute =
+  ApiPublicStationHeartbeatRouteImport.update({
+    id: '/api/public/station-heartbeat',
+    path: '/api/public/station-heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicStationProbeRoute = ApiPublicStationProbeRouteImport.update({
   id: '/api/public/station-probe',
   path: '/api/public/station-probe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicStationRegisterRoute =
+  ApiPublicStationRegisterRouteImport.update({
+    id: '/api/public/station-register',
+    path: '/api/public/station-register',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicStudyContactRoute = ApiPublicStudyContactRouteImport.update({
   id: '/api/public/study-contact',
   path: '/api/public/study-contact',
@@ -1159,6 +1180,7 @@ export interface FileRoutesByFullPath {
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
+  '/app/computers': typeof AuthenticatedAppComputersRoute
   '/app/email': typeof AuthenticatedAppEmailRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/gaps': typeof AuthenticatedAppGapsRoute
@@ -1205,7 +1227,9 @@ export interface FileRoutesByFullPath {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-heartbeat': typeof ApiPublicStationHeartbeatRoute
   '/api/public/station-probe': typeof ApiPublicStationProbeRoute
+  '/api/public/station-register': typeof ApiPublicStationRegisterRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
@@ -1322,6 +1346,7 @@ export interface FileRoutesByTo {
   '/app/activity': typeof AuthenticatedAppActivityRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
+  '/app/computers': typeof AuthenticatedAppComputersRoute
   '/app/email': typeof AuthenticatedAppEmailRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/gaps': typeof AuthenticatedAppGapsRoute
@@ -1367,7 +1392,9 @@ export interface FileRoutesByTo {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-heartbeat': typeof ApiPublicStationHeartbeatRoute
   '/api/public/station-probe': typeof ApiPublicStationProbeRoute
+  '/api/public/station-register': typeof ApiPublicStationRegisterRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
@@ -1492,6 +1519,7 @@ export interface FileRoutesById {
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
   '/_authenticated/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
+  '/_authenticated/app/computers': typeof AuthenticatedAppComputersRoute
   '/_authenticated/app/email': typeof AuthenticatedAppEmailRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/gaps': typeof AuthenticatedAppGapsRoute
@@ -1538,7 +1566,9 @@ export interface FileRoutesById {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/station-heartbeat': typeof ApiPublicStationHeartbeatRoute
   '/api/public/station-probe': typeof ApiPublicStationProbeRoute
+  '/api/public/station-register': typeof ApiPublicStationRegisterRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
@@ -1663,6 +1693,7 @@ export interface FileRouteTypes {
     | '/app/audit'
     | '/app/calendar'
     | '/app/chat'
+    | '/app/computers'
     | '/app/email'
     | '/app/faq'
     | '/app/gaps'
@@ -1709,7 +1740,9 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-heartbeat'
     | '/api/public/station-probe'
+    | '/api/public/station-register'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
@@ -1826,6 +1859,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/audit'
     | '/app/calendar'
+    | '/app/computers'
     | '/app/email'
     | '/app/faq'
     | '/app/gaps'
@@ -1871,7 +1905,9 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-heartbeat'
     | '/api/public/station-probe'
+    | '/api/public/station-register'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
@@ -1995,6 +2031,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/audit'
     | '/_authenticated/app/calendar'
     | '/_authenticated/app/chat'
+    | '/_authenticated/app/computers'
     | '/_authenticated/app/email'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/gaps'
@@ -2041,7 +2078,9 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/station-heartbeat'
     | '/api/public/station-probe'
+    | '/api/public/station-register'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
@@ -2156,7 +2195,9 @@ export interface RootRouteChildren {
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
+  ApiPublicStationHeartbeatRoute: typeof ApiPublicStationHeartbeatRoute
   ApiPublicStationProbeRoute: typeof ApiPublicStationProbeRoute
+  ApiPublicStationRegisterRoute: typeof ApiPublicStationRegisterRoute
   ApiPublicStudyContactRoute: typeof ApiPublicStudyContactRoute
   ApiPublicStudySubmitRoute: typeof ApiPublicStudySubmitRoute
   ApiPublicTeamsRoute: typeof ApiPublicTeamsRoute
@@ -2667,6 +2708,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/computers': {
+      id: '/_authenticated/app/computers'
+      path: '/computers'
+      fullPath: '/app/computers'
+      preLoaderRoute: typeof AuthenticatedAppComputersRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/email': {
       id: '/_authenticated/app/email'
       path: '/email'
@@ -3003,11 +3051,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSelfhostHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/station-heartbeat': {
+      id: '/api/public/station-heartbeat'
+      path: '/api/public/station-heartbeat'
+      fullPath: '/api/public/station-heartbeat'
+      preLoaderRoute: typeof ApiPublicStationHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/station-probe': {
       id: '/api/public/station-probe'
       path: '/api/public/station-probe'
       fullPath: '/api/public/station-probe'
       preLoaderRoute: typeof ApiPublicStationProbeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/station-register': {
+      id: '/api/public/station-register'
+      path: '/api/public/station-register'
+      fullPath: '/api/public/station-register'
+      preLoaderRoute: typeof ApiPublicStationRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/study-contact': {
@@ -3381,6 +3443,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAuditRoute: typeof AuthenticatedAppAuditRoute
   AuthenticatedAppCalendarRoute: typeof AuthenticatedAppCalendarRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
+  AuthenticatedAppComputersRoute: typeof AuthenticatedAppComputersRoute
   AuthenticatedAppEmailRoute: typeof AuthenticatedAppEmailRoute
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppGapsRoute: typeof AuthenticatedAppGapsRoute
@@ -3413,6 +3476,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAuditRoute: AuthenticatedAppAuditRoute,
   AuthenticatedAppCalendarRoute: AuthenticatedAppCalendarRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
+  AuthenticatedAppComputersRoute: AuthenticatedAppComputersRoute,
   AuthenticatedAppEmailRoute: AuthenticatedAppEmailRoute,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppGapsRoute: AuthenticatedAppGapsRoute,
@@ -3747,7 +3811,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
+  ApiPublicStationHeartbeatRoute: ApiPublicStationHeartbeatRoute,
   ApiPublicStationProbeRoute: ApiPublicStationProbeRoute,
+  ApiPublicStationRegisterRoute: ApiPublicStationRegisterRoute,
   ApiPublicStudyContactRoute: ApiPublicStudyContactRoute,
   ApiPublicStudySubmitRoute: ApiPublicStudySubmitRoute,
   ApiPublicTeamsRoute: ApiPublicTeamsRoute,

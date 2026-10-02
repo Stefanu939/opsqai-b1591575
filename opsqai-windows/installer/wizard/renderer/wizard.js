@@ -137,13 +137,19 @@ const WIZARD_SHELL_HTML = String.raw`
         <fieldset class="role-choice">
           <legend class="label-row">What is this computer?</legend>
           <label class="radio"><input type="radio" name="install-role" value="server" checked />
-            <span><b>Company server (first computer)</b> — database, local AI and the first administrator account.</span></label>
+            <span><b>Main computer (first computer)</b> — any normal Windows PC that stays on during working hours. It holds the database, local AI and the first administrator account.</span></label>
           <label class="radio"><input type="radio" name="install-role" value="workstation" />
-            <span><b>Workstation (PC 2, PC 3 …)</b> — native OPSQAI app connected to your company server. No account is created here.</span></label>
+            <span><b>Workstation (PC 2, PC 3 …)</b> — native OPSQAI app connected to your main computer. No account is created here.</span></label>
         </fieldset>
         <div id="station-box" hidden>
+              <div class="row">
+                <button type="button" class="btn" id="btn-station-discover">Find the main computer</button>
+              </div>
+              <div id="station-found" class="found-list"></div>
+              <label><span class="label-row">Computer name for this workstation</span><input id="station-name" type="text" /></label>
+              <label><span class="label-row">Location (e.g. Romania – warehouse)</span><input id="station-location" type="text" /></label>
           <label>
-            <span class="label-row">Company server address (LAN, VPN or company domain)</span>
+            <span class="label-row">Main computer address (LAN, VPN or company domain)</span>
             <input id="station-url" type="text" placeholder="https://opsqai-server  or  https://192.168.1.10" />
           </label>
           <div class="row">
@@ -476,6 +482,27 @@ $("#station-url").addEventListener("input", () => {
   state.data.stationPaired = false;
   updateNextButton();
 });
+$("#btn-station-discover").addEventListener("click", async () => {
+  const box = $("#station-found");
+  box.textContent = "Searching the local network…";
+  const list = await window.opsqai.discoverServers();
+  box.innerHTML = "";
+  if (!list.length) {
+    box.textContent = "No main computer found on this network. Type its address below.";
+    return;
+  }
+  for (const s of list) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn found-item";
+    b.textContent = `OPSQAI – ${s.company || s.hostname || s.serverUrl} (${s.serverUrl.replace("https://", "")})`;
+    b.addEventListener("click", () => {
+      $("#station-url").value = s.serverUrl;
+      $("#btn-station-test").click();
+    });
+    box.appendChild(b);
+  }
+});
 $("#btn-station-test").addEventListener("click", async () => {
   const pill = $("#station-status");
   pill.hidden = false;
@@ -806,6 +833,8 @@ function buildConfig() {
   state.data.options = {
     installDir: ($("#opt-install-dir")?.textContent || "C:\\Program Files\\OPSQAI").trim(),
     dataDir: ($("#opt-data-dir")?.textContent || "C:\\ProgramData\\OPSQAI").trim(),
+    allowLan: $("#opt-firewall") ? $("#opt-firewall").checked : true,
+    language: window.opsqaiI18n?.lang || "ro",
   };
 
   state.data.database = dbMode === "external"
@@ -903,6 +932,8 @@ async function runWorkstationInstall() {
   const res = await window.opsqai.installWorkstation({
     serverUrl: state.data.station.serverUrl,
     license: state.data.license?.contents || "",
+    name: ($("#station-name")?.value || "").trim() || null,
+    location: ($("#station-location")?.value || "").trim() || null,
   });
   if (res.code === 0) {
     for (let i = 0; i < STAGE_MARKERS.length; i++) markStage(i, "done");
@@ -917,6 +948,7 @@ async function runWorkstationInstall() {
     wireFinish();
   } else {
     $("#install-title").textContent = "Workstation setup failed";
+    if (res.error) $("#install-sub").textContent = res.error;
     $("#btn-cancel").disabled = false;
   }
 }
@@ -977,6 +1009,7 @@ async function runInstall(withReset) {
     },
     license: state.data.license || null,
     smtp: null,
+    options: state.data.options || {},
   };
   lastConfig = config;
   lastFailure = null;

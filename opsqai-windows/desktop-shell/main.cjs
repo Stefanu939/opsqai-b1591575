@@ -28,6 +28,7 @@ const {
   dialog,
   nativeImage,
   session,
+  powerSaveBlocker,
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -53,7 +54,17 @@ function readStation() {
 const STATION = readStation();
 const BASE_URL = STATION ? STATION.serverUrl : "https://localhost";
 const SERVER_HOST = STATION ? new URL(STATION.serverUrl).hostname.toLowerCase() : "localhost";
-const APP_URL = `${BASE_URL}/auth?audience=company`;
+function readUiLang() {
+  try {
+    const p = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config", "ui.json");
+    const l = JSON.parse(fs.readFileSync(p, "utf8")).language;
+    return ["ro", "de", "en"].includes(l) ? l : "ro";
+  } catch (_) {
+    return "ro";
+  }
+}
+const UI_LANG = readUiLang();
+const APP_URL = `${BASE_URL}/auth?audience=company&lang=${UI_LANG}`;
 const HEALTH_URL = `${BASE_URL}/health`;
 function isTrustedHost(h) {
   const host = String(h || "").toLowerCase();
@@ -508,6 +519,39 @@ async function loadSplashAndBoot() {
     return;
   }
 
+  if (STATION) {
+    const hb = await stationHeartbeat();
+    if (hb === "revoked" || hb === "unknown" || hb === "bad_signature") {
+      loadErrorPage({
+        code: -403,
+        description:
+          UI_LANG === "ro"
+            ? "Acest calculator a fost deconectat de administratorul firmei. Cere administratorului principal să îl asocieze din nou."
+            : UI_LANG === "de"
+              ? "Dieser Computer wurde vom Firmenadministrator getrennt. Bitten Sie den Hauptadministrator, ihn erneut zu verbinden."
+              : "This computer was disconnected by your company administrator. Ask your principal administrator to pair it again.",
+        url: BASE_URL,
+      });
+      return;
+    }
+    // Re-check every 10 minutes; a revoked station is cut off while running.
+    setInterval(async () => {
+      const r = await stationHeartbeat();
+      if (r === "revoked" || r === "unknown" || r === "bad_signature") {
+        loadErrorPage({ code: -403, description: "Station revoked", url: BASE_URL });
+      }
+    }, 10 * 60 * 1000);
+  } else {
+    // Main computer: colleagues depend on it, so keep Windows from sleeping
+    // while OPSQAI runs (the display may still turn off).
+    try {
+      powerSaveBlocker.start("prevent-app-suspension");
+      log("power: sleep prevented while OPSQAI runs (main computer)");
+    } catch (e) {
+      log(`power: blocker failed ${e && e.message}`);
+    }
+  }
+
   if (mainWindow && !mainWindow.isDestroyed()) {
     try {
       await mainWindow.loadURL(APP_URL);
@@ -517,6 +561,39 @@ async function loadSplashAndBoot() {
       loadErrorPage({ code: -1, description: String(e && e.message), url: APP_URL });
     }
   }
+}
+
+// Workstation proof: sign "<stationId>.<ts>" with the station private key.
+function stationHeartbeat() {
+  return new Promise((resolve) => {
+    try {
+      const crypto = require("crypto");
+      const keyPath = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config", "station.key");
+      const ts = Math.floor(Date.now() / 1000);
+      const sig = crypto
+        .sign(null, Buffer.from(`${STATION.stationId}.${ts}`), fs.readFileSync(keyPath, "utf8"))
+        .toString("base64");
+      const body = JSON.stringify({ station_id: STATION.stationId, ts, signature: sig });
+      const req = https.request(
+        `${BASE_URL}/api/public/station-heartbeat`,
+        { method: "POST", rejectUnauthorized: false, timeout: 8000, headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
+        (res) => {
+          let buf = "";
+          res.on("data", (c) => (buf += c));
+          res.on("end", () => {
+            try { resolve(JSON.parse(buf).status || "error"); } catch (_) { resolve("error"); }
+          });
+        },
+      );
+      req.on("timeout", () => req.destroy(new Error("timeout")));
+      req.on("error", () => resolve("offline"));
+      req.write(body);
+      req.end();
+    } catch (e) {
+      log(`station heartbeat failed: ${e && e.message}`);
+      resolve("unknown");
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
