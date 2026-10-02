@@ -224,6 +224,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     },
     { to: "/app/organization", label: "Organization", icon: Building2, show: true, module: "rbac" },
     {
+      to: "/app/computers",
+      label: "Connected computers",
+      icon: Monitor,
+      show: mode === "selfhost" && hasAnyPermission("rbac.manage"),
+      module: null,
+    },
+    {
       to: "/app/subscription",
       label: "Subscription",
       icon: Package,
