@@ -76,6 +76,7 @@ import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as ApiPublicVerifyCertificateRouteImport } from './routes/api/public/verify-certificate'
+import { Route as ApiPublicTlsAskRouteImport } from './routes/api/public/tls-ask'
 import { Route as ApiPublicTeamsRouteImport } from './routes/api/public/teams'
 import { Route as ApiPublicStudySubmitRouteImport } from './routes/api.public.study-submit'
 import { Route as ApiPublicStudyContactRouteImport } from './routes/api.public.study-contact'
@@ -519,6 +520,11 @@ const ApiPublicVerifyCertificateRoute =
     path: '/api/public/verify-certificate',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTlsAskRoute = ApiPublicTlsAskRouteImport.update({
+  id: '/api/public/tls-ask',
+  path: '/api/public/tls-ask',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTeamsRoute = ApiPublicTeamsRouteImport.update({
   id: '/api/public/teams',
   path: '/api/public/teams',
@@ -1203,6 +1209,7 @@ export interface FileRoutesByFullPath {
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
+  '/api/public/tls-ask': typeof ApiPublicTlsAskRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
@@ -1364,6 +1371,7 @@ export interface FileRoutesByTo {
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
+  '/api/public/tls-ask': typeof ApiPublicTlsAskRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app': typeof AuthenticatedAppIndexRoute
@@ -1534,6 +1542,7 @@ export interface FileRoutesById {
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/api/public/teams': typeof ApiPublicTeamsRoute
+  '/api/public/tls-ask': typeof ApiPublicTlsAskRoute
   '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
@@ -1704,6 +1713,7 @@ export interface FileRouteTypes {
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
+    | '/api/public/tls-ask'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app/'
@@ -1865,6 +1875,7 @@ export interface FileRouteTypes {
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
+    | '/api/public/tls-ask'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app'
@@ -2034,6 +2045,7 @@ export interface FileRouteTypes {
     | '/api/public/study-contact'
     | '/api/public/study-submit'
     | '/api/public/teams'
+    | '/api/public/tls-ask'
     | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/_authenticated/app/'
@@ -2148,6 +2160,7 @@ export interface RootRouteChildren {
   ApiPublicStudyContactRoute: typeof ApiPublicStudyContactRoute
   ApiPublicStudySubmitRoute: typeof ApiPublicStudySubmitRoute
   ApiPublicTeamsRoute: typeof ApiPublicTeamsRoute
+  ApiPublicTlsAskRoute: typeof ApiPublicTlsAskRoute
   ApiPublicVerifyCertificateRoute: typeof ApiPublicVerifyCertificateRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiAuthMicrosoftCallbackRoute: typeof ApiAuthMicrosoftCallbackRoute
@@ -2638,6 +2651,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/verify-certificate'
       fullPath: '/api/public/verify-certificate'
       preLoaderRoute: typeof ApiPublicVerifyCertificateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/tls-ask': {
+      id: '/api/public/tls-ask'
+      path: '/api/public/tls-ask'
+      fullPath: '/api/public/tls-ask'
+      preLoaderRoute: typeof ApiPublicTlsAskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/teams': {
@@ -3731,6 +3751,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStudyContactRoute: ApiPublicStudyContactRoute,
   ApiPublicStudySubmitRoute: ApiPublicStudySubmitRoute,
   ApiPublicTeamsRoute: ApiPublicTeamsRoute,
+  ApiPublicTlsAskRoute: ApiPublicTlsAskRoute,
   ApiPublicVerifyCertificateRoute: ApiPublicVerifyCertificateRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiAuthMicrosoftCallbackRoute: ApiAuthMicrosoftCallbackRoute,
