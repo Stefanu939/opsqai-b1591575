@@ -270,6 +270,9 @@ Function un.onInit
 FunctionEnd
 
 Section "Uninstall"
+  ; Remove the workstation-access firewall rules added by the wizard.
+  nsExec::Exec 'netsh advfirewall firewall delete rule name="OPSQAI Workstations (HTTPS)"'
+  nsExec::Exec 'netsh advfirewall firewall delete rule name="OPSQAI Discovery"'
   ; Stop in reverse dependency order.
   !insertmacro StopAndUninstallService "OpsqaiUpdater"
   !insertmacro StopAndUninstallService "OpsqaiCaddy"
