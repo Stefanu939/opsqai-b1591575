@@ -13,5 +13,6 @@
   <onfailure action="restart" delay="60 sec"/>
   <resetfailure>1 hour</resetfailure>
   <log mode="roll-by-size"><sizeThreshold>10240</sizeThreshold><keepFiles>8</keepFiles></log>
+  <env name="XDG_DATA_HOME" value="%ProgramData%\OPSQAI\certs"/>
   <logpath>%ProgramData%\OPSQAI\logs</logpath>
 </service>

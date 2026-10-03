@@ -38,7 +38,7 @@ export function Panel({
   return (
     <section
       className={cn(
-         "relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-[border-color,box-shadow] duration-200 hover:border-primary/30 hover:shadow-[0_0_32px_-12px_color-mix(in_oklch,var(--primary)_40%,transparent)]",
+         "relative flex flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-[border-color,box-shadow] duration-200 hover:border-primary/30 hover:shadow-[0_0_32px_-12px_color-mix(in_oklch,var(--primary)_40%,transparent)]",
          glass && "bg-card",
         className,
       )}
