@@ -62,7 +62,28 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const QRCode = (await import("qrcode")).default;
 
-  const verifyUrl = `${resolveCertificateVerifyBase()}/verify/${code}`;
+  const customBase = typeof template.verifyBaseUrl === "string" ? template.verifyBaseUrl.replace(/\/+$/, "") : "";
+  let verifyUrl: string;
+  const { isSelfHosted } = await import("@/lib/platform");
+  if (customBase) {
+    verifyUrl = `${customBase}/verify/${code}`;
+  } else if (isSelfHosted()) {
+    // Local addresses (localhost / LAN) can't be opened from a phone or by an
+    // auditor, so Self-Hosted diplomas carry a signed token verified publicly.
+    const { signCertToken } = await import("@/lib/academy-cert-token.server");
+    const token = await signCertToken({
+      id: code,
+      n: recipient,
+      c: courseName,
+      ...(department ? { d: department } : {}),
+      o: companyName,
+      s: Math.round(Number(opts.finalScore) || 0),
+      t: new Date().toISOString().slice(0, 10),
+    });
+    verifyUrl = `https://opsqai.de/verify?cert=${token}`;
+  } else {
+    verifyUrl = `${resolveCertificateVerifyBase()}/verify/${code}`;
+  }
   const qrPng = await QRCode.toBuffer(verifyUrl, { width: 220, margin: 1 });
 
 

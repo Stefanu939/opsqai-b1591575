@@ -1147,7 +1147,7 @@ export function createPgAcademyRepository(deps: PgAcademyRepositoryDeps): IAcade
           [companyId],
         ),
         pool.query(`SELECT id, name FROM public.departments WHERE company_id = $1 ORDER BY name`, [companyId]),
-        pool.query(`SELECT DISTINCT role FROM public.user_roles WHERE company_id = $1`, [companyId]),
+        pool.query(`SELECT DISTINCT ur.role FROM public.user_roles ur JOIN public.users u ON u.id = ur.user_id WHERE u.company_id = $1`, [companyId]),
       ]);
       return {
         users: usersRes.rows.map((u) => ({

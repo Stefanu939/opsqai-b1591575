@@ -2,7 +2,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { academySuggestPath, listMyEnrollments, enrollSelf } from "@/lib/academy.functions";
+import { academySuggestPath, listMyEnrollments, enrollSelf, listAcademyPaths } from "@/lib/academy.functions";
 import { useT } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import { AcademySubnav } from "@/components/app/academy-subnav";
 
 export const Route = createFileRoute("/_authenticated/app/academy/courses")({
   component: MyCourses,
-  head: () => ({ meta: [{ title: "My Courses · Academy" }] }),
+  head: () => ({ meta: [{ title: "Catalog de cursuri · Academy" }] }),
 });
 
 function MyCourses() {
@@ -28,13 +28,23 @@ function MyCourses() {
   const suggest = useServerFn(academySuggestPath);
   const myEnroll = useServerFn(listMyEnrollments);
   const enroll = useServerFn(enrollSelf);
+  const listPaths = useServerFn(listAcademyPaths);
+  const [catalog, setCatalog] = useState<any[]>([]);
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [department, setDepartment] = useState("");
   const [role, setRole] = useState("");
   const [experience, setExperience] = useState("entry");
   const [suggestions, setSuggestions] = useState<any[]>([]);
 
-  const refresh = async () => setEnrollments(((await myEnroll()) as any[]) ?? []);
+  const refresh = async () => {
+    setEnrollments(((await myEnroll()) as any[]) ?? []);
+    try {
+      const rows = ((await listPaths({ data: { publish_status: "published" } })) as any[]) ?? [];
+      setCatalog(rows);
+    } catch {
+      setCatalog([]);
+    }
+  };
   useEffect(() => {
     void refresh();
   }, []);
@@ -54,12 +64,11 @@ function MyCourses() {
       <div className="p-6 max-w-6xl mx-auto space-y-8 w-full">
         <section className="space-y-3">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <BookOpen className="h-5 w-5" /> My learning journey
+            <BookOpen className="h-5 w-5" /> Parcursul meu de învățare
           </h2>
           {enrollments.length === 0 ? (
             <Card className="p-8 text-center text-sm text-muted-foreground">
-              No active courses yet. Use the AI welcome below to discover learning paths tailored to
-              your role.
+              Nu ești înscris încă la niciun curs. Alege un curs din catalogul de mai jos.
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 gap-3">
@@ -87,7 +96,7 @@ function MyCourses() {
                       to="/app/academy/path/$pathId"
                       params={{ pathId: e.academy_learning_paths.id }}
                     >
-                      <PlayCircle className="h-4 w-4 mr-1" /> Continue
+                      <PlayCircle className="h-4 w-4 mr-1" /> Continuă
                     </Link>
                   </Button>
                 </Card>
@@ -96,18 +105,56 @@ function MyCourses() {
           )}
         </section>
 
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <BookOpen className="h-5 w-5" /> Catalogul de cursuri al companiei
+          </h2>
+          {catalog.length === 0 ? (
+            <Card className="p-8 text-center text-sm text-muted-foreground">
+              Nu există încă cursuri publicate. Cursurile create apar în Biblioteca de cursuri și pot fi publicate sau atribuite de acolo.
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-3">
+              {catalog.map((p) => {
+                const enrolled = enrollments.some((e) => e.academy_learning_paths?.id === p.id);
+                return (
+                  <Card key={p.id} className="p-4 space-y-2">
+                    <div className="font-medium">{p.title}</div>
+                    {p.description && (
+                      <div className="text-xs text-muted-foreground line-clamp-2">{p.description}</div>
+                    )}
+                    <div className="flex flex-wrap gap-1 text-[10px]">
+                      {p.academy_departments?.name && <Badge variant="secondary">{p.academy_departments.name}</Badge>}
+                      {p.mandatory && <Badge>Obligatoriu</Badge>}
+                    </div>
+                    {enrolled ? (
+                      <Button asChild size="sm" variant="secondary">
+                        <Link to="/app/academy/path/$pathId" params={{ pathId: p.id }}>
+                          <PlayCircle className="h-4 w-4 mr-1" /> Deschide
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={() => doEnroll(p.id)}>Înscrie-te</Button>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         <Card className="p-6 space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <Sparkles className="h-4 w-4 text-primary" /> Discover learning paths for your role
+            <Sparkles className="h-4 w-4 text-primary" /> Descoperă cursuri potrivite rolului tău
           </div>
           <div className="grid md:grid-cols-4 gap-3">
             <Input
-              placeholder="Department (e.g. Warehouse)"
+              placeholder="Departament (ex. Depozit)"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
             />
             <Input
-              placeholder="Role (e.g. Operator)"
+              placeholder="Rol (ex. Operator)"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             />
@@ -116,12 +163,12 @@ function MyCourses() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="entry">Entry</SelectItem>
-                <SelectItem value="experienced">Experienced</SelectItem>
+                <SelectItem value="entry">Începător</SelectItem>
+                <SelectItem value="experienced">Cu experiență</SelectItem>
                 <SelectItem value="senior">Senior</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={findPaths}>Find my paths</Button>
+            <Button onClick={findPaths}>Găsește cursuri</Button>
           </div>
           {suggestions.length > 0 && (
             <div className="grid md:grid-cols-2 gap-3 pt-2">
@@ -134,10 +181,10 @@ function MyCourses() {
                       <Badge variant="secondary">{p.academy_departments.name}</Badge>
                     )}
                     {p.target_role && <Badge variant="outline">{p.target_role}</Badge>}
-                    {p.mandatory && <Badge>Mandatory</Badge>}
+                    {p.mandatory && <Badge>Obligatoriu</Badge>}
                   </div>
                   <Button size="sm" onClick={() => doEnroll(p.id)} className="mt-2">
-                    Enroll
+                    Înscrie-te
                   </Button>
                 </Card>
               ))}

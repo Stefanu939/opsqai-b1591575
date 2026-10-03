@@ -71,6 +71,7 @@ import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsib
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as SolutionsIndexRouteImport } from './routes/solutions.index'
 import { Route as SolutionsVerticalRouteImport } from './routes/solutions.$vertical'
+import { Route as VerifyIndexRouteImport } from './routes/verify.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -495,6 +496,11 @@ const SolutionsIndexRoute = SolutionsIndexRouteImport.update({
 const SolutionsVerticalRoute = SolutionsVerticalRouteImport.update({
   id: '/solutions/$vertical',
   path: '/solutions/$vertical',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyIndexRoute = VerifyIndexRouteImport.update({
+  id: '/verify/',
+  path: '/verify/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
@@ -1187,6 +1193,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/solutions/': typeof SolutionsIndexRoute
+  '/verify/': typeof VerifyIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/activity': typeof AuthenticatedAppActivityRoute
@@ -1356,6 +1363,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/documentation': typeof DocumentationIndexRoute
   '/solutions': typeof SolutionsIndexRoute
+  '/verify': typeof VerifyIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/activity': typeof AuthenticatedAppActivityRoute
@@ -1530,6 +1538,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/solutions/': typeof SolutionsIndexRoute
+  '/verify/': typeof VerifyIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/app/activity': typeof AuthenticatedAppActivityRoute
@@ -1706,6 +1715,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/documentation/'
     | '/solutions/'
+    | '/verify/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/activity'
@@ -1875,6 +1885,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/documentation'
     | '/solutions'
+    | '/verify'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/activity'
@@ -2048,6 +2059,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/documentation/'
     | '/solutions/'
+    | '/verify/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/app/activity'
@@ -2205,6 +2217,7 @@ export interface RootRouteChildren {
   SolutionsVerticalRoute: typeof SolutionsVerticalRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   SolutionsIndexRoute: typeof SolutionsIndexRoute
+  VerifyIndexRoute: typeof VerifyIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiAuthPasswordResetConfirmRoute: typeof ApiAuthPasswordResetConfirmRoute
@@ -2683,6 +2696,13 @@ declare module '@tanstack/react-router' {
       path: '/solutions/$vertical'
       fullPath: '/solutions/$vertical'
       preLoaderRoute: typeof SolutionsVerticalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/': {
+      id: '/verify/'
+      path: '/verify'
+      fullPath: '/verify/'
+      preLoaderRoute: typeof VerifyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify/$code': {
@@ -3837,6 +3857,7 @@ const rootRouteChildren: RootRouteChildren = {
   SolutionsVerticalRoute: SolutionsVerticalRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   SolutionsIndexRoute: SolutionsIndexRoute,
+  VerifyIndexRoute: VerifyIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiAuthPasswordResetConfirmRoute: ApiAuthPasswordResetConfirmRoute,

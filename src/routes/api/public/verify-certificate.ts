@@ -13,8 +13,31 @@ export const Route = createFileRoute("/api/public/verify-certificate")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const code = new URL(request.url).searchParams.get("code")?.trim() ?? "";
+        const url = new URL(request.url);
+        const code = url.searchParams.get("code")?.trim() ?? "";
         const headers = { "Cache-Control": "no-store" };
+        const token = url.searchParams.get("cert")?.trim();
+        if (token) {
+          const { verifyCertToken } = await import("@/lib/academy-cert-token.server");
+          const p = verifyCertToken(token);
+          if (!p) return Response.json({ found: false }, { status: 404, headers });
+          return Response.json(
+            {
+              found: true,
+              certificate: {
+                valid: true,
+                issuedAt: p.t,
+                score: p.s,
+                pathTitle: p.d ? `${p.c} (${p.d})` : p.c,
+                company: p.o,
+                recipient: p.n,
+                certificateCode: p.id,
+                keyFingerprint: p.keyFingerprint,
+              },
+            },
+            { headers },
+          );
+        }
         if (!CODE_RE.test(code)) {
           return Response.json({ found: false }, { status: 404, headers });
         }
