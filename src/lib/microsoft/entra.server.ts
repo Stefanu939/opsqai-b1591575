@@ -197,10 +197,39 @@ export async function graphDownload(pathOrUrl: string): Promise<Uint8Array> {
   return new Uint8Array(await res.arrayBuffer());
 }
 
-/** Public origin of this installation as seen by the browser (behind Caddy). */
+/**
+ * Public origin of this installation as seen by the browser (behind Caddy).
+ * The Host / X-Forwarded-Host headers are attacker-controlled, so they are
+ * only trusted when they match the request URL host or a known installation
+ * address (private/LAN hosts or OPSQAI_ALLOWED_HOSTS). Anything else falls
+ * back to the URL the server actually received — redirects can never leave
+ * this installation.
+ */
+const PRIVATE_HOST =
+  /^(localhost|127\.0\.0\.1|::1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/i;
+const LAN_HOST = /^[a-z0-9-]+(\.(local|lan|internal|corp|home\.arpa))?(:\d+)?$/i;
+
+function allowedHost(host: string, urlHost: string): boolean {
+  if (!host || host.length > 255 || /[\s/?#@]/.test(host)) return false;
+  if (host.toLowerCase() === urlHost.toLowerCase()) return true;
+  if (PRIVATE_HOST.test(host) || LAN_HOST.test(host)) return true;
+  const extra = (process.env["OPSQAI_ALLOWED_HOSTS"] ?? "")
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
+  return extra.includes(host.toLowerCase());
+}
+
 export function requestOrigin(request: Request): string {
   const u = new URL(request.url);
-  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || u.protocol.replace(":", "");
-  const host = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || u.host;
+  const fwdHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ?? "";
+  const hostHeader = request.headers.get("host")?.trim() ?? "";
+  const host = allowedHost(fwdHost, u.host)
+    ? fwdHost
+    : allowedHost(hostHeader, u.host)
+      ? hostHeader
+      : u.host;
+  const protoHeader = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() ?? "";
+  const proto = protoHeader === "https" || protoHeader === "http" ? protoHeader : u.protocol.replace(":", "");
   return `${proto}://${host}`;
 }
