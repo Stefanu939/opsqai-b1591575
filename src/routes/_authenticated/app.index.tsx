@@ -637,6 +637,7 @@ function DashboardWidgets() {
 
       <ModuleKpis />
 
+      <ManagementOverview />
 
       <BentoGrid>
         {/* KPI row */}
