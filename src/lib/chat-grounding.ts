@@ -118,7 +118,7 @@ const REFUSALS: Record<string, string> = {
 export function detectLanguage(query: string, hint?: string | null): string {
   const q = ` ${query.toLowerCase()} `;
   const rules: Array<[string, RegExp]> = [
-    ["ro", /[ăâîșț]|\b(care|unde|cum|trebuie|pentru|și|si|să|sa|dacă|daca|acest|această|aceste|toate|documente|firma|procedura)\b/],
+    ["ro", /[ăâîșț]|\b(care|unde|cum|trebuie|pentru|și|si|să|sa|dacă|daca|acest|această|aceste|toate|documente|firma|procedura|nu|este|sunt|ce|am|ai|avem|vreau|pot|unde)\b/],
     ["de", /[äöüß]|\b(wie|was|warum|welche|muss|nicht|und|ist|sind|der|die|das)\b/],
     ["fr", /\b(comment|pourquoi|quel|quelle|est-ce|dois|pas|et|le|la|les)\b/],
     ["es", /\b(cómo|como|por qué|cuál|debo|no|y|el|la|los)\b/],

@@ -455,7 +455,7 @@ function Dashboard() {
         />
       </div>
 
-      {false && isEmptyWorkspace && (
+      {isEmptyWorkspace && (
         /* Onboarding cards — shown alongside the live widgets, never instead */
         <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
           {!data ? (
@@ -582,7 +582,6 @@ function DashboardWidgets() {
       ].filter((s) => Number(s.value) > 0)
     : [];
 
-  void update;
   const healthScore = Number((health as { score?: number } | undefined)?.score ?? 0);
   const confidencePct = kpis?.avgConfidence ? Math.round(kpis.avgConfidence * 100) : 0;
   const totalDocs = status ? status.complete + status.inProgress + status.missing : 0;
@@ -595,6 +594,7 @@ function DashboardWidgets() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6 md:py-8">
+      <DashboardFilters value={filters} onChange={update} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ControlCenter />
@@ -637,6 +637,7 @@ function DashboardWidgets() {
 
       <ModuleKpis />
 
+      <ManagementOverview />
 
       <BentoGrid>
         {/* KPI row */}
