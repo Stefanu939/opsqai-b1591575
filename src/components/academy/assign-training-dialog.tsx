@@ -60,12 +60,18 @@ export function AssignTrainingDialog({
   const [notify, setNotify] = useState(true);
   const [userQuery, setUserQuery] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     void (async () => {
-      const t = (await loadTargets()) as Targets;
-      setTargets(t);
+      try {
+        const t = (await loadTargets()) as Targets;
+        setTargets(t);
+      } catch (e: any) {
+        setLoadError(e?.message || "Nu s-au putut încărca utilizatorii și cursurile.");
+        setTargets({ users: [], departments: [], roles: [], paths: [] } as unknown as Targets);
+      }
       if (defaultPathId && !pathIds.length) setPathIds([defaultPathId]);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,7 +151,7 @@ export function AssignTrainingDialog({
         </DialogHeader>
 
         {!targets ? (
-          <div className="text-sm text-muted-foreground py-8 text-center">Loading targets…</div>
+          <div className="text-sm text-muted-foreground py-8 text-center">Se încarcă utilizatorii și cursurile…</div>
         ) : (
           <div className="space-y-4">
             {/* Courses */}

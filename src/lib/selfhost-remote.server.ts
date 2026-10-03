@@ -14,7 +14,18 @@ import { pgDateTypes } from "@/lib/providers/selfhost/pg-types.server";
 
 const PD = () => process.env["ProgramData"] || "C:\\ProgramData";
 const REMOTE_JSON = () => path.join(PD(), "OPSQAI", "config", "remote.json");
-const CA_PATH = () => path.join(PD(), "OPSQAI", "certs", "pki", "authorities", "local", "root.crt");
+const CA_REL = ["pki", "authorities", "local", "root.crt"];
+/** Caddy stores its local CA under XDG_DATA_HOME/caddy, or under the service account's AppData. */
+const CA_PATHS = () => {
+  const win = process.env["SystemRoot"] || "C:\\Windows";
+  return [
+    path.join(PD(), "OPSQAI", "certs", "caddy", ...CA_REL),
+    path.join(PD(), "OPSQAI", "certs", ...CA_REL),
+    path.join(win, "System32", "config", "systemprofile", "AppData", "Roaming", "Caddy", ...CA_REL),
+    path.join(win, "System32", "config", "systemprofile", "AppData", "Roaming", "caddy", ...CA_REL),
+    ...(process.env["APPDATA"] ? [path.join(process.env["APPDATA"], "Caddy", ...CA_REL)] : []),
+  ];
+};
 
 let pool: Pool | null = null;
 function db(): Pool {
@@ -83,13 +94,16 @@ export async function remoteHosts(): Promise<string[]> {
 }
 
 export async function readCa(): Promise<{ pem: string; fingerprint: string } | null> {
-  try {
-    const pem = await fs.readFile(CA_PATH(), "utf8");
-    const fp = new X509Certificate(pem).fingerprint256.replace(/:/g, "").toLowerCase();
-    return { pem, fingerprint: fp };
-  } catch {
-    return null;
+  for (const p of CA_PATHS()) {
+    try {
+      const pem = await fs.readFile(p, "utf8");
+      const fp = new X509Certificate(pem).fingerprint256.replace(/:/g, "").toLowerCase();
+      return { pem, fingerprint: fp };
+    } catch {
+      /* try next location */
+    }
   }
+  return null;
 }
 
 const ALPHA = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -98,9 +112,9 @@ const hash = (s: string) => createHash("sha256").update(s.toUpperCase()).digest(
 export async function createPairingCode(userId: string) {
   const r = await readRemote();
   const host = r.hostname || r.publicIp;
-  if (!r.enabled || !host) throw new Error("remote_not_ready");
+  if (!r.enabled || !host) throw new Error("Accesul de la distanță nu este încă pregătit. Activați-l și așteptați până apare adresa publică.");
   const ca = await readCa();
-  if (!ca) throw new Error("ca_missing");
+  if (!ca) throw new Error("Certificatul de securitate al calculatorului principal nu a fost găsit încă. Deschideți o dată https://localhost pe acest calculator (serviciul HTTPS îl creează automat), apoi încercați din nou.");
   const bytes = randomBytes(8);
   const secret = Array.from(bytes, (b) => ALPHA[b % ALPHA.length]).join("");
   const expires = new Date(Date.now() + 15 * 60 * 1000);
