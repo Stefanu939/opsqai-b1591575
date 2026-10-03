@@ -70,7 +70,7 @@ export function AssignTrainingDialog({
         setTargets(t);
       } catch (e: any) {
         setLoadError(e?.message || "Nu s-au putut încărca utilizatorii și cursurile.");
-        setTargets({ users: [], departments: [], roles: [], paths: [] } as unknown as Targets);
+        setTargets({ users: [], departments: [], roles: [], paths: [] });
       }
       if (defaultPathId && !pathIds.length) setPathIds([defaultPathId]);
     })();
@@ -154,6 +154,9 @@ export function AssignTrainingDialog({
           <div className="text-sm text-muted-foreground py-8 text-center">Se încarcă utilizatorii și cursurile…</div>
         ) : (
           <div className="space-y-4">
+            {loadError && (
+              <div className="rounded border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">{loadError}</div>
+            )}
             {/* Courses */}
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -162,7 +165,7 @@ export function AssignTrainingDialog({
               <ScrollArea className="h-32 rounded border p-2">
                 {targets.paths.length === 0 ? (
                   <div className="text-xs text-muted-foreground italic p-2">
-                    No published courses yet.
+                    Nu există încă cursuri. Creați sau publicați un curs în Biblioteca de cursuri.
                   </div>
                 ) : (
                   targets.paths.map((p) => (
