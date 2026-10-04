@@ -44,6 +44,8 @@ const SECTIONS: Section[] = [
     items: [
       { to: "/management/crm", label: "CRM", icon: Handshake },
       { to: "/management/sales", label: "Sales Cockpit", icon: Megaphone },
+      { to: "/management/pricing", label: "Preț & ofertă", icon: Calculator },
+      { to: "/management/onboarding", label: "Client nou (3 pași)", icon: Rocket },
       { to: "/management/value", label: "Value Engine", icon: Calculator },
       { to: "/management/study", label: "Study", icon: Handshake },
       { to: "/management/customers", label: "Customers", icon: Users },

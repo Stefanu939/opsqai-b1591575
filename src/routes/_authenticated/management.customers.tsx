@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.functions";
 import { createCompany, updateCompany, deleteCompany } from "@/lib/companies.functions";
 import { ModulePage } from "@/components/app/module-page";
@@ -50,6 +51,8 @@ import {
   Mail,
   Copy,
   ArrowRight,
+  FileText,
+  Rocket,
   Dices,
   Eye,
   EyeOff,
@@ -80,6 +83,9 @@ type NewCustomerInput = {
 
 
 export const Route = createFileRoute("/_authenticated/management/customers")({
+  validateSearch: z.object({
+    filter: z.enum(["all", "expiring", "suspended", "enterprise"]).optional(),
+  }),
   head: () => ({ meta: [{ title: "Customers — Management Center" }] }),
   component: CustomersPage,
 });
@@ -164,7 +170,13 @@ function CustomersPage() {
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [view, setView] = useState<"grid" | "table">("grid");
-  const [pill, setPill] = useState<"all" | "expiring" | "suspended" | "enterprise">("all");
+  const searchParams = Route.useSearch();
+  const [pill, setPill] = useState<"all" | "expiring" | "suspended" | "enterprise">(
+    searchParams.filter ?? "all",
+  );
+  useEffect(() => {
+    if (searchParams.filter) setPill(searchParams.filter);
+  }, [searchParams.filter]);
   const [credentials, setCredentials] = useState<Credentials | null>(null);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["mc-customers"] });
@@ -457,10 +469,17 @@ function CustomersPage() {
       title="Customers"
       description="Every OPSQAI customer — subscription, license expiry, contract lifecycle."
       actions={
+        <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline">
+          <Link to="/management/onboarding">
+            <Rocket className="mr-1.5 h-4 w-4" /> Client nou în 3 pași
+          </Link>
+        </Button>
         <NewCustomerDialog
           onCreate={(v, phone) => createMut.mutate(v, { onSuccess: () => setCredentials({ ...v, phone }) })}
           pending={createMut.isPending}
         />
+        </div>
       }
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -729,6 +748,11 @@ function CustomerCard({ row: r, onOpen }: { row: Row; onOpen: () => void }) {
           }}
         >
           <Copy className="h-4 w-4" />
+        </Button>
+        <Button asChild size="sm" variant="ghost" className="h-8 px-2" aria-label="Ofertă PDF">
+          <Link to="/management/pricing" search={{ company: r.name }}>
+            <FileText className="h-4 w-4" />
+          </Link>
         </Button>
         <ManageCustomerDialog companyId={r.id} companyName={r.name} />
         <Button size="sm" variant="ghost" className="ml-auto h-8 text-primary" onClick={onOpen}>

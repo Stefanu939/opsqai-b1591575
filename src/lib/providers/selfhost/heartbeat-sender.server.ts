@@ -74,6 +74,24 @@ function toIso(sec: number | null | undefined): string | null {
   return typeof sec === "number" && sec > 0 ? new Date(sec * 1000).toISOString() : null;
 }
 
+async function readTopology(): Promise<HeartbeatPayload["topology"]> {
+  try {
+    const { listStations } = await import("@/lib/selfhost-stations.server");
+    const rows = await listStations();
+    return {
+      ai_engine: process.env.OPSQAI_AI_ENGINE ?? null,
+      stations: rows.slice(0, 100).map((r) => ({
+        name: r.name.slice(0, 80),
+        location: r.location ? r.location.slice(0, 80) : null,
+        last_seen_at: r.last_seen_at ? new Date(r.last_seen_at).toISOString() : null,
+        active: !r.revoked_at,
+      })),
+    };
+  } catch {
+    return null; // best-effort; never blocks the heartbeat
+  }
+}
+
 async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayload | null> {
   const lic = await readInstallLicenseForHeartbeat(opts.licenseFilePath, opts.licensePublicKey);
   if (!lic) return null; // no valid license on disk — nothing safe to report yet
@@ -115,6 +133,7 @@ async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayl
 
     license_status: licenseStatus,
     machine_fingerprint: await machineFingerprint(),
+    topology: await readTopology(),
     enabled_modules: modules,
     status: "running" as const,
     last_maintenance_at: null,
