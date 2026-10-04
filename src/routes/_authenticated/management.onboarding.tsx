@@ -125,7 +125,7 @@ function OnboardingWizard() {
           seats,
           expires_at: expires.toISOString(),
           modules: [],
-          notes: [cui && `CUI ${cui}`, address].filter(Boolean).join(" · ") || undefined,
+          notes: [cui && `CUI ${cui}`, anaf?.reg_com && `Reg. Com. ${anaf.reg_com}`, anaf?.caen && `CAEN ${anaf.caen}`, anaf?.financials?.employees != null && `${anaf.financials.employees} angajați`, address].filter(Boolean).join(" · ") || undefined,
           send_email: false,
         },
       } as never);
