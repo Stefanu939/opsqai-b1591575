@@ -446,26 +446,16 @@ function TeacherChat({
         <div className="hidden md:flex items-center gap-2 text-[11px] text-muted-foreground">
           <Clock className="h-3.5 w-3.5" /> ~{remaining} min
         </div>
-        {/* Learner-chosen language for AI Teacher + quiz */}
-        <select
-          value={learnLang ?? ""}
-          onChange={(e) => e.target.value && handleLangChange(e.target.value)}
-          className="text-[11px] bg-background border border-border rounded-full px-2.5 py-1 hover:border-primary/50 focus:outline-none focus:border-primary cursor-pointer"
-          title={
-            learnLang
-              ? `Learning in ${LANG_LABEL[learnLang]}`
-              : "Pick a language for the AI Teacher and quiz"
-          }
-        >
-          <option value="" disabled>
-            🌐 Language…
-          </option>
-          {LANG_OPTIONS.map((o) => (
-            <option key={o.code} value={o.code}>
-              🌐 {o.label}
-            </option>
-          ))}
-        </select>
+        {/* Active language — click to reopen the quick-choice cards in chat */}
+        {learnLang && (
+          <button
+            onClick={() => setLangPickerOpen((v) => !v)}
+            className="text-[11px] border border-border rounded-full px-2.5 py-1 hover:border-primary/50"
+            title="Schimbă limba lecției"
+          >
+            🌐 {LANG_LABEL[learnLang]}
+          </button>
+        )}
         <button
           onClick={() => setContextOpen((v) => !v)}
           className="text-[11px] text-muted-foreground hover:text-foreground border border-border rounded-full px-2.5 py-1"
@@ -485,10 +475,57 @@ function TeacherChat({
         <div className="flex-1 flex flex-col min-w-0">
           <div ref={scrollRef} className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto w-full px-4 md:px-6 py-6 space-y-5">
-              {visibleMessages.length === 0 && status !== "streaming" && (
+              {(!learnLang || langPickerOpen) && (
+                <div className="flex justify-start">
+                  <div className="max-w-[92%] rounded-2xl px-4 py-3 bg-card border border-border space-y-3">
+                    <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-muted-foreground">
+                      <GraduationCap className="h-3 w-3 text-primary" /> AI Teacher
+                    </div>
+                    <div className="text-[14.5px] leading-relaxed">
+                      {learnLang ? (
+                        "În ce limbă vrei să continuăm?"
+                      ) : (
+                        <>
+                          Bună! În ce limbă vrei să parcurgem lecția <b>{lesson.title}</b>?
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Hallo! In welcher Sprache möchtest du lernen? · Hi! Which language would you like to learn in?
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {LANG_OPTIONS.slice(0, 3)
+                        .slice()
+                        .sort((a) => (a.code === "ro" ? -1 : 1))
+                        .map((o) => (
+                          <button
+                            key={o.code}
+                            onClick={() => handleLangChange(o.code)}
+                            className={`rounded-xl border px-3 py-3 text-left transition-colors hover:border-primary hover:bg-primary/10 ${learnLang === o.code ? "border-primary bg-primary/10" : "border-border bg-background"}`}
+                          >
+                            <div className="text-xs text-muted-foreground font-mono">{o.short}</div>
+                            <div className="text-sm font-medium">{o.label}</div>
+                          </button>
+                        ))}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {LANG_OPTIONS.slice(3).map((o) => (
+                        <button
+                          key={o.code}
+                          onClick={() => handleLangChange(o.code)}
+                          className={`text-[11.5px] rounded-full border px-2.5 py-1 hover:border-primary ${learnLang === o.code ? "border-primary bg-primary/10" : "border-border"}`}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {learnLang && visibleMessages.length === 0 && status !== "streaming" && (
                 <div className="text-center py-12 text-sm text-muted-foreground">
                   <Sparkles className="h-5 w-5 text-primary mx-auto mb-2" />
-                  Your AI Teacher is preparing the lesson…
+                  Profesorul AI pregătește lecția…
                 </div>
               )}
 
