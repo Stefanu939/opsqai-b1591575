@@ -56,6 +56,8 @@ export const HeartbeatPayloadSchema = z.object({
   primary_language: z.string().max(10).optional(),
   app_version: z.string().max(32).optional(),
   license_status: LicenseStatusSchema.optional(),
+  /** SHA-256 of machine identifiers — detects one licence on two machines. */
+  machine_fingerprint: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   enabled_modules: z.array(z.string().max(64)).max(64).optional().default([]),
   status: ReportedStatusSchema.optional().default("running"),
   last_maintenance_at: z.string().datetime().nullable().optional(),
