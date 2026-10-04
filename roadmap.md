@@ -16,3 +16,8 @@
 - [ ] MC: Calculator de preț live → salvează ca ofertă
 - [ ] MC: Copilot Cmd+K cu comenzi (expiră luna asta, servere offline)
 - [ ] MC: Cronologia relației cu clientul
+
+## Management Center Stage 2 (done)
+- [x] Onboarding wizard 3 pași (CUI manual + buton ANAF opțional)
+- [x] Calculator preț & ofertă PDF (12.000 € / 500 € / 400 €)
+- [x] Topologie flotă, cronologie client, comenzi Cmd+K
