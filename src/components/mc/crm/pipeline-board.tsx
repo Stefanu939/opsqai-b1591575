@@ -2,11 +2,11 @@
 // Transport coupling board). Everyone sees every column; only the lead
 // owner or a SuperAdmin can actually drop a card into another stage.
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CRM_STAGES, type CrmLead } from "@/lib/crm.functions";
-import { Mail, MessageCircle, Phone } from "lucide-react";
+import { Mail, MessageCircle, Phone, Rocket } from "lucide-react";
 import { coldEmail, mailtoUrl, telUrl, whatsappTemplate, whatsappUrl } from "@/lib/mc-outreach";
 
 function QuickIcon({ url, label, self, children }: { url: string; label: string; self?: boolean; children: React.ReactNode }) {
@@ -53,6 +53,7 @@ export function PipelineBoard({
   canEdit: (lead: CrmLead) => boolean;
   onMove: (lead: CrmLead, stage: string) => void;
 }) {
+  const navigate = useNavigate();
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<string | null>(null);
 
@@ -144,6 +145,28 @@ export function PipelineBoard({
                       <span className="mr-auto truncate text-[10px] text-muted-foreground">
                         {ownerName(lead.owner_user_id)}
                       </span>
+                      {lead.stage === "won" && (
+                        <button
+                          type="button"
+                          title="Transformă în client (wizard)"
+                          className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/20"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate({
+                              to: "/management/onboarding",
+                              search: {
+                                company: lead.company_name,
+                                contact: lead.contact_name ?? undefined,
+                                email: lead.email ?? undefined,
+                                phone: lead.phone ?? undefined,
+                              },
+                            });
+                          }}
+                        >
+                          <Rocket className="h-3 w-3" /> Client
+                        </button>
+                      )}
                       {lead.phone && (
                         <QuickIcon
                           label="WhatsApp"

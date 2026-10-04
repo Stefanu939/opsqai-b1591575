@@ -10,14 +10,15 @@
 - [x] Different-location link without VPN (router auto-setup + one-time pairing code + pinned certificate)
 - [ ] Real Windows test of installer, workstation pairing, Academy flow — needs user's PC
 - [x] MC Etapa 1: Sales Cockpit, cartonașe clienți, formular client nou, acțiuni rapide CRM
-- [ ] MC: Onboarding wizard 3 pași (firmă → pachet → licență + kit + mesaj gata de trimis)
-- [ ] MC: Ofertă oficială + ROI în PDF cu 1 click
-- [ ] MC: Schema calculatoarelor clientului (server + stații)
-- [ ] MC: Calculator de preț live → salvează ca ofertă
-- [ ] MC: Copilot Cmd+K cu comenzi (expiră luna asta, servere offline)
-- [ ] MC: Cronologia relației cu clientul
+- [x] MC: Onboarding wizard 3 pași (firmă → pachet → licență + kit + mesaj gata de trimis)
+- [x] MC: Ofertă oficială + ROI în PDF cu 1 click
+- [x] MC: Schema calculatoarelor clientului (server + stații)
+- [x] MC: Calculator de preț live → salvează ca ofertă
+- [x] MC: Copilot Cmd+K cu comenzi (expiră luna asta, servere offline)
+- [x] MC: Cronologia relației cu clientul
 
 ## Management Center Stage 2 (done)
 - [x] Onboarding wizard 3 pași (CUI manual + buton ANAF opțional)
 - [x] Calculator preț & ofertă PDF (12.000 € / 500 € / 400 €)
 - [x] Topologie flotă, cronologie client, comenzi Cmd+K
+- [x] CRM lead câștigat → buton „Client” deschide wizard-ul completat

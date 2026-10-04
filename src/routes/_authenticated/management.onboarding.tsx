@@ -31,6 +31,12 @@ export const Route = createFileRoute("/_authenticated/management/onboarding")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { company?: string; contact?: string; email?: string; phone?: string } => ({
+    company: typeof s.company === "string" ? s.company : undefined,
+    contact: typeof s.contact === "string" ? s.contact : undefined,
+    email: typeof s.email === "string" ? s.email : undefined,
+    phone: typeof s.phone === "string" ? s.phone : undefined,
+  }),
   component: OnboardingWizard,
 });
 
@@ -49,16 +55,18 @@ function makeInstallId(name: string) {
 type Result = { installId: string; url?: string; packageError?: string };
 
 function OnboardingWizard() {
+  const pre = Route.useSearch();
+  const [preFirst, ...preRest] = (pre.contact ?? "").trim().split(/\s+/);
   const [step, setStep] = useState(1);
   // step 1
   const [cui, setCui] = useState("");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(pre.company ?? "");
   const [address, setAddress] = useState("");
   const [profile, setProfile] = useState("");
-  const [first, setFirst] = useState("");
-  const [last, setLast] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [first, setFirst] = useState(preFirst ?? "");
+  const [last, setLast] = useState(preRest.join(" "));
+  const [email, setEmail] = useState(pre.email ?? "");
+  const [phone, setPhone] = useState(pre.phone ?? "");
   const [password, setPassword] = useState(() => generatePassword());
   // step 2
   const [workstations, setWorkstations] = useState(2);
