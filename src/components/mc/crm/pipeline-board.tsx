@@ -6,6 +6,27 @@ import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CRM_STAGES, type CrmLead } from "@/lib/crm.functions";
+import { Mail, MessageCircle, Phone } from "lucide-react";
+import { coldEmail, mailtoUrl, telUrl, whatsappTemplate, whatsappUrl } from "@/lib/mc-outreach";
+
+function QuickIcon({ url, label, self, children }: { url: string; label: string; self?: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (self) window.location.href = url;
+        else window.open(url, "_blank", "noopener");
+      }}
+      className="rounded p-1 text-muted-foreground hover:bg-primary/15 hover:text-primary"
+    >
+      {children}
+    </button>
+  );
+}
 
 export const STAGE_LABELS: Record<string, string> = {
   new: "New",
@@ -119,8 +140,35 @@ export function PipelineBoard({
                         </Badge>
                       )}
                     </div>
-                    <div className="mt-1.5 truncate text-[10px] text-muted-foreground">
-                      {ownerName(lead.owner_user_id)}
+                    <div className="mt-1.5 flex items-center gap-1">
+                      <span className="mr-auto truncate text-[10px] text-muted-foreground">
+                        {ownerName(lead.owner_user_id)}
+                      </span>
+                      {lead.phone && (
+                        <QuickIcon
+                          label="WhatsApp"
+                          url={whatsappUrl(lead.phone, whatsappTemplate("production", { name: lead.contact_name ?? "", company: lead.company_name }))}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        </QuickIcon>
+                      )}
+                      {lead.phone && (
+                        <QuickIcon label="Sună" url={telUrl(lead.phone)} self>
+                          <Phone className="h-3.5 w-3.5" />
+                        </QuickIcon>
+                      )}
+                      {lead.email && (
+                        <QuickIcon
+                          label="Email"
+                          url={(() => {
+                            const m = coldEmail({ name: lead.contact_name ?? "", company: lead.company_name });
+                            return mailtoUrl(lead.email, m.subject, m.body);
+                          })()}
+                          self
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                        </QuickIcon>
+                      )}
                     </div>
                   </Link>
                 );
