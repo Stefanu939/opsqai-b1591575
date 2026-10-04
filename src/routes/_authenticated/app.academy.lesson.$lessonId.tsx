@@ -183,6 +183,7 @@ function TeacherChat({
   // Starts as null → AI Teacher greets in a trilingual prompt and asks the
   // learner to pick one. The learner can change it any time.
   const [learnLang, setLearnLang] = useState<string | null>(null);
+  const L = lessonStrings(learnLang);
   // The transport must NOT be recreated when the language changes — swapping
   // transports mid-stream leaves useChat stuck in "streaming" and the composer
   // permanently disabled. Keep it stable and read the language from a ref.
@@ -479,7 +480,7 @@ function TeacherChat({
                 <div className="flex justify-start">
                   <div className="max-w-[92%] rounded-2xl px-4 py-3 bg-card border border-border space-y-3">
                     <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-                      <GraduationCap className="h-3 w-3 text-primary" /> AI Teacher
+                      <GraduationCap className="h-3 w-3 text-primary" /> {L.teacher}
                     </div>
                     <div className="text-[14.5px] leading-relaxed">
                       {learnLang ? (
@@ -539,7 +540,7 @@ function TeacherChat({
                   >
                     {m.role !== "user" && (
                       <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-muted-foreground mb-1">
-                        <GraduationCap className="h-3 w-3 text-primary" /> AI Teacher
+                        <GraduationCap className="h-3 w-3 text-primary" /> {L.teacher}
                       </div>
                     )}
                     {m.parts.map((p: any, i: number) =>
@@ -553,7 +554,7 @@ function TeacherChat({
                 <div className="flex justify-start">
                   <div className="bg-card border border-border rounded-2xl px-4 py-2 text-xs text-muted-foreground inline-flex items-center gap-2">
                     <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />{" "}
-                    Thinking…
+                    {L.thinking}
                   </div>
                 </div>
               )}
@@ -561,7 +562,7 @@ function TeacherChat({
               {chatError && (
                 <div className="flex justify-start">
                   <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-2xl px-4 py-2 text-xs inline-flex items-center gap-2">
-                    Connection issue with the AI Teacher.
+                    {L.connErr}
                     <button
                       className="underline"
                       onClick={() => {
@@ -569,7 +570,7 @@ function TeacherChat({
                         void sendMessage({ text: "__BEGIN__" });
                       }}
                     >
-                      Retry
+                      {L.retry}
                     </button>
                   </div>
                 </div>
@@ -579,15 +580,14 @@ function TeacherChat({
                 <div className="flex justify-start">
                   <Card className="w-full max-w-[92%] p-4 space-y-2 border-primary/30">
                     <div className="text-sm font-medium flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-success" /> Lesson complete — your quiz
-                      is unlocked
+                      <CheckCircle2 className="h-4 w-4 text-success" /> {L.complete}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Take a short knowledge check to confirm what you've learned.
+                      {L.check}
                     </p>
                     <Button size="sm" onClick={startQuiz} disabled={quizLoading}>
                       {quizLoading ? <RotateCw className="h-3.5 w-3.5 mr-1 animate-spin" /> : <BookOpenCheck className="h-3.5 w-3.5 mr-1" />}
-                      {quizLoading ? "Preparing quiz…" : "Start quiz"}
+                      {quizLoading ? L.preparing : L.startQuiz}
                     </Button>
                   </Card>
                 </div>
@@ -598,12 +598,12 @@ function TeacherChat({
                   <Card className="w-full max-w-[92%] p-4 space-y-4 border-primary/30">
                     <div className="font-medium flex items-center justify-between gap-2 text-sm">
                       <span className="inline-flex items-center gap-2">
-                        <ListChecks className="h-4 w-4 text-primary" /> Quiz
+                        <ListChecks className="h-4 w-4 text-primary" /> {L.quiz}
                       </span>
                       <span className="text-[11px] font-normal text-muted-foreground">
                         {result
-                          ? "Review"
-                          : `Question ${Math.min(qIndex + 1, quiz.length)} of ${quiz.length} · pass mark ${passing}%`}
+                          ? L.review
+                          : `${L.question} ${Math.min(qIndex + 1, quiz.length)} ${L.of} ${quiz.length} · ${L.passMark} ${passing}%`}
                       </span>
                     </div>
                     {quiz.map((q, i) => (
@@ -693,13 +693,13 @@ function TeacherChat({
                             )}
                             <span>
                               {result.results[i].scored === false
-                                ? "Not scored — this question had no reliable answer key."
+                                ? L.notScored
                                 : result.results[i].explanation}{" "}
                               {result.results[i].scored !== false &&
                                 !result.results[i].correct &&
                                 result.results[i].correct_answer && (
                                   <span className="text-muted-foreground">
-                                    · Correct: {result.results[i].correct_answer}
+                                    · {L.correct}: {result.results[i].correct_answer}
                                   </span>
                                 )}
                             </span>
@@ -716,7 +716,7 @@ function TeacherChat({
                           disabled={qIndex === 0}
                           onClick={() => setQIndex((i) => Math.max(0, i - 1))}
                         >
-                          Back
+                          {L.back}
                         </Button>
                         {qIndex < quiz.length - 1 ? (
                           <Button
@@ -724,7 +724,7 @@ function TeacherChat({
                             disabled={!answers[qIndex]}
                             onClick={() => setQIndex((i) => Math.min(quiz.length - 1, i + 1))}
                           >
-                            Next question
+                            {L.nextQ}
                           </Button>
                         ) : (
                           <Button
@@ -732,7 +732,7 @@ function TeacherChat({
                             disabled={answers.some((a) => !a)}
                             size="sm"
                           >
-                            Submit answers
+                            {L.submit}
                           </Button>
                         )}
                       </div>
@@ -745,22 +745,21 @@ function TeacherChat({
                           {result.passed ? (
                             <>
                               <Award className="h-3 w-3 mr-1" />
-                              Passed ·{" "}
+                              {L.passed} ·{" "}
                             </>
                           ) : (
-                            <>Try again · </>
+                            <>{L.tryAgain} · </>
                           )}
-                          {result.score}% / {result.passingScore ?? passing}% needed
+                          {result.score}% / {result.passingScore ?? passing}% {L.needed}
                         </Badge>
                         {!result.passed && (
                           <Button variant="outline" size="sm" onClick={startQuiz} disabled={quizLoading}>
-                            <RotateCw className="h-4 w-4 mr-1" /> New questions
+                            <RotateCw className="h-4 w-4 mr-1" /> {L.newQ}
                           </Button>
                         )}
                         {result.passed && (
                           <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                            <Sparkles className="h-3 w-3 text-primary" /> Great work — returning to
-                            your path…
+                            <Sparkles className="h-3 w-3 text-primary" /> {L.greatWork}
                           </span>
                         )}
                       </div>
@@ -785,7 +784,7 @@ function TeacherChat({
                       void handleSend(input.trim());
                     }
                   }}
-                  placeholder="Reply to your AI Teacher…"
+                  placeholder={L.reply}
                   className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[40px] max-h-40 text-[14.5px]"
                 />
                 <Button
@@ -803,8 +802,7 @@ function TeacherChat({
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 mt-2 px-1">
                 <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-primary" /> Grounded only in this lesson — no
-                  outside information.
+                  <Sparkles className="h-3 w-3 text-primary" /> {L.grounded}
                 </div>
                 {!quiz && (
                   <button
@@ -818,10 +816,10 @@ function TeacherChat({
                       <BookOpenCheck className="h-3.5 w-3.5" />
                     )}
                     {quizLoading
-                      ? "Preparing quiz…"
+                      ? L.preparing
                       : lessonComplete
-                        ? "I'm ready for the quiz"
-                        : "Go straight to the quiz"}
+                        ? L.readyQuiz
+                        : L.straightQuiz}
                   </button>
                 )}
               </div>
@@ -834,7 +832,7 @@ function TeacherChat({
             <div className="p-4 space-y-4">
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-2 flex items-center gap-1">
-                  <Target className="h-3 w-3" /> Lesson objectives
+                  <Target className="h-3 w-3" /> {L.objectives}
                 </div>
                 <ul className="text-[13px] space-y-1.5">
                   {(lesson.objectives ?? []).map((o: string, i: number) => (
@@ -845,7 +843,7 @@ function TeacherChat({
                   ))}
                   {(!lesson.objectives || lesson.objectives.length === 0) && (
                     <li className="text-xs text-muted-foreground italic">
-                      Your AI Teacher will introduce the objectives.
+                      {L.introObj}
                     </li>
                   )}
                 </ul>
@@ -853,9 +851,9 @@ function TeacherChat({
 
               <div className="rounded-lg border border-border bg-background p-3">
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1 flex items-center justify-between">
-                  <span>Progress</span>
+                  <span>{L.progress}</span>
                   <span className="font-normal normal-case tracking-normal">
-                    {completedUnits}/{units.length} units · {progress}%
+                    {completedUnits}/{units.length} {L.units} · {progress}%
                   </span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -870,21 +868,21 @@ function TeacherChat({
                         <Circle className="h-3 w-3 text-muted-foreground/60" />
                       )}
                       <span className={unitDone(u) ? "" : "text-muted-foreground"}>
-                        {UNIT_LABEL[u]}
+                        {L.unit[u]}
                       </span>
                     </li>
                   ))}
                 </ul>
                 <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span>~{remaining} min remaining (estimate only)</span>
-                  <span>Quiz pass mark {passing}%</span>
+                  <span>~{remaining} {L.remaining}</span>
+                  <span>{L.passMark} {passing}%</span>
                 </div>
               </div>
 
               {lesson.summary && (
                 <details className="text-sm group">
                   <summary className="cursor-pointer text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
-                    Lesson summary
+                    {L.summary}
                   </summary>
                   <div className="mt-2 text-[13px] whitespace-pre-wrap leading-relaxed text-muted-foreground">
                     {lesson.summary}
@@ -894,8 +892,7 @@ function TeacherChat({
 
               <div className="rounded-lg border border-dashed border-border p-3 text-[11.5px] text-muted-foreground">
                 <Sparkles className="inline h-3 w-3 text-primary mr-1" />
-                Tip: Chat with your AI Teacher just like a real instructor — ask questions, request
-                examples, or say "I don't get it" anytime.
+                {L.tip}
               </div>
             </div>
           </aside>
