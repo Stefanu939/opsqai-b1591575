@@ -115,6 +115,35 @@ export function createSupabaseKnowledgeGapRepository(
       if (error) throw new Error(error.message);
     },
 
+    async getAnswer(companyId, id) {
+      const { data: g } = await client
+        .from("knowledge_gaps")
+        .select("source_thread_id, source_message_id, first_seen")
+        .eq("company_id", companyId)
+        .eq("id", id)
+        .maybeSingle();
+      if (!g?.source_thread_id) return null;
+      let since = new Date(new Date(g.first_seen).getTime() - 5 * 60_000).toISOString();
+      if (g.source_message_id) {
+        const { data: src } = await client
+          .from("messages")
+          .select("created_at")
+          .eq("id", g.source_message_id)
+          .maybeSingle();
+        if (src?.created_at) since = src.created_at;
+      }
+      const { data: m } = await client
+        .from("messages")
+        .select("content, confidence, created_at")
+        .eq("thread_id", g.source_thread_id)
+        .eq("role", "assistant")
+        .gte("created_at", since)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      return m ? { content: m.content, confidence: m.confidence, created_at: m.created_at } : null;
+    },
+
     async remove(companyId, id) {
       const { error } = await client
         .from("knowledge_gaps")

@@ -76,7 +76,7 @@ export function createPgKnowledgeGapRepository(
                 g.created_by, g.confidence, g.source_thread_id, g.source_message_id,
                 g.resolution_date, g.updated_at,
                 d.name AS department_name,
-                u.full_name AS created_by_name,
+                COALESCE(NULLIF(u.full_name,''), NULLIF(u.display_name,''), u.email) AS created_by_name,
                 kd.title AS doc_title, kd.doc_code AS doc_code,
                 f.question_en AS faq_question
            FROM public.knowledge_gaps g
@@ -118,6 +118,22 @@ export function createPgKnowledgeGapRepository(
           WHERE company_id = $1 AND id = $2`,
         values,
       );
+    },
+
+    async getAnswer(companyId, id) {
+      const { rows } = await pool.query<{ content: string; confidence: number | null; created_at: Date }>(
+        `SELECT m.content, m.confidence, m.created_at
+           FROM public.knowledge_gaps g
+           JOIN public.messages m ON m.thread_id = g.source_thread_id AND m.role = 'assistant'
+          WHERE g.company_id = $1 AND g.id = $2
+            AND m.created_at >= COALESCE(
+              (SELECT s.created_at FROM public.messages s WHERE s.id = g.source_message_id),
+              g.first_seen - interval '5 minutes')
+          ORDER BY m.created_at ASC LIMIT 1`,
+        [companyId, id],
+      );
+      const r = rows[0];
+      return r ? { content: r.content, confidence: r.confidence, created_at: toIso(r.created_at) } : null;
     },
 
     async remove(companyId, id) {

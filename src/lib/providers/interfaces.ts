@@ -628,6 +628,8 @@ export interface IKnowledgeGapRepository {
   list(companyId: string, limit: number): Promise<KnowledgeGapListRow[]>;
   update(companyId: string, id: string, patch: KnowledgeGapPatch): Promise<void>;
   remove(companyId: string, id: string): Promise<void>;
+  /** AI answer generated in the source conversation (null when unknown). */
+  getAnswer(companyId: string, id: string): Promise<{ content: string; confidence: number | null; created_at: string } | null>;
 }
 
 export interface KnowledgeGapListRow {

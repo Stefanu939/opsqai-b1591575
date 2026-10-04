@@ -7,6 +7,7 @@ import {
   getKnowledgeGapStats,
   updateKnowledgeGap,
   deleteKnowledgeGap,
+  getKnowledgeGapAnswer,
 } from "@/lib/knowledge-gaps.functions";
 import { draftGapDocument, publishGapDocument } from "@/lib/gap-drafts.functions";
 import { ModulePage } from "@/components/app/module-page";
@@ -124,6 +125,14 @@ function GapsPage() {
   const makeDraft = useServerFn(draftGapDocument);
   const publishDraft = useServerFn(publishGapDocument);
   const [draft, setDraft] = useState<Draft | null>(null);
+  type GapItem = NonNullable<typeof gapsQuery.data>["gaps"][number];
+  const [detail, setDetail] = useState<GapItem | null>(null);
+  const fetchAnswer = useServerFn(getKnowledgeGapAnswer);
+  const answerQuery = useQuery({
+    queryKey: ["knowledge-gap-answer", detail?.id],
+    queryFn: () => fetchAnswer({ data: { id: detail!.id } }),
+    enabled: !!detail,
+  });
   const [draftGapId, setDraftGapId] = useState<string | null>(null);
 
   const generate = useMutation({
@@ -248,10 +257,17 @@ function GapsPage() {
             {visible.map((g) => (
               <li key={g.id} className="flex flex-col gap-2 p-4 md:flex-row md:items-center">
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">{g.question_sample}</div>
+                  <button
+                    type="button"
+                    className="text-left text-sm font-medium hover:text-primary hover:underline"
+                    onClick={() => setDetail(g)}
+                  >
+                    {g.question_sample}
+                  </button>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <Badge variant="outline">{g.status.replace("_", " ")}</Badge>
                     <span className="tabular-nums">{g.occurrences}× asked</span>
+                    <span>· Întrebat de: {g.created_by_name ?? "utilizator necunoscut"}</span>
                     {g.department_name ? <span>· {g.department_name}</span> : null}
                     <span>· last {new Date(g.last_seen).toLocaleDateString()}</span>
                   </div>
@@ -333,6 +349,88 @@ function GapsPage() {
           </ul>
         </Panel>
       )}
+
+      <Dialog open={detail !== null} onOpenChange={(o) => !o && setDetail(null)}>
+        <DialogContent className="max-w-2xl">
+          {detail ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Detalii lacună de cunoștințe</DialogTitle>
+                <DialogDescription>
+                  Întrebat de {detail.created_by_name ?? "utilizator necunoscut"}
+                  {detail.department_name ? ` · ${detail.department_name}` : ""} · {detail.occurrences}×
+                  · ultima dată {new Date(detail.last_seen).toLocaleString("ro-RO")}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Întrebarea</Label>
+                  <p className="mt-1 whitespace-pre-wrap rounded-md border border-border p-3 text-sm">
+                    {detail.question_sample}
+                  </p>
+                </div>
+                <div>
+                  <Label>
+                    Răspunsul generat de AI
+                    {(answerQuery.data?.answer?.confidence ?? detail.confidence) != null
+                      ? ` · încredere ${Math.round(((answerQuery.data?.answer?.confidence ?? detail.confidence) as number) * 100)}%`
+                      : ""}
+                  </Label>
+                  <div className="mt-1 max-h-80 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted/40 p-3 text-sm">
+                    {answerQuery.isLoading
+                      ? "Se încarcă răspunsul…"
+                      : answerQuery.data?.answer?.content ||
+                        "Răspunsul AI nu mai este disponibil (conversația a fost ștearsă sau lacuna a fost creată manual)."}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="flex-wrap gap-2">
+                {detail.status !== "resolved" ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        generate.mutate({ kind: "sop", gapId: detail.id, question: detail.question_sample, department: detail.department_name ?? null });
+                        setDetail(null);
+                      }}
+                    >
+                      <FileText className="mr-1.5 h-4 w-4" /> Draft SOP
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        generate.mutate({ kind: "faq", gapId: detail.id, question: detail.question_sample, department: detail.department_name ?? null });
+                        setDetail(null);
+                      }}
+                    >
+                      <MessageSquareQuote className="mr-1.5 h-4 w-4" /> Draft FAQ
+                    </Button>
+                    {detail.status !== "in_progress" ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          update.mutate({ id: detail.id, status: "in_progress" });
+                          setDetail(null);
+                        }}
+                      >
+                        În lucru
+                      </Button>
+                    ) : null}
+                    <Button
+                      onClick={() => {
+                        update.mutate({ id: detail.id, status: "resolved" });
+                        setDetail(null);
+                      }}
+                    >
+                      Marchează rezolvat
+                    </Button>
+                  </>
+                ) : null}
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={draft !== null}
