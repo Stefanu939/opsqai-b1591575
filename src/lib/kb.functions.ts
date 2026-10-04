@@ -153,6 +153,16 @@ export const processDocument = createServerFn({ method: "POST" })
         .updateMetadata(doc.id, { department_id: data.department_id })
         .catch(() => undefined);
     }
+    {
+      const { auditDocumentEvent } = await import("@/lib/doc-audit.server");
+      await auditDocumentEvent(context.userId, "document.upload", data.title, {
+        document_id: doc.id,
+        file: data.filename,
+        category: data.category,
+        doc_code: data.doc_code ?? null,
+      });
+    }
+
 
     try {
       const chunks = await runProcessingPipeline(
@@ -213,6 +223,13 @@ export const createKnowledgeDocument = createServerFn({ method: "POST" })
         .updateMetadata(doc.id, { department_id: data.department_id })
         .catch(() => undefined);
     }
+    const { auditDocumentEvent } = await import("@/lib/doc-audit.server");
+    await auditDocumentEvent(context.userId, "document.upload", data.title, {
+      document_id: doc.id,
+      file: data.filename,
+      category: data.category,
+      doc_code: data.doc_code ?? null,
+    });
     return { id: doc.id };
   });
 
@@ -264,6 +281,8 @@ export const deleteKnowledgeDocument = createServerFn({ method: "POST" })
       }
     }
     await repo.deleteDocument(data.id);
+    const { auditDocumentEvent } = await import("@/lib/doc-audit.server");
+    await auditDocumentEvent(context.userId, "document.delete", data.id, { file: filePath });
     return { ok: true };
   });
 

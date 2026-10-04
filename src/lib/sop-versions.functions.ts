@@ -61,6 +61,16 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
       parent_document_id: prev.parent_document_id ?? data.previous_id,
       change_notes: data.change_notes ?? null,
     });
+    {
+      const { auditDocumentEvent } = await import("@/lib/doc-audit.server");
+      await auditDocumentEvent(context.userId, "document.version_replace", data.title, {
+        document_id: doc.id,
+        previous_id: data.previous_id,
+        version: prev.version + 1,
+        file: data.filename,
+        change_notes: data.change_notes ?? null,
+      });
+    }
 
     try {
       const bytes = await getStorageProvider().get(KB_BUCKET, data.file_path);
