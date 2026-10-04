@@ -395,8 +395,22 @@ function AutoUpdatePanel() {
 
       {s.notice && s.notice.outcome !== "staged" ? (
         <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border p-3">
-          <Badge variant={s.notice.outcome === "success" ? "default" : "destructive"}>
-            {s.notice.outcome === "success" ? "Updated" : s.notice.outcome}
+          <Badge
+            variant={
+              s.notice.outcome === "success"
+                ? "default"
+                : s.notice.outcome === "failed"
+                  ? "destructive"
+                  : "secondary"
+            }
+          >
+            {s.notice.outcome === "success"
+              ? "Actualizat"
+              : s.notice.outcome === "running"
+                ? "Instalare în curs"
+                : s.notice.outcome === "failed"
+                  ? "Eșuat"
+                  : s.notice.outcome}
           </Badge>
           <span className="text-sm">
             {s.notice.version ? `v${s.notice.version}` : ""} ·{" "}
@@ -410,7 +424,7 @@ function AutoUpdatePanel() {
               void dismiss().then(() => status.refetch());
             }}
           >
-            Dismiss
+            Ascunde
           </Button>
         </div>
       ) : null}
@@ -437,17 +451,17 @@ function AutoUpdatePanel() {
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <Badge variant={prog.phase === "failed" ? "destructive" : "secondary"}>
               {prog.phase === "downloading"
-                ? "Downloading"
+                ? "Se descarcă"
                 : prog.phase === "verified"
-                  ? "Downloaded and verified"
+                  ? "Descărcat și verificat"
                   : prog.phase === "installing"
-                    ? "Installing"
-                    : "Failed"}
+                    ? "Se instalează"
+                    : "Eșuat"}
             </Badge>
             {prog.version ? <span className="font-medium">v{prog.version}</span> : null}
             <span className="text-xs text-muted-foreground">
               {indeterminate
-                ? "starting…"
+                ? "pornește…"
                 : `${fmtBytes(prog.received)}${prog.total ? ` / ${fmtBytes(prog.total)}` : ""}${
                     prog.total ? ` · ${Math.round(pct)}%` : ""
                   }`}
@@ -478,6 +492,51 @@ function AutoUpdatePanel() {
             />
           </div>
           {prog.error ? <p className="mt-2 text-xs text-destructive">{prog.error}</p> : null}
+          {prog.at && prog.phase !== "failed" ? (() => {
+            const mins = Math.max(0, Math.floor((Date.now() - new Date(prog.at).getTime()) / 60_000));
+            const slow = prog.phase === "installing" && mins >= 10;
+            return (
+              <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <p>
+                  Ultima actualizare de stare: acum {mins} min
+                  {prog.phase === "installing"
+                    ? " · pași: oprire servicii → copie de siguranță → înlocuire fișiere → migrare bază de date → repornire servicii. De obicei durează 3–10 minute; aplicația poate deveni indisponibilă scurt timp."
+                    : ""}
+                </p>
+                {slow ? (
+                  <div className="rounded-md border border-border bg-background/60 p-2">
+                    <p className="font-medium text-foreground">Durează mai mult decât de obicei.</p>
+                    <p>
+                      Verifică ultimul fișier „update-runner-*.log” din C:\ProgramData\OPSQAI\logs. Cauze
+                      posibile: calculatorul a intrat în repaus, un serviciu nu s-a oprit, antivirusul blochează
+                      fișierele. După 30 de minute fără progres, instalarea este marcată automat ca eșuată și
+                      se revine la versiunea anterioară; o poți porni apoi din nou.
+                    </p>
+                    {prog.version ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2"
+                        disabled={busy !== null}
+                        onClick={() => {
+                          setBusy("install");
+                          void runAction({ data: { action: "install", version: prog.version! } })
+                            .then(() => toast.success("Instalarea a fost repornită"))
+                            .catch((e: Error) => toast.error(e.message))
+                            .finally(() => {
+                              setBusy(null);
+                              void status.refetch();
+                            });
+                        }}
+                      >
+                        Repornește instalarea
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })() : null}
         </div>
         );
       })()}
