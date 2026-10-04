@@ -327,12 +327,13 @@ function TeacherChat({
   // to switch on the next reply and (if a quiz is already on screen) regenerate
   // it in the new language.
   const handleLangChange = (next: string) => {
+    setLangPickerOpen(false);
     if (next === learnLang) return;
     learnLangRef.current = next;
     setLearnLang(next);
     const label = LANG_LABEL[next] ?? next;
     if (begunRef.current) {
-      void sendMessage({ text: `Please continue in ${label} from now on.` });
+      void sendMessage({ text: `🌐 ${label}` });
     }
     if (quiz && lessonComplete) {
       // Regenerate quiz in the new language
