@@ -60,7 +60,7 @@ export function CreateCourseDialog({
   const [description, setDescription] = useState("");
   const [departmentId, setDepartmentId] = useState<string>(NO_DEPARTMENT);
   const [targetRole, setTargetRole] = useState("");
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState("ro");
   const [difficulty, setDifficulty] = useState("standard");
   const [passingScore, setPassingScore] = useState(70);
   const [mandatory, setMandatory] = useState(false);

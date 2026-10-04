@@ -137,6 +137,63 @@
   --gradient-surface: var(--surface);
 }
 
+/* Light theme — Midnight Command palette inverted onto clean neutral
+   surfaces. Dark (above) stays the default; this applies when the
+   user switches the theme toggle off dark. */
+html:not(.dark) {
+  --background: oklch(0.985 0.004 275);
+  --surface-0: oklch(0.985 0.004 275);
+  --surface-1: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.006 275);
+  --surface-3: oklch(0.94 0.008 275);
+  --foreground: oklch(0.2 0.03 275);
+  --surface: oklch(1 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.03 275);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.03 275);
+  --primary: oklch(0.52 0.22 285);
+  --primary-foreground: oklch(0.99 0.003 275);
+  --primary-glow: oklch(0.6 0.2 290);
+  --secondary: oklch(0.955 0.008 275);
+  --secondary-foreground: oklch(0.22 0.03 275);
+  --muted: oklch(0.96 0.006 275);
+  --muted-foreground: oklch(0.48 0.03 275);
+  --accent: oklch(0.94 0.035 285);
+  --accent-foreground: oklch(0.38 0.15 285);
+  --signal: oklch(0.52 0.2 285);
+  --signal-foreground: oklch(0.99 0.003 275);
+  --gold: oklch(0.52 0.2 285);
+  --gold-foreground: oklch(0.99 0.003 275);
+  --destructive: oklch(0.55 0.21 25);
+  --destructive-foreground: oklch(0.99 0.003 275);
+  --success: oklch(0.55 0.13 170);
+  --success-foreground: oklch(0.99 0.003 275);
+  --warning: oklch(0.64 0.15 70);
+  --warning-foreground: oklch(0.2 0.03 275);
+  --border: oklch(0.9 0.01 275);
+  --border-strong: oklch(0.82 0.015 275);
+  --input: oklch(0.88 0.012 275);
+  --ring: oklch(0.52 0.22 285);
+  --chart-1: oklch(0.52 0.22 285);
+  --chart-2: oklch(0.55 0.13 170);
+  --chart-3: oklch(0.64 0.15 70);
+  --chart-4: oklch(0.55 0.12 250);
+  --chart-5: oklch(0.55 0.21 25);
+  --sidebar: oklch(0.97 0.006 275);
+  --sidebar-foreground: oklch(0.28 0.03 275);
+  --sidebar-primary: oklch(0.52 0.22 285);
+  --sidebar-primary-foreground: oklch(0.99 0.003 275);
+  --sidebar-accent: oklch(0.93 0.035 285);
+  --sidebar-accent-foreground: oklch(0.25 0.06 285);
+  --sidebar-border: oklch(0.9 0.01 275);
+  --sidebar-ring: oklch(0.52 0.22 285);
+  --shadow-xs: 0 1px 2px color-mix(in oklab, black 6%, transparent);
+  --shadow-sm: 0 4px 12px -8px color-mix(in oklab, black 14%, transparent);
+  --shadow-md: 0 12px 30px -24px color-mix(in oklab, black 22%, transparent);
+  --shadow-lg: 0 20px 42px -32px color-mix(in oklab, black 28%, transparent);
+}
+
 .dark-legacy-unused {
   --background: oklch(0.18 0.01 190);
   --surface-0: oklch(0.18 0.01 190);
