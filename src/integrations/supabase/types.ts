@@ -3626,11 +3626,13 @@ export type Database = {
           install_id: string
           last_maintenance_at: string | null
           license_status: string | null
+          machine_fingerprint: string | null
           next_maintenance_at: string | null
           organization_name: string | null
           primary_language: string | null
           received_at: string
           reported_status: string | null
+          source_ip_hash: string | null
         }
         Insert: {
           app_version?: string | null
@@ -3641,11 +3643,13 @@ export type Database = {
           install_id: string
           last_maintenance_at?: string | null
           license_status?: string | null
+          machine_fingerprint?: string | null
           next_maintenance_at?: string | null
           organization_name?: string | null
           primary_language?: string | null
           received_at?: string
           reported_status?: string | null
+          source_ip_hash?: string | null
         }
         Update: {
           app_version?: string | null
@@ -3656,11 +3660,13 @@ export type Database = {
           install_id?: string
           last_maintenance_at?: string | null
           license_status?: string | null
+          machine_fingerprint?: string | null
           next_maintenance_at?: string | null
           organization_name?: string | null
           primary_language?: string | null
           received_at?: string
           reported_status?: string | null
+          source_ip_hash?: string | null
         }
         Relationships: [
           {
@@ -3675,6 +3681,9 @@ export type Database = {
       selfhost_installations: {
         Row: {
           app_version: string | null
+          approved_fingerprint: string | null
+          collision_reviewed_at: string | null
+          collision_reviewed_by: string | null
           country: string | null
           created_at: string
           enabled_modules: Json
@@ -3690,6 +3699,9 @@ export type Database = {
         }
         Insert: {
           app_version?: string | null
+          approved_fingerprint?: string | null
+          collision_reviewed_at?: string | null
+          collision_reviewed_by?: string | null
           country?: string | null
           created_at?: string
           enabled_modules?: Json
@@ -3705,6 +3717,9 @@ export type Database = {
         }
         Update: {
           app_version?: string | null
+          approved_fingerprint?: string | null
+          collision_reviewed_at?: string | null
+          collision_reviewed_by?: string | null
           country?: string | null
           created_at?: string
           enabled_modules?: Json

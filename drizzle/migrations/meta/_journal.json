@@ -36,6 +36,13 @@
       "when": 1791073102514,
       "tag": "0004_support_attachments_company_read",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791150076602,
+      "tag": "0005_license_collision_detection",
+      "breakpoints": true
     }
   ]
 }
