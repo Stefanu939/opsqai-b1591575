@@ -295,7 +295,7 @@ export const reviewLicenseCollision = createServerFn({ method: "POST" })
     if (!scope.isSuperAdmin && !scope.companyIds?.includes(company.id)) throw new Error("Forbidden");
 
     const now = new Date().toISOString();
-    const patch: Record<string, unknown> = {
+    const patch: { collision_reviewed_at: string; collision_reviewed_by: string | null; approved_fingerprint?: string | null } = {
       collision_reviewed_at: now,
       collision_reviewed_by: (context as { userId?: string }).userId ?? null,
     };
