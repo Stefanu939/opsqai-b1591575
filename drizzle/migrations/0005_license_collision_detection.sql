@@ -1,0 +1,3 @@
+ALTER TABLE public.selfhost_heartbeats ADD COLUMN IF NOT EXISTS machine_fingerprint TEXT, ADD COLUMN IF NOT EXISTS source_ip_hash TEXT;
+ALTER TABLE public.selfhost_installations ADD COLUMN IF NOT EXISTS approved_fingerprint TEXT, ADD COLUMN IF NOT EXISTS collision_reviewed_at TIMESTAMPTZ, ADD COLUMN IF NOT EXISTS collision_reviewed_by UUID;
+CREATE INDEX IF NOT EXISTS idx_selfhost_heartbeats_fp ON public.selfhost_heartbeats (install_id, machine_fingerprint, received_at DESC);

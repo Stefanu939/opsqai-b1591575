@@ -18,6 +18,15 @@ function json(body: unknown, status = 200) {
   });
 }
 
+async function hashIp(request: Request): Promise<string | null> {
+  const ip =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  if (!ip) return null;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`opsqai:${ip}`));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+}
+
 const GENERIC_UNAUTHORIZED = { error: "unauthorized" } as const;
 
 export const Route = createFileRoute("/api/public/selfhost-heartbeat")({
@@ -116,6 +125,8 @@ export const Route = createFileRoute("/api/public/selfhost-heartbeat")({
           last_maintenance_at: payload.last_maintenance_at ?? null,
           next_maintenance_at: payload.next_maintenance_at ?? null,
           client_timestamp: payload.timestamp,
+          machine_fingerprint: payload.machine_fingerprint ?? null,
+          source_ip_hash: await hashIp(request),
         });
 
         // Aggregate usage history — numbers only, kept at most every 6 hours

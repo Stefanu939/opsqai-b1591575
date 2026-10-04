@@ -49,6 +49,27 @@ function jitter(ms: number): number {
   return Math.max(1000, ms + (Math.random() * spread * 2 - spread));
 }
 
+/**
+ * Stable, anonymous machine fingerprint: SHA-256 of hostname + physical MAC
+ * addresses. Only the hash leaves the computer — used by the Management
+ * Center to notice when one licence reports from two different machines.
+ */
+async function machineFingerprint(): Promise<string | undefined> {
+  try {
+    const os = await import("node:os");
+    const { createHash } = await import("node:crypto");
+    const macs = Object.values(os.networkInterfaces())
+      .flat()
+      .filter((n) => n && !n.internal && n.mac && n.mac !== "00:00:00:00:00:00")
+      .map((n) => n!.mac)
+      .sort();
+    const raw = [os.hostname(), os.platform(), ...new Set(macs)].join("|");
+    return createHash("sha256").update(raw).digest("hex");
+  } catch {
+    return undefined;
+  }
+}
+
 function toIso(sec: number | null | undefined): string | null {
   return typeof sec === "number" && sec > 0 ? new Date(sec * 1000).toISOString() : null;
 }
@@ -93,6 +114,7 @@ async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayl
       APP_VERSION,
 
     license_status: licenseStatus,
+    machine_fingerprint: await machineFingerprint(),
     enabled_modules: modules,
     status: "running" as const,
     last_maintenance_at: null,
