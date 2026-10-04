@@ -465,7 +465,7 @@ function CustomersPage() {
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={Building2} label="Clienți activi" value={kpis.active} tone="primary" />
-        <Kpi icon={Users} label="Locuri utilizate" value={`${kpis.seatsUsed} / ${kpis.seatsTotal}`} tone="info" />
+        <Kpi icon={Users} label="Locuri utilizate" value={`${kpis.seatsUsed} / ${kpis.seatsTotal}`} tone="primary" />
         <Kpi icon={CalendarClock} label="Expiră în < 30 zile" value={kpis.expiring} tone="warning" onClick={() => setPill("expiring")} />
         <Kpi icon={PauseCircle} label="Suspendați" value={kpis.suspended} tone="destructive" onClick={() => setPill("suspended")} />
       </div>
@@ -592,7 +592,7 @@ function CustomersPage() {
 
 const TONES = {
   primary: "bg-primary/15 text-primary",
-  info: "bg-info/15 text-info",
+
   warning: "bg-warning/15 text-warning",
   destructive: "bg-destructive/15 text-destructive",
 } as const;
@@ -629,7 +629,7 @@ function Kpi({
 }
 
 const PROFILE_STYLE: { match: RegExp; icon: typeof Users; cls: string }[] = [
-  { match: /transport|logist/i, icon: Truck, cls: "bg-info/15 text-info" },
+  { match: /transport|logist/i, icon: Truck, cls: "bg-primary/10 text-primary" },
   { match: /bank|financ|insur/i, icon: Landmark, cls: "bg-primary/15 text-primary" },
   { match: /manufact|product|industr/i, icon: Factory, cls: "bg-warning/15 text-warning" },
 ];
