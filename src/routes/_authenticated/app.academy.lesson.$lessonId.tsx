@@ -300,7 +300,7 @@ function TeacherChat({
     if (quizLoading) return;
     if (!learnLang) {
       alert(
-        "Please pick a language first (top-right selector) so the quiz can be generated in that language.",
+        "Alege mai întâi limba lecției din cartonașele din chat.",
       );
       return;
     }
