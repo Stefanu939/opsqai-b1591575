@@ -9,3 +9,10 @@
 - [ ] Full translation of texts inside every app page (ongoing, module by module)
 - [x] Different-location link without VPN (router auto-setup + one-time pairing code + pinned certificate)
 - [ ] Real Windows test of installer, workstation pairing, Academy flow — needs user's PC
+- [x] MC Etapa 1: Sales Cockpit, cartonașe clienți, formular client nou, acțiuni rapide CRM
+- [ ] MC: Onboarding wizard 3 pași (firmă → pachet → licență + kit + mesaj gata de trimis)
+- [ ] MC: Ofertă oficială + ROI în PDF cu 1 click
+- [ ] MC: Schema calculatoarelor clientului (server + stații)
+- [ ] MC: Calculator de preț live → salvează ca ofertă
+- [ ] MC: Copilot Cmd+K cu comenzi (expiră luna asta, servere offline)
+- [ ] MC: Cronologia relației cu clientul
