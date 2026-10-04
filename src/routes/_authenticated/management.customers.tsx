@@ -755,8 +755,8 @@ function CustomerCard({ row: r, onOpen }: { row: Row; onOpen: () => void }) {
           </Link>
         </Button>
         <ManageCustomerDialog companyId={r.id} companyName={r.name} />
-        <Button size="sm" variant="ghost" className="ml-auto h-8 text-primary" onClick={onOpen}>
-          Fișă client <ArrowRight className="ml-1 h-3.5 w-3.5" />
+        <Button size="sm" variant="ghost" className="ml-auto h-8 px-2 text-primary" onClick={onOpen}>
+          Fișă <ArrowRight className="ml-1 h-3.5 w-3.5" />
         </Button>
       </div>
     </div>
