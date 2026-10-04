@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/management/onboarding")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { company?: string; contact?: string; email?: string; phone?: string } => ({
     company: typeof s.company === "string" ? s.company : undefined,
     contact: typeof s.contact === "string" ? s.contact : undefined,
     email: typeof s.email === "string" ? s.email : undefined,

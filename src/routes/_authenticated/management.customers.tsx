@@ -471,7 +471,7 @@ function CustomersPage() {
       actions={
         <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline">
-          <Link to="/management/onboarding" search={{}}>
+          <Link to="/management/onboarding">
             <Rocket className="mr-1.5 h-4 w-4" /> Client nou în 3 pași
           </Link>
         </Button>
