@@ -281,7 +281,39 @@ export const signPortalStoragePath = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: signed, error } = await getCloudSupabase(context, "portal-admin").storage
+    // Files are readable directly only by staff. Customers get a signed link
+    // only for files attached to published news or download modules.
+    const userDb = getCloudSupabase(context, "portal-admin") as never as {
+      from: (t: string) => any;
+    };
+    const ref = `${data.bucket}/${data.path}`;
+    const { data: roles } = await userDb
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    const isStaff = ((roles ?? []) as Array<{ role: string }>).some(
+      (r) => r.role === "platform_owner" || r.role === "platform_admin",
+    );
+    if (!isStaff) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const q =
+        data.bucket === "portal-download-modules"
+          ? supabaseAdmin
+              .from("portal_download_modules")
+              .select("id")
+              .eq("status", "published")
+              .like("file_url", `%${data.path}`)
+          : supabaseAdmin
+              .from("portal_announcements")
+              .select("id")
+              .eq("status", "published")
+              .like("cover_image_url", `%${data.path}`);
+      const { data: rows } = await q.limit(1);
+      if (!rows?.length) throw new Error("Not found");
+    }
+    void ref;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error } = await supabaseAdmin.storage
       .from(data.bucket)
       .createSignedUrl(data.path, data.expiresIn ?? 3600);
     if (error) throw error;
