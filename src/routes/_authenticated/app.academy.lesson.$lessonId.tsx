@@ -220,9 +220,10 @@ function TeacherChat({
   }, [status, stop]);
 
 
-  // Auto-greet
+  // Auto-greet — only after the learner picked a language from the quick cards.
+  const [langPickerOpen, setLangPickerOpen] = useState(false);
   useEffect(() => {
-    if (begunRef.current) return;
+    if (!learnLang || begunRef.current) return;
     begunRef.current = true;
     void sendMessage({ text: "__BEGIN__" });
     if (initialQRef.current) {
@@ -233,7 +234,7 @@ function TeacherChat({
       }, 600);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [learnLang]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
