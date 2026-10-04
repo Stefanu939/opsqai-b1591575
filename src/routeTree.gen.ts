@@ -97,7 +97,6 @@ import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
 import { Route as AuthenticatedManagementActivityRouteImport } from './routes/_authenticated/management.activity'
 import { Route as AuthenticatedManagementCalendarRouteImport } from './routes/_authenticated/management.calendar'
-import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_authenticated/management.companies'
 import { Route as AuthenticatedManagementCustomersRouteImport } from './routes/_authenticated/management.customers'
 import { Route as AuthenticatedManagementInstallationsRouteImport } from './routes/_authenticated/management.installations'
 import { Route as AuthenticatedManagementLicensesRouteImport } from './routes/_authenticated/management.licenses'
@@ -152,6 +151,7 @@ import { Route as AuthenticatedAppAcademySettingsRouteImport } from './routes/_a
 import { Route as AuthenticatedAppAcademyTeacherRouteImport } from './routes/_authenticated/app.academy.teacher'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
+import { Route as AuthenticatedManagementCompaniesIndexRouteImport } from './routes/_authenticated/management.companies.index'
 import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
 import { Route as AuthenticatedManagementCrmIndexRouteImport } from './routes/_authenticated/management.crm.index'
 import { Route as AuthenticatedManagementCrmLeadIdRouteImport } from './routes/_authenticated/management.crm.$leadId'
@@ -644,12 +644,6 @@ const AuthenticatedManagementCalendarRoute =
     path: '/calendar',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
-const AuthenticatedManagementCompaniesRoute =
-  AuthenticatedManagementCompaniesRouteImport.update({
-    id: '/companies',
-    path: '/companies',
-    getParentRoute: () => AuthenticatedManagementRoute,
-  } as any)
 const AuthenticatedManagementCustomersRoute =
   AuthenticatedManagementCustomersRouteImport.update({
     id: '/customers',
@@ -956,11 +950,17 @@ const AuthenticatedAppChatThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedAppChatRoute,
   } as any)
+const AuthenticatedManagementCompaniesIndexRoute =
+  AuthenticatedManagementCompaniesIndexRouteImport.update({
+    id: '/companies/',
+    path: '/companies/',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedManagementCompaniesIdRoute =
   AuthenticatedManagementCompaniesIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedManagementCompaniesRoute,
+    id: '/companies/$id',
+    path: '/companies/$id',
+    getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementCrmIndexRoute =
   AuthenticatedManagementCrmIndexRouteImport.update({
@@ -1243,7 +1243,6 @@ export interface FileRoutesByFullPath {
   '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/activity': typeof AuthenticatedManagementActivityRoute
   '/management/calendar': typeof AuthenticatedManagementCalendarRoute
-  '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
@@ -1320,6 +1319,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/management/companies/': typeof AuthenticatedManagementCompaniesIndexRoute
   '/management/crm/': typeof AuthenticatedManagementCrmIndexRoute
   '/management/usage/': typeof AuthenticatedManagementUsageIndexRoute
   '/management/value/': typeof AuthenticatedManagementValueIndexRoute
@@ -1416,7 +1416,6 @@ export interface FileRoutesByTo {
   '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/activity': typeof AuthenticatedManagementActivityRoute
   '/management/calendar': typeof AuthenticatedManagementCalendarRoute
-  '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
@@ -1492,6 +1491,7 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
+  '/management/companies': typeof AuthenticatedManagementCompaniesIndexRoute
   '/management/crm': typeof AuthenticatedManagementCrmIndexRoute
   '/management/usage': typeof AuthenticatedManagementUsageIndexRoute
   '/management/value': typeof AuthenticatedManagementValueIndexRoute
@@ -1596,7 +1596,6 @@ export interface FileRoutesById {
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
   '/_authenticated/management/activity': typeof AuthenticatedManagementActivityRoute
   '/_authenticated/management/calendar': typeof AuthenticatedManagementCalendarRoute
-  '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/_authenticated/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/_authenticated/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/_authenticated/management/licenses': typeof AuthenticatedManagementLicensesRoute
@@ -1673,6 +1672,7 @@ export interface FileRoutesById {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/_authenticated/management/companies/': typeof AuthenticatedManagementCompaniesIndexRoute
   '/_authenticated/management/crm/': typeof AuthenticatedManagementCrmIndexRoute
   '/_authenticated/management/usage/': typeof AuthenticatedManagementUsageIndexRoute
   '/_authenticated/management/value/': typeof AuthenticatedManagementValueIndexRoute
@@ -1777,7 +1777,6 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/management/activity'
     | '/management/calendar'
-    | '/management/companies'
     | '/management/customers'
     | '/management/installations'
     | '/management/licenses'
@@ -1854,6 +1853,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/app/academy/'
     | '/app/chat/'
+    | '/management/companies/'
     | '/management/crm/'
     | '/management/usage/'
     | '/management/value/'
@@ -1950,7 +1950,6 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/management/activity'
     | '/management/calendar'
-    | '/management/companies'
     | '/management/customers'
     | '/management/installations'
     | '/management/licenses'
@@ -2026,6 +2025,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/app/academy'
     | '/app/chat'
+    | '/management/companies'
     | '/management/crm'
     | '/management/usage'
     | '/management/value'
@@ -2129,7 +2129,6 @@ export interface FileRouteTypes {
     | '/_authenticated/app/users'
     | '/_authenticated/management/activity'
     | '/_authenticated/management/calendar'
-    | '/_authenticated/management/companies'
     | '/_authenticated/management/customers'
     | '/_authenticated/management/installations'
     | '/_authenticated/management/licenses'
@@ -2206,6 +2205,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
+    | '/_authenticated/management/companies/'
     | '/_authenticated/management/crm/'
     | '/_authenticated/management/usage/'
     | '/_authenticated/management/value/'
@@ -2931,13 +2931,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementCalendarRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
-    '/_authenticated/management/companies': {
-      id: '/_authenticated/management/companies'
-      path: '/companies'
-      fullPath: '/management/companies'
-      preLoaderRoute: typeof AuthenticatedManagementCompaniesRouteImport
-      parentRoute: typeof AuthenticatedManagementRoute
-    }
     '/_authenticated/management/customers': {
       id: '/_authenticated/management/customers'
       path: '/customers'
@@ -3316,12 +3309,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedAppChatRoute
     }
+    '/_authenticated/management/companies/': {
+      id: '/_authenticated/management/companies/'
+      path: '/companies'
+      fullPath: '/management/companies/'
+      preLoaderRoute: typeof AuthenticatedManagementCompaniesIndexRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/companies/$id': {
       id: '/_authenticated/management/companies/$id'
-      path: '/$id'
+      path: '/companies/$id'
       fullPath: '/management/companies/$id'
       preLoaderRoute: typeof AuthenticatedManagementCompaniesIdRouteImport
-      parentRoute: typeof AuthenticatedManagementCompaniesRoute
+      parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/management/crm/': {
       id: '/_authenticated/management/crm/'
@@ -3652,21 +3652,6 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
 const AuthenticatedAppRouteWithChildren =
   AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
 
-interface AuthenticatedManagementCompaniesRouteChildren {
-  AuthenticatedManagementCompaniesIdRoute: typeof AuthenticatedManagementCompaniesIdRoute
-}
-
-const AuthenticatedManagementCompaniesRouteChildren: AuthenticatedManagementCompaniesRouteChildren =
-  {
-    AuthenticatedManagementCompaniesIdRoute:
-      AuthenticatedManagementCompaniesIdRoute,
-  }
-
-const AuthenticatedManagementCompaniesRouteWithChildren =
-  AuthenticatedManagementCompaniesRoute._addFileChildren(
-    AuthenticatedManagementCompaniesRouteChildren,
-  )
-
 interface AuthenticatedManagementTeamRouteChildren {
   AuthenticatedManagementTeamUserIdRoute: typeof AuthenticatedManagementTeamUserIdRoute
 }
@@ -3685,7 +3670,6 @@ const AuthenticatedManagementTeamRouteWithChildren =
 interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementActivityRoute: typeof AuthenticatedManagementActivityRoute
   AuthenticatedManagementCalendarRoute: typeof AuthenticatedManagementCalendarRoute
-  AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRouteWithChildren
   AuthenticatedManagementCustomersRoute: typeof AuthenticatedManagementCustomersRoute
   AuthenticatedManagementInstallationsRoute: typeof AuthenticatedManagementInstallationsRoute
   AuthenticatedManagementLicensesRoute: typeof AuthenticatedManagementLicensesRoute
@@ -3700,11 +3684,13 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
   AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRouteWithChildren
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
+  AuthenticatedManagementCompaniesIdRoute: typeof AuthenticatedManagementCompaniesIdRoute
   AuthenticatedManagementCrmLeadIdRoute: typeof AuthenticatedManagementCrmLeadIdRoute
   AuthenticatedManagementCrmActivitiesRoute: typeof AuthenticatedManagementCrmActivitiesRoute
   AuthenticatedManagementCrmReportsRoute: typeof AuthenticatedManagementCrmReportsRoute
   AuthenticatedManagementUsageInstallIdRoute: typeof AuthenticatedManagementUsageInstallIdRoute
   AuthenticatedManagementValueIdRoute: typeof AuthenticatedManagementValueIdRoute
+  AuthenticatedManagementCompaniesIndexRoute: typeof AuthenticatedManagementCompaniesIndexRoute
   AuthenticatedManagementCrmIndexRoute: typeof AuthenticatedManagementCrmIndexRoute
   AuthenticatedManagementUsageIndexRoute: typeof AuthenticatedManagementUsageIndexRoute
   AuthenticatedManagementValueIndexRoute: typeof AuthenticatedManagementValueIndexRoute
@@ -3714,8 +3700,6 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
   {
     AuthenticatedManagementActivityRoute: AuthenticatedManagementActivityRoute,
     AuthenticatedManagementCalendarRoute: AuthenticatedManagementCalendarRoute,
-    AuthenticatedManagementCompaniesRoute:
-      AuthenticatedManagementCompaniesRouteWithChildren,
     AuthenticatedManagementCustomersRoute:
       AuthenticatedManagementCustomersRoute,
     AuthenticatedManagementInstallationsRoute:
@@ -3735,6 +3719,8 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementTeamRoute:
       AuthenticatedManagementTeamRouteWithChildren,
     AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
+    AuthenticatedManagementCompaniesIdRoute:
+      AuthenticatedManagementCompaniesIdRoute,
     AuthenticatedManagementCrmLeadIdRoute:
       AuthenticatedManagementCrmLeadIdRoute,
     AuthenticatedManagementCrmActivitiesRoute:
@@ -3744,6 +3730,8 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementUsageInstallIdRoute:
       AuthenticatedManagementUsageInstallIdRoute,
     AuthenticatedManagementValueIdRoute: AuthenticatedManagementValueIdRoute,
+    AuthenticatedManagementCompaniesIndexRoute:
+      AuthenticatedManagementCompaniesIndexRoute,
     AuthenticatedManagementCrmIndexRoute: AuthenticatedManagementCrmIndexRoute,
     AuthenticatedManagementUsageIndexRoute:
       AuthenticatedManagementUsageIndexRoute,
