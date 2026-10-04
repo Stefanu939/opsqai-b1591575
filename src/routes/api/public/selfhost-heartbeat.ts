@@ -103,8 +103,9 @@ export const Route = createFileRoute("/api/public/selfhost-heartbeat")({
             next_maintenance_at: payload.next_maintenance_at ?? null,
             last_heartbeat_at: now,
             app_version: payload.app_version ?? null,
+            ...(payload.topology ? { topology: payload.topology } : {}),
             updated_at: now,
-          },
+          } as never,
           { onConflict: "install_id" },
         );
         if (upsertError) {

@@ -46,6 +46,26 @@ export const UsageMetricsSchema = z
 
 export type UsageMetricsPayload = z.infer<typeof UsageMetricsSchema>;
 
+export const TopologySchema = z
+  .object({
+    ai_engine: z.string().max(40).nullable().optional(),
+    stations: z
+      .array(
+        z
+          .object({
+            name: z.string().max(80),
+            location: z.string().max(80).nullable().optional(),
+            last_seen_at: z.string().datetime().nullable().optional(),
+            active: z.boolean(),
+          })
+          .strict(),
+      )
+      .max(100),
+  })
+  .strict();
+
+export type TopologyPayload = z.infer<typeof TopologySchema>;
+
 export const HeartbeatPayloadSchema = z.object({
 
   installation_id: z.string().min(3).max(64),
@@ -64,6 +84,8 @@ export const HeartbeatPayloadSchema = z.object({
   next_maintenance_at: z.string().datetime().nullable().optional(),
   /** Aggregate-only usage numbers; absent when the customer opted out. */
   usage: UsageMetricsSchema.nullable().optional(),
+  /** Computer layout: AI engine + company-chosen workstation labels. No personal data. */
+  topology: TopologySchema.nullable().optional(),
   timestamp: z.string().datetime(),
 });
 

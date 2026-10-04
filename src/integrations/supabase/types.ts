@@ -3695,6 +3695,7 @@ export type Database = {
           organization_name: string | null
           primary_language: string | null
           reported_status: string | null
+          topology: Json | null
           updated_at: string
         }
         Insert: {
@@ -3713,6 +3714,7 @@ export type Database = {
           organization_name?: string | null
           primary_language?: string | null
           reported_status?: string | null
+          topology?: Json | null
           updated_at?: string
         }
         Update: {
@@ -3731,6 +3733,7 @@ export type Database = {
           organization_name?: string | null
           primary_language?: string | null
           reported_status?: string | null
+          topology?: Json | null
           updated_at?: string
         }
         Relationships: [

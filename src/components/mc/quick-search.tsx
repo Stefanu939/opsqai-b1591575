@@ -11,6 +11,9 @@ import {
   Rocket,
   Search,
   Users,
+  CalendarClock,
+  Calculator,
+  Megaphone,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -24,6 +27,15 @@ import { useAuth } from "@/lib/auth-context";
 import { listCompanies } from "@/lib/companies.functions";
 import { listLicenses } from "@/lib/licenses.functions";
 import { listInstallations } from "@/lib/releases.functions";
+
+const COMMANDS: Array<{ label: string; hint: string; to: string; search?: Record<string, string>; icon: typeof Users }> = [
+  { label: "Cine expiră luna asta?", hint: "clienți cu licența < 30 zile", to: "/management/customers", search: { filter: "expiring" }, icon: CalendarClock },
+  { label: "Clienți suspendați", hint: "reactivare / contact", to: "/management/customers", search: { filter: "suspended" }, icon: Users },
+  { label: "Servere care nu au mai dat semnal", hint: "flota Self-Hosted", to: "/management/installations", icon: Radio },
+  { label: "Client nou + licență + kit", hint: "în 3 pași", to: "/management/onboarding", icon: Rocket },
+  { label: "Generează ofertă / calculează preț", hint: "PDF oficial", to: "/management/pricing", icon: Calculator },
+  { label: "Script de apel & mesaje WhatsApp", hint: "Sales Cockpit", to: "/management/sales", icon: Megaphone },
+];
 
 const PAGES = [
   { to: "/management", label: "Overview", icon: LayoutDashboard },
@@ -117,6 +129,23 @@ export function QuickSearch() {
         <CommandInput placeholder="Search pages, customers, licenses, installations…" />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Comenzi rapide">
+            {COMMANDS.map((c) => (
+              <CommandItem
+                key={c.label}
+                value={`comanda ${c.label} ${c.hint}`}
+                onSelect={() => {
+                  setOpen(false);
+                  navigate({ to: c.to, search: c.search as never });
+                }}
+              >
+                <c.icon className="mr-2 h-4 w-4 text-primary" />
+                {c.label}
+                <span className="ml-auto text-xs text-muted-foreground">{c.hint}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+
           <CommandGroup heading="Pages">
             {PAGES.map((p) => {
               const Icon = p.icon;
@@ -135,7 +164,10 @@ export function QuickSearch() {
                 <CommandItem
                   key={c.id}
                   value={`customer ${c.name} ${c.install_id ?? ""} ${c.business_type ?? ""}`}
-                  onSelect={() => go("/management/customers")}
+                  onSelect={() => {
+                    setOpen(false);
+                    navigate({ to: "/management/companies/$id", params: { id: c.id } });
+                  }}
                 >
                   <Users className="mr-2 h-4 w-4" />
                   <span className="truncate">{c.name}</span>

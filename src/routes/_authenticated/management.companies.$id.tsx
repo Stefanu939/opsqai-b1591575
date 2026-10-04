@@ -16,6 +16,8 @@ import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.fun
 import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
 import { SharedAccessPanel } from "@/components/mc/shared-access";
 import { InstallHistoryPanel } from "@/components/mc/install-history";
+import { CompanyTopology } from "@/components/mc/company-topology";
+import { CompanyTimeline } from "@/components/mc/company-timeline";
 import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -185,6 +187,11 @@ function CompanyDetailPage() {
           <Badge variant={company.active ? "default" : "outline"}>
             {company.active ? company.subscription_status : "suspended"}
           </Badge>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/management/pricing" search={{ company: company.name }}>
+              <FileText className="mr-1.5 h-3.5 w-3.5" /> Ofertă PDF
+            </Link>
+          </Button>
           <ManageCustomerDialog companyId={company.id} companyName={company.name} />
         </div>
       }
@@ -209,6 +216,8 @@ function CompanyDetailPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="topology">Calculatoare</TabsTrigger>
+          <TabsTrigger value="timeline">Istoric relație</TabsTrigger>
           <TabsTrigger value="contract">Contract</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="installations">Installations</TabsTrigger>
@@ -248,6 +257,18 @@ function CompanyDetailPage() {
               )}
             </dl>
           </div>
+        </TabsContent>
+
+        <TabsContent value="topology">
+          <CompanyTopology installIds={installs.map((l) => l.install_id)} />
+        </TabsContent>
+
+        <TabsContent value="timeline">
+          <CompanyTimeline
+            companyId={company.id}
+            companyName={company.name}
+            installIds={installs.map((l) => l.install_id)}
+          />
         </TabsContent>
 
         <TabsContent value="contract">

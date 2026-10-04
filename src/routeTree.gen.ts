@@ -101,7 +101,9 @@ import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_
 import { Route as AuthenticatedManagementCustomersRouteImport } from './routes/_authenticated/management.customers'
 import { Route as AuthenticatedManagementInstallationsRouteImport } from './routes/_authenticated/management.installations'
 import { Route as AuthenticatedManagementLicensesRouteImport } from './routes/_authenticated/management.licenses'
+import { Route as AuthenticatedManagementOnboardingRouteImport } from './routes/_authenticated/management.onboarding'
 import { Route as AuthenticatedManagementPortalRouteImport } from './routes/_authenticated/management.portal'
+import { Route as AuthenticatedManagementPricingRouteImport } from './routes/_authenticated/management.pricing'
 import { Route as AuthenticatedManagementProfileRouteImport } from './routes/_authenticated/management.profile'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
 import { Route as AuthenticatedManagementSalesRouteImport } from './routes/_authenticated/management.sales'
@@ -666,10 +668,22 @@ const AuthenticatedManagementLicensesRoute =
     path: '/licenses',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
+const AuthenticatedManagementOnboardingRoute =
+  AuthenticatedManagementOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedManagementPortalRoute =
   AuthenticatedManagementPortalRouteImport.update({
     id: '/portal',
     path: '/portal',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
+const AuthenticatedManagementPricingRoute =
+  AuthenticatedManagementPricingRouteImport.update({
+    id: '/pricing',
+    path: '/pricing',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementProfileRoute =
@@ -1233,7 +1247,9 @@ export interface FileRoutesByFullPath {
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
+  '/management/onboarding': typeof AuthenticatedManagementOnboardingRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
+  '/management/pricing': typeof AuthenticatedManagementPricingRoute
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/sales': typeof AuthenticatedManagementSalesRoute
@@ -1404,7 +1420,9 @@ export interface FileRoutesByTo {
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
+  '/management/onboarding': typeof AuthenticatedManagementOnboardingRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
+  '/management/pricing': typeof AuthenticatedManagementPricingRoute
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/sales': typeof AuthenticatedManagementSalesRoute
@@ -1582,7 +1600,9 @@ export interface FileRoutesById {
   '/_authenticated/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/_authenticated/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/_authenticated/management/licenses': typeof AuthenticatedManagementLicensesRoute
+  '/_authenticated/management/onboarding': typeof AuthenticatedManagementOnboardingRoute
   '/_authenticated/management/portal': typeof AuthenticatedManagementPortalRoute
+  '/_authenticated/management/pricing': typeof AuthenticatedManagementPricingRoute
   '/_authenticated/management/profile': typeof AuthenticatedManagementProfileRoute
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/sales': typeof AuthenticatedManagementSalesRoute
@@ -1761,7 +1781,9 @@ export interface FileRouteTypes {
     | '/management/customers'
     | '/management/installations'
     | '/management/licenses'
+    | '/management/onboarding'
     | '/management/portal'
+    | '/management/pricing'
     | '/management/profile'
     | '/management/releases'
     | '/management/sales'
@@ -1932,7 +1954,9 @@ export interface FileRouteTypes {
     | '/management/customers'
     | '/management/installations'
     | '/management/licenses'
+    | '/management/onboarding'
     | '/management/portal'
+    | '/management/pricing'
     | '/management/profile'
     | '/management/releases'
     | '/management/sales'
@@ -2109,7 +2133,9 @@ export interface FileRouteTypes {
     | '/_authenticated/management/customers'
     | '/_authenticated/management/installations'
     | '/_authenticated/management/licenses'
+    | '/_authenticated/management/onboarding'
     | '/_authenticated/management/portal'
+    | '/_authenticated/management/pricing'
     | '/_authenticated/management/profile'
     | '/_authenticated/management/releases'
     | '/_authenticated/management/sales'
@@ -2933,11 +2959,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementLicensesRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
+    '/_authenticated/management/onboarding': {
+      id: '/_authenticated/management/onboarding'
+      path: '/onboarding'
+      fullPath: '/management/onboarding'
+      preLoaderRoute: typeof AuthenticatedManagementOnboardingRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/portal': {
       id: '/_authenticated/management/portal'
       path: '/portal'
       fullPath: '/management/portal'
       preLoaderRoute: typeof AuthenticatedManagementPortalRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
+    '/_authenticated/management/pricing': {
+      id: '/_authenticated/management/pricing'
+      path: '/pricing'
+      fullPath: '/management/pricing'
+      preLoaderRoute: typeof AuthenticatedManagementPricingRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/management/profile': {
@@ -3649,7 +3689,9 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementCustomersRoute: typeof AuthenticatedManagementCustomersRoute
   AuthenticatedManagementInstallationsRoute: typeof AuthenticatedManagementInstallationsRoute
   AuthenticatedManagementLicensesRoute: typeof AuthenticatedManagementLicensesRoute
+  AuthenticatedManagementOnboardingRoute: typeof AuthenticatedManagementOnboardingRoute
   AuthenticatedManagementPortalRoute: typeof AuthenticatedManagementPortalRoute
+  AuthenticatedManagementPricingRoute: typeof AuthenticatedManagementPricingRoute
   AuthenticatedManagementProfileRoute: typeof AuthenticatedManagementProfileRoute
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
   AuthenticatedManagementSalesRoute: typeof AuthenticatedManagementSalesRoute
@@ -3679,7 +3721,10 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementInstallationsRoute:
       AuthenticatedManagementInstallationsRoute,
     AuthenticatedManagementLicensesRoute: AuthenticatedManagementLicensesRoute,
+    AuthenticatedManagementOnboardingRoute:
+      AuthenticatedManagementOnboardingRoute,
     AuthenticatedManagementPortalRoute: AuthenticatedManagementPortalRoute,
+    AuthenticatedManagementPricingRoute: AuthenticatedManagementPricingRoute,
     AuthenticatedManagementProfileRoute: AuthenticatedManagementProfileRoute,
     AuthenticatedManagementReleasesRoute: AuthenticatedManagementReleasesRoute,
     AuthenticatedManagementSalesRoute: AuthenticatedManagementSalesRoute,
