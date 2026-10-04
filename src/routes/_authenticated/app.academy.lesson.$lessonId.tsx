@@ -550,6 +550,22 @@ function TeacherChat({
                 </div>
               ))}
 
+              {learnLang && !quiz && status !== "streaming" && visibleMessages.length > 0 &&
+                visibleMessages[visibleMessages.length - 1].role === "assistant" && (
+                  <div className="flex flex-wrap gap-2 pl-1">
+                    {L.quick.map((q) => (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => void handleSend(q)}
+                        className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[12.5px] text-foreground hover:bg-primary/20 transition-colors"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
               {status === "streaming" && (
                 <div className="flex justify-start">
                   <div className="bg-card border border-border rounded-2xl px-4 py-2 text-xs text-muted-foreground inline-flex items-center gap-2">
@@ -900,4 +916,62 @@ function TeacherChat({
       </div>
     </div>
   );
+}
+
+const LESSON_STRINGS = {
+  ro: {
+    notScored: "Nepunctată — întrebarea nu avea un răspuns de referință sigur.",
+    correct: "Corect", back: "Înapoi", nextQ: "Întrebarea următoare", submit: "Trimite răspunsurile",
+    passed: "Promovat", tryAgain: "Mai încearcă", needed: "necesar", newQ: "Întrebări noi",
+    greatWork: "Felicitări — revii la parcursul tău…", reply: "Răspunde profesorului AI…",
+    grounded: "Bazat doar pe această lecție — fără informații din afară.",
+    preparing: "Se pregătește testul…", readyQuiz: "Sunt pregătit pentru test", straightQuiz: "Direct la test",
+    objectives: "Obiectivele lecției", introObj: "Profesorul AI îți va prezenta obiectivele.",
+    progress: "Progres", units: "unități", remaining: "min rămase (estimare)", passMark: "Prag de promovare",
+    summary: "Rezumatul lecției", tip: "Sfat: vorbește cu profesorul AI ca la un curs real — pune întrebări, cere exemple sau spune „nu am înțeles” oricând.",
+    startQuiz: "Începe testul", complete: "Lecție finalizată — testul este deblocat",
+    check: "Fă o scurtă verificare a cunoștințelor pentru a confirma ce ai învățat.",
+    quiz: "Test", review: "Revizuire", question: "Întrebarea", of: "din", teacher: "Profesor AI",
+    thinking: "Se gândește…", connErr: "Problemă de conexiune cu profesorul AI.", retry: "Reîncearcă",
+    quick: ["Am înțeles, continuă", "Dă-mi un exemplu", "Nu am înțeles, explică altfel", "Rezumă pe scurt"],
+    unit: { intro: "Introducere", concepts: "Concepte cheie", examples: "Exemplu practic", best_practices: "Bune practici", summary: "Rezumat", quiz: "Test" },
+  },
+  de: {
+    notScored: "Nicht bewertet — für diese Frage gab es keinen verlässlichen Lösungsschlüssel.",
+    correct: "Richtig", back: "Zurück", nextQ: "Nächste Frage", submit: "Antworten absenden",
+    passed: "Bestanden", tryAgain: "Erneut versuchen", needed: "erforderlich", newQ: "Neue Fragen",
+    greatWork: "Gut gemacht — zurück zu deinem Lernpfad…", reply: "Antworte deinem KI-Trainer…",
+    grounded: "Nur auf dieser Lektion basierend — keine externen Informationen.",
+    preparing: "Quiz wird vorbereitet…", readyQuiz: "Ich bin bereit für das Quiz", straightQuiz: "Direkt zum Quiz",
+    objectives: "Lernziele", introObj: "Dein KI-Trainer stellt die Lernziele vor.",
+    progress: "Fortschritt", units: "Einheiten", remaining: "Min. verbleibend (Schätzung)", passMark: "Bestehensgrenze",
+    summary: "Zusammenfassung", tip: "Tipp: Sprich mit deinem KI-Trainer wie mit einem echten Ausbilder — stelle Fragen, bitte um Beispiele oder sag jederzeit „Das verstehe ich nicht“.",
+    startQuiz: "Quiz starten", complete: "Lektion abgeschlossen — dein Quiz ist freigeschaltet",
+    check: "Mach einen kurzen Wissenscheck, um das Gelernte zu bestätigen.",
+    quiz: "Quiz", review: "Auswertung", question: "Frage", of: "von", teacher: "KI-Trainer",
+    thinking: "Denkt nach…", connErr: "Verbindungsproblem mit dem KI-Trainer.", retry: "Erneut versuchen",
+    quick: ["Verstanden, weiter", "Gib mir ein Beispiel", "Nicht verstanden, anders erklären", "Kurz zusammenfassen"],
+    unit: { intro: "Einführung", concepts: "Kernkonzepte", examples: "Praxisbeispiel", best_practices: "Best Practices", summary: "Zusammenfassung", quiz: "Quiz" },
+  },
+  en: {
+    notScored: "Not scored — this question had no reliable answer key.",
+    correct: "Correct", back: "Back", nextQ: "Next question", submit: "Submit answers",
+    passed: "Passed", tryAgain: "Try again", needed: "needed", newQ: "New questions",
+    greatWork: "Great work — returning to your path…", reply: "Reply to your AI Teacher…",
+    grounded: "Grounded only in this lesson — no outside information.",
+    preparing: "Preparing quiz…", readyQuiz: "I'm ready for the quiz", straightQuiz: "Go straight to the quiz",
+    objectives: "Lesson objectives", introObj: "Your AI Teacher will introduce the objectives.",
+    progress: "Progress", units: "units", remaining: "min remaining (estimate only)", passMark: "Pass mark",
+    summary: "Lesson summary", tip: "Tip: Chat with your AI Teacher like a real instructor — ask questions, request examples, or say \"I don't get it\" anytime.",
+    startQuiz: "Start quiz", complete: "Lesson complete — your quiz is unlocked",
+    check: "Take a short knowledge check to confirm what you've learned.",
+    quiz: "Quiz", review: "Review", question: "Question", of: "of", teacher: "AI Teacher",
+    thinking: "Thinking…", connErr: "Connection issue with the AI Teacher.", retry: "Retry",
+    quick: ["Got it, continue", "Give me an example", "I don't get it, explain differently", "Summarize briefly"],
+    unit: { intro: "Introduction", concepts: "Key concepts", examples: "Practical example", best_practices: "Best practices", summary: "Summary", quiz: "Quiz" },
+  },
+};
+
+function lessonStrings(lang: string | null) {
+  return LESSON_STRINGS[(lang as keyof typeof LESSON_STRINGS) ?? "ro"] ?? LESSON_STRINGS.ro;
 }
