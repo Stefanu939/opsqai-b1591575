@@ -72,3 +72,12 @@ export const getKnowledgeGapStats = createServerFn({ method: "GET" })
     const { buildKnowledgeGapStats } = await import("@/lib/knowledge-gap-stats");
     return buildKnowledgeGapStats(await repo.list(companyId, 2000));
   });
+
+export const getKnowledgeGapAnswer = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "knowledge_gaps");
+    const { companyId, repo } = await gapContext(context);
+    return { answer: await repo.getAnswer(companyId, data.id) };
+  });
