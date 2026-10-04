@@ -61,13 +61,8 @@ function sanitize(text: string): string {
 }
 
 export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
-  // Use the package entry (same as every other PDF module in the project);
-  // the deep `pdf-lib/es/index.js` path pulls tslib per-file and breaks in the
-  // Worker bundle with: Cannot destructure property '__extends'.
-  const { PDFDocument, StandardFonts, rgb } = (await import(
-    // @ts-expect-error self-contained bundle (tslib inlined), no typings
-    "pdf-lib/dist/pdf-lib.esm.js"
-  )) as typeof import("pdf-lib");
+  // tslib resolution for pdf-lib is fixed in vite.config.ts (opsqai-pdf-lib-tslib-esm).
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const pdf = await PDFDocument.create();
   pdf.setTitle(spec.title);
   if (spec.author) pdf.setAuthor(spec.author);
