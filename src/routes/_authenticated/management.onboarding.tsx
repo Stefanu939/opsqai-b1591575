@@ -63,6 +63,12 @@ function OnboardingWizard() {
   const [cui, setCui] = useState("");
   const [name, setName] = useState(pre.company ?? "");
   const [address, setAddress] = useState("");
+  const [regCom, setRegCom] = useState("");
+  const [caen, setCaen] = useState("");
+  const [county, setCounty] = useState("");
+  const [city, setCity] = useState("");
+  const [employees, setEmployees] = useState("");
+  const [vat, setVat] = useState<"" | "da" | "nu">("");
   const [profile, setProfile] = useState("");
   const [first, setFirst] = useState(preFirst ?? "");
   const [last, setLast] = useState(preRest.join(" "));
@@ -85,6 +91,12 @@ function OnboardingWizard() {
       setAnaf(r);
       setName(r.name);
       setAddress(r.address);
+      setRegCom(r.reg_com);
+      setCaen([r.caen, r.caen_name].filter(Boolean).join(" – "));
+      setCounty(r.county);
+      setCity(r.city);
+      setVat(r.vat_payer ? "da" : "nu");
+      if (r.financials?.employees != null) setEmployees(String(r.financials.employees));
       if (r.phone && !phone) setPhone(r.phone);
       // Suggest workstation count from employee number (editable).
       const emp = r.financials?.employees;
@@ -125,7 +137,7 @@ function OnboardingWizard() {
           seats,
           expires_at: expires.toISOString(),
           modules: [],
-          notes: [cui && `CUI ${cui}`, anaf?.reg_com && `Reg. Com. ${anaf.reg_com}`, anaf?.caen && `CAEN ${anaf.caen}`, anaf?.financials?.employees != null && `${anaf.financials.employees} angajați`, address].filter(Boolean).join(" · ") || undefined,
+          notes: [cui && `CUI ${cui}`, regCom && `Reg. Com. ${regCom}`, caen && `CAEN ${caen}`, employees && `${employees} angajați`, vat && `Plătitor TVA: ${vat}`, [city, county].filter(Boolean).join(", "), address].filter(Boolean).join(" · ") || undefined,
           send_email: false,
         },
       } as never);
@@ -206,6 +218,18 @@ function OnboardingWizard() {
               </Select>
             </div>
             <div className="sm:col-span-2"><Label className="text-xs">Adresă</Label><Input className="mt-1" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+            <div><Label className="text-xs">Nr. Registrul Comerțului</Label><Input className="mt-1" value={regCom} onChange={(e) => setRegCom(e.target.value)} placeholder="J40/123/2020" /></div>
+            <div><Label className="text-xs">Cod CAEN (activitate principală)</Label><Input className="mt-1" value={caen} onChange={(e) => setCaen(e.target.value)} placeholder="4941" /></div>
+            <div><Label className="text-xs">Județ</Label><Input className="mt-1" value={county} onChange={(e) => setCounty(e.target.value)} /></div>
+            <div><Label className="text-xs">Localitate</Label><Input className="mt-1" value={city} onChange={(e) => setCity(e.target.value)} /></div>
+            <div><Label className="text-xs">Număr angajați</Label><Input className="mt-1" inputMode="numeric" value={employees} onChange={(e) => setEmployees(e.target.value.replace(/\D/g, ""))} /></div>
+            <div>
+              <Label className="text-xs">Plătitor TVA</Label>
+              <Select value={vat} onValueChange={(v) => setVat(v as "da" | "nu")}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Alege" /></SelectTrigger>
+                <SelectContent><SelectItem value="da">Da</SelectItem><SelectItem value="nu">Nu</SelectItem></SelectContent>
+              </Select>
+            </div>
             <div><Label className="text-xs">Prenume director / administrator</Label><Input className="mt-1" value={first} onChange={(e) => setFirst(e.target.value)} /></div>
             <div><Label className="text-xs">Nume</Label><Input className="mt-1" value={last} onChange={(e) => setLast(e.target.value)} /></div>
             <div><Label className="text-xs">Email (cont administrator)</Label><Input type="email" className="mt-1" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
@@ -295,7 +319,7 @@ function OnboardingWizard() {
                 <Button asChild variant="outline"><a href={result.url} target="_blank" rel="noreferrer"><Download className="mr-1.5 h-4 w-4" />Descarcă kitul</a></Button>
               )}
               <Button asChild variant="outline"><Link to="/management/customers">Vezi clienții</Link></Button>
-              <Button variant="ghost" onClick={() => { setStep(1); setResult(null); setName(""); setCui(""); setEmail(""); setPassword(generatePassword()); }}>Client nou</Button>
+              <Button variant="ghost" onClick={() => { setStep(1); setResult(null); setName(""); setCui(""); setAnaf(null); setAddress(""); setRegCom(""); setCaen(""); setCounty(""); setCity(""); setEmployees(""); setVat(""); setEmail(""); setPassword(generatePassword()); }}>Client nou</Button>
             </div>
           </Panel>
           <Panel title="Mesaj gata de trimis directorului">
