@@ -104,6 +104,7 @@ import { Route as AuthenticatedManagementLicensesRouteImport } from './routes/_a
 import { Route as AuthenticatedManagementPortalRouteImport } from './routes/_authenticated/management.portal'
 import { Route as AuthenticatedManagementProfileRouteImport } from './routes/_authenticated/management.profile'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
+import { Route as AuthenticatedManagementSalesRouteImport } from './routes/_authenticated/management.sales'
 import { Route as AuthenticatedManagementSelfhostFleetRouteImport } from './routes/_authenticated/management.selfhost-fleet'
 import { Route as AuthenticatedManagementStudyRouteImport } from './routes/_authenticated/management.study'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
@@ -683,6 +684,12 @@ const AuthenticatedManagementReleasesRoute =
     path: '/releases',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
+const AuthenticatedManagementSalesRoute =
+  AuthenticatedManagementSalesRouteImport.update({
+    id: '/sales',
+    path: '/sales',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedManagementSelfhostFleetRoute =
   AuthenticatedManagementSelfhostFleetRouteImport.update({
     id: '/selfhost-fleet',
@@ -1229,6 +1236,7 @@ export interface FileRoutesByFullPath {
   '/management/portal': typeof AuthenticatedManagementPortalRoute
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
+  '/management/sales': typeof AuthenticatedManagementSalesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/study': typeof AuthenticatedManagementStudyRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
@@ -1399,6 +1407,7 @@ export interface FileRoutesByTo {
   '/management/portal': typeof AuthenticatedManagementPortalRoute
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
+  '/management/sales': typeof AuthenticatedManagementSalesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/study': typeof AuthenticatedManagementStudyRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
@@ -1576,6 +1585,7 @@ export interface FileRoutesById {
   '/_authenticated/management/portal': typeof AuthenticatedManagementPortalRoute
   '/_authenticated/management/profile': typeof AuthenticatedManagementProfileRoute
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
+  '/_authenticated/management/sales': typeof AuthenticatedManagementSalesRoute
   '/_authenticated/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/_authenticated/management/study': typeof AuthenticatedManagementStudyRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
@@ -1754,6 +1764,7 @@ export interface FileRouteTypes {
     | '/management/portal'
     | '/management/profile'
     | '/management/releases'
+    | '/management/sales'
     | '/management/selfhost-fleet'
     | '/management/study'
     | '/management/support'
@@ -1924,6 +1935,7 @@ export interface FileRouteTypes {
     | '/management/portal'
     | '/management/profile'
     | '/management/releases'
+    | '/management/sales'
     | '/management/selfhost-fleet'
     | '/management/study'
     | '/management/support'
@@ -2100,6 +2112,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/portal'
     | '/_authenticated/management/profile'
     | '/_authenticated/management/releases'
+    | '/_authenticated/management/sales'
     | '/_authenticated/management/selfhost-fleet'
     | '/_authenticated/management/study'
     | '/_authenticated/management/support'
@@ -2941,6 +2954,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementReleasesRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
+    '/_authenticated/management/sales': {
+      id: '/_authenticated/management/sales'
+      path: '/sales'
+      fullPath: '/management/sales'
+      preLoaderRoute: typeof AuthenticatedManagementSalesRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/selfhost-fleet': {
       id: '/_authenticated/management/selfhost-fleet'
       path: '/selfhost-fleet'
@@ -3632,6 +3652,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementPortalRoute: typeof AuthenticatedManagementPortalRoute
   AuthenticatedManagementProfileRoute: typeof AuthenticatedManagementProfileRoute
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
+  AuthenticatedManagementSalesRoute: typeof AuthenticatedManagementSalesRoute
   AuthenticatedManagementSelfhostFleetRoute: typeof AuthenticatedManagementSelfhostFleetRoute
   AuthenticatedManagementStudyRoute: typeof AuthenticatedManagementStudyRoute
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
@@ -3661,6 +3682,7 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementPortalRoute: AuthenticatedManagementPortalRoute,
     AuthenticatedManagementProfileRoute: AuthenticatedManagementProfileRoute,
     AuthenticatedManagementReleasesRoute: AuthenticatedManagementReleasesRoute,
+    AuthenticatedManagementSalesRoute: AuthenticatedManagementSalesRoute,
     AuthenticatedManagementSelfhostFleetRoute:
       AuthenticatedManagementSelfhostFleetRoute,
     AuthenticatedManagementStudyRoute: AuthenticatedManagementStudyRoute,

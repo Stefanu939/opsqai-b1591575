@@ -33,7 +33,31 @@ import {
   productsAvailableFor,
   productsRecommendedFor,
 } from "@/lib/product-architecture";
-import { Users, Search, Plus, Trash2 } from "lucide-react";
+import {
+  Users,
+  Search,
+  Plus,
+  Trash2,
+  Building2,
+  CalendarClock,
+  PauseCircle,
+  LayoutGrid,
+  List,
+  Truck,
+  Landmark,
+  Factory,
+  MessageCircle,
+  Mail,
+  Copy,
+  ArrowRight,
+  Dices,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { generatePassword, mailtoUrl, passwordStrength, whatsappUrl } from "@/lib/mc-outreach";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { confirmAction } from "@/components/ui/confirm";
@@ -139,6 +163,9 @@ function CustomersPage() {
   });
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [view, setView] = useState<"grid" | "table">("grid");
+  const [pill, setPill] = useState<"all" | "expiring" | "suspended" | "enterprise">("all");
+  const [credentials, setCredentials] = useState<Credentials | null>(null);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["mc-customers"] });
 
@@ -405,15 +432,44 @@ function CustomersPage() {
     },
   ];
 
+  const all = data as Row[];
+  const expiringSoon = (r: Row) => {
+    const d = daysUntil(r.license?.expires_at);
+    return d !== null && d <= 30;
+  };
+  const kpis = {
+    active: all.filter((r) => r.active).length,
+    seatsUsed: all.reduce((s, r) => s + (r.user_count ?? 0), 0),
+    seatsTotal: all.reduce((s, r) => s + (r.license?.seats ?? r.max_users ?? 0), 0),
+    expiring: all.filter(expiringSoon).length,
+    suspended: all.filter((r) => !r.active).length,
+  };
+  const shown = rows.filter((r) => {
+    if (pill === "expiring") return expiringSoon(r);
+    if (pill === "suspended") return !r.active;
+    if (pill === "enterprise") return r.subscription_plan === "enterprise";
+    return true;
+  });
+
   return (
     <ModulePage
       eyebrow="Management Center"
       title="Customers"
       description="Every OPSQAI customer — subscription, license expiry, contract lifecycle."
       actions={
-        <NewCustomerDialog onCreate={(v) => createMut.mutate(v)} pending={createMut.isPending} />
+        <NewCustomerDialog
+          onCreate={(v, phone) => createMut.mutate(v, { onSuccess: () => setCredentials({ ...v, phone }) })}
+          pending={createMut.isPending}
+        />
       }
     >
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi icon={Building2} label="Clienți activi" value={kpis.active} tone="primary" />
+        <Kpi icon={Users} label="Locuri utilizate" value={`${kpis.seatsUsed} / ${kpis.seatsTotal}`} tone="primary" />
+        <Kpi icon={CalendarClock} label="Expiră în < 30 zile" value={kpis.expiring} tone="warning" onClick={() => setPill("expiring")} />
+        <Kpi icon={PauseCircle} label="Suspendați" value={kpis.suspended} tone="destructive" onClick={() => setPill("suspended")} />
+      </div>
+
       <OwnerCards selection={owner} onSelect={setOwner} />
 
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
@@ -448,29 +504,279 @@ function CustomersPage() {
             <SelectItem value="suspended">Suspended</SelectItem>
           </SelectContent>
         </Select>
+        <div className="flex rounded-md border border-border p-0.5">
+          <Button size="sm" variant={view === "grid" ? "secondary" : "ghost"} className="h-8" onClick={() => setView("grid")} aria-label="Cartonașe">
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant={view === "table" ? "secondary" : "ghost"} className="h-8" onClick={() => setView("table")} aria-label="Tabel">
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
         <div className="ml-auto text-xs text-muted-foreground">
-          <span className="tabular-nums">{rows.length}</span> / {(data as Row[]).length}
+          <span className="tabular-nums">{shown.length}</span> / {all.length}
         </div>
       </div>
 
-      <DataTable<Row>
-        columns={columns}
-        rows={rows}
-        rowKey={(r) => r.id}
-        loading={isLoading}
-        onRowClick={(r) => {
-          setActiveCompanyId(r.id);
-          navigate({ to: "/management/companies/$id", params: { id: r.id } });
-        }}
-        empty={{
-          icon: Users,
-          title: (data as Row[]).length ? "No matches" : "No customers yet",
-          description: (data as Row[]).length
-            ? "Adjust filters to see more results."
-            : "Create your first customer to get started.",
-        }}
-      />
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["all", "Toți clienții"],
+            ["expiring", "Expiră curând"],
+            ["suspended", "Suspendați"],
+            ["enterprise", "Enterprise"],
+          ] as const
+        ).map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setPill(k)}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs transition-colors",
+              pill === k ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground hover:border-primary/40",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === "grid" ? (
+        isLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-56 animate-pulse rounded-xl border border-border bg-card" />
+            ))}
+          </div>
+        ) : shown.length ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {shown.map((r) => (
+              <CustomerCard
+                key={r.id}
+                row={r}
+                onOpen={() => {
+                  setActiveCompanyId(r.id);
+                  navigate({ to: "/management/companies/$id", params: { id: r.id } });
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+            {all.length ? "Niciun client nu corespunde filtrelor." : "Nu există încă clienți."}
+          </div>
+        )
+      ) : (
+        <DataTable<Row>
+          columns={columns}
+          rows={shown}
+          rowKey={(r) => r.id}
+          loading={isLoading}
+          onRowClick={(r) => {
+            setActiveCompanyId(r.id);
+            navigate({ to: "/management/companies/$id", params: { id: r.id } });
+          }}
+          empty={{
+            icon: Users,
+            title: all.length ? "No matches" : "No customers yet",
+            description: all.length
+              ? "Adjust filters to see more results."
+              : "Create your first customer to get started.",
+          }}
+        />
+      )}
+
+      <CredentialsDialog value={credentials} onClose={() => setCredentials(null)} />
     </ModulePage>
+  );
+}
+
+const TONES = {
+  primary: "bg-primary/15 text-primary",
+
+  warning: "bg-warning/15 text-warning",
+  destructive: "bg-destructive/15 text-destructive",
+} as const;
+
+function Kpi({
+  icon: Icon,
+  label,
+  value,
+  tone,
+  onClick,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: number | string;
+  tone: keyof typeof TONES;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!onClick}
+      className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors enabled:hover:border-primary/40"
+    >
+      <span className={cn("flex h-10 w-10 items-center justify-center rounded-lg", TONES[tone])}>
+        <Icon className="h-5 w-5" />
+      </span>
+      <span>
+        <span className="block text-2xl font-semibold tabular-nums text-foreground">{value}</span>
+        <span className="block text-xs text-muted-foreground">{label}</span>
+      </span>
+    </button>
+  );
+}
+
+const PROFILE_STYLE: { match: RegExp; icon: typeof Users; cls: string }[] = [
+  { match: /transport|logist/i, icon: Truck, cls: "bg-primary/10 text-primary" },
+  { match: /bank|financ|insur/i, icon: Landmark, cls: "bg-primary/15 text-primary" },
+  { match: /manufact|product|industr/i, icon: Factory, cls: "bg-warning/15 text-warning" },
+];
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+}
+
+function CustomerCard({ row: r, onOpen }: { row: Row; onOpen: () => void }) {
+  const style = PROFILE_STYLE.find((p) => p.match.test(r.business_type ?? "")) ?? {
+    icon: Building2,
+    cls: "bg-success/15 text-success",
+  };
+  const Icon = style.icon;
+  const seats = r.license?.seats ?? r.max_users ?? 0;
+  const pct = seats ? Math.min(100, Math.round((r.user_count / seats) * 100)) : 0;
+  const days = daysUntil(r.license?.expires_at);
+  const status = !r.active
+    ? { label: "Suspendat", cls: "bg-destructive/15 text-destructive" }
+    : days !== null && days < 0
+      ? { label: "Licență expirată", cls: "bg-destructive/15 text-destructive" }
+      : days !== null && days <= 30
+        ? { label: `Expiră în ${days} zile`, cls: "bg-warning/15 text-warning" }
+        : { label: "Activ", cls: "bg-success/15 text-success" };
+  const products = (r.enabled_products ?? []).filter(Boolean);
+  const greeting = `Bună ziua! Vă contactăm din partea echipei OPSQAI referitor la contul ${r.name}.`;
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => e.key === "Enter" && onOpen()}
+      className="group flex cursor-pointer flex-col rounded-xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
+    >
+      <div className="flex items-start gap-3 p-4">
+        <span className={cn("relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-bold", style.cls)}>
+          {initials(r.name)}
+          <Icon className="absolute -bottom-1 -right-1 h-5 w-5 rounded-md bg-card p-0.5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-foreground">{r.name}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {r.business_type ? getCompanyProfile(r.business_type).label : "Profil nesetat"}
+          </p>
+        </div>
+        <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium", status.cls)}>{status.label}</span>
+      </div>
+
+      <div className="space-y-3 px-4 pb-4">
+        <div>
+          <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
+            <span>Locuri utilizate</span>
+            <span className="tabular-nums">{r.user_count} / {seats}</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className={cn("h-full rounded-full", pct >= 90 ? "bg-warning" : "bg-primary")} style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="outline" className="text-[10px]">Core</Badge>
+          {products.map((k) => (
+            <Badge key={k} variant="secondary" className="text-[10px]">{getProduct(k)?.label ?? k}</Badge>
+          ))}
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Client din {fmtDate(r.created_at)} · Licență până la {fmtDate(r.license?.expires_at)}
+        </p>
+      </div>
+
+      <div className="mt-auto flex items-center gap-1 border-t border-border px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
+        <Button asChild size="sm" variant="ghost" className="h-8 px-2">
+          <a href={whatsappUrl(null, greeting)} target="_blank" rel="noreferrer" aria-label="WhatsApp">
+            <MessageCircle className="h-4 w-4" />
+          </a>
+        </Button>
+        <Button asChild size="sm" variant="ghost" className="h-8 px-2">
+          <a href={mailtoUrl("", `OPSQAI — Asistență & Licențiere ${r.name}`, greeting)} aria-label="Email">
+            <Mail className="h-4 w-4" />
+          </a>
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 px-2"
+          aria-label="Copiază date"
+          onClick={() => {
+            void navigator.clipboard.writeText(
+              `${r.name}\nProfil: ${r.business_type ?? "—"}\nLocuri: ${r.user_count}/${seats}\nInstall ID: ${r.install_id ?? "—"}\nLicență până la: ${fmtDate(r.license?.expires_at)}`,
+            );
+            toast.success("Date copiate");
+          }}
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
+        <ManageCustomerDialog companyId={r.id} companyName={r.name} />
+        <Button size="sm" variant="ghost" className="ml-auto h-8 text-primary" onClick={onOpen}>
+          Fișă client <ArrowRight className="ml-1 h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type Credentials = NewCustomerInput & { phone: string };
+
+function CredentialsDialog({ value, onClose }: { value: Credentials | null; onClose: () => void }) {
+  if (!value) return null;
+  const portal = typeof window !== "undefined" ? window.location.origin : "https://opsqai.de";
+  const who = value.admin_first_name ? `Bună ziua, ${value.admin_first_name}!` : "Bună ziua!";
+  const text = `${who} Contul OPSQAI pentru ${value.name} a fost configurat.\n\nEmail: ${value.admin_email}\nParolă temporară: ${value.admin_password}\nPortal: ${portal}\n\nVă rugăm să schimbați parola la prima autentificare.`;
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Client creat — credențiale gata de trimis</DialogTitle>
+        </DialogHeader>
+        <pre className="whitespace-pre-wrap rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">{text}</pre>
+        <p className="text-xs text-muted-foreground">Parola este afișată doar acum. Trimite-o numai persoanei autorizate.</p>
+        <DialogFooter className="flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              void navigator.clipboard.writeText(text);
+              toast.success("Copiat");
+            }}
+          >
+            <Copy className="mr-1.5 h-4 w-4" /> Copiază
+          </Button>
+          <Button asChild variant="outline">
+            <a href={mailtoUrl(value.admin_email, `Contul OPSQAI pentru ${value.name}`, text)}>
+              <Mail className="mr-1.5 h-4 w-4" /> Email
+            </a>
+          </Button>
+          <Button asChild>
+            <a href={whatsappUrl(value.phone, text)} target="_blank" rel="noreferrer">
+              <MessageCircle className="mr-1.5 h-4 w-4" /> WhatsApp
+            </a>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -478,7 +784,7 @@ function NewCustomerDialog({
   onCreate,
   pending,
 }: {
-  onCreate: (v: NewCustomerInput) => void;
+  onCreate: (v: NewCustomerInput, phone: string) => void;
   pending: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -489,8 +795,14 @@ function NewCustomerDialog({
   const [maxUsers, setMaxUsers] = useState(10);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [show, setShow] = useState(false);
+  const [phone, setPhone] = useState("");
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
+  const strength = passwordStrength(password);
+  const matches = password.length > 0 && password === confirm;
+
 
   const selected = profile ? getCompanyProfile(profile) : null;
   const available = selected ? productsAvailableFor(selected.key) : [];
@@ -509,26 +821,36 @@ function NewCustomerDialog({
 
   const submit = () => {
     if (!name.trim() || !profile || !email.trim() || password.length < 8) {
-      toast.error("Customer name, company profile, admin email and password (min 8) are required.");
+      toast.error("Numele clientului, profilul, emailul și parola (min 8) sunt obligatorii.");
       return;
     }
-    onCreate({
-      name: name.trim(),
-      business_type: profile,
-      enabled_products: products,
-      subscription_plan: plan,
-      max_users: maxUsers,
-      admin_email: email.trim(),
-      admin_password: password,
-      admin_first_name: first.trim() || undefined,
-      admin_last_name: last.trim() || undefined,
-    });
+    if (!matches) {
+      toast.error("Parolele nu se potrivesc.");
+      return;
+    }
+    onCreate(
+      {
+        name: name.trim(),
+        business_type: profile,
+        enabled_products: products,
+        subscription_plan: plan,
+        max_users: maxUsers,
+        admin_email: email.trim(),
+        admin_password: password,
+        admin_first_name: first.trim() || undefined,
+        admin_last_name: last.trim() || undefined,
+      },
+      phone.trim(),
+    );
     setOpen(false);
     setName("");
     setProfile("");
     setProducts([]);
     setEmail("");
     setPassword("");
+    setConfirm("");
+    setPhone("");
+    setShow(false);
     setFirst("");
     setLast("");
   };
@@ -654,13 +976,76 @@ function NewCustomerDialog({
                 />
               </div>
               <div>
-                <Label>Password (min 8)</Label>
+                <Label>Telefon (pentru WhatsApp, opțional)</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" placeholder="07xx xxx xxx" />
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <div className="flex items-center justify-between">
+                  <Label>Parolă (min 8)</Label>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-[11px] text-primary hover:underline"
+                    onClick={() => {
+                      const p = generatePassword();
+                      setPassword(p);
+                      setConfirm(p);
+                      setShow(true);
+                    }}
+                  >
+                    <Dices className="h-3.5 w-3.5" /> Generează parolă sigură
+                  </button>
+                </div>
+                <div className="relative mt-1">
+                  <Input
+                    type={show ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShow((s) => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={show ? "Ascunde parola" : "Arată parola"}
+                  >
+                    {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="mt-1.5 flex gap-1">
+                  {[1, 2, 3].map((i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        "h-1 flex-1 rounded-full",
+                        strength.score >= i
+                          ? strength.score === 3
+                            ? "bg-success"
+                            : strength.score === 2
+                              ? "bg-warning"
+                              : "bg-destructive"
+                          : "bg-muted",
+                      )}
+                    />
+                  ))}
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">Putere: {password ? strength.label : "—"}</p>
+              </div>
+              <div>
+                <Label>Confirmă parola</Label>
                 <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={show ? "text" : "password"}
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
                   className="mt-1"
                 />
+                {confirm ? (
+                  <p className={cn("mt-1.5 flex items-center gap-1 text-[11px]", matches ? "text-success" : "text-destructive")}>
+                    {matches ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                    {matches ? "Parolele coincid" : "Parolele nu se potrivesc"}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
