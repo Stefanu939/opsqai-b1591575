@@ -65,6 +65,7 @@ import { Route as DocumentationSecurityRouteImport } from './routes/documentatio
 import { Route as DocumentationTechnicalRouteImport } from './routes/documentation.technical'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
+import { Route as LegalEulaRouteImport } from './routes/legal/eula'
 import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
@@ -466,6 +467,11 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
 const LegalDpaRoute = LegalDpaRouteImport.update({
   id: '/dpa',
   path: '/dpa',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+const LegalEulaRoute = LegalEulaRouteImport.update({
+  id: '/eula',
+  path: '/eula',
   getParentRoute: () => LegalRouteRoute,
 } as any)
 const LegalImpressumRoute = LegalImpressumRouteImport.update({
@@ -1184,6 +1190,7 @@ export interface FileRoutesByFullPath {
   '/documentation/technical': typeof DocumentationTechnicalRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
+  '/legal/eula': typeof LegalEulaRoute
   '/legal/impressum': typeof LegalImpressumRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
@@ -1354,6 +1361,7 @@ export interface FileRoutesByTo {
   '/documentation/technical': typeof DocumentationTechnicalRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
+  '/legal/eula': typeof LegalEulaRoute
   '/legal/impressum': typeof LegalImpressumRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
@@ -1529,6 +1537,7 @@ export interface FileRoutesById {
   '/documentation/technical': typeof DocumentationTechnicalRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
+  '/legal/eula': typeof LegalEulaRoute
   '/legal/impressum': typeof LegalImpressumRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
@@ -1706,6 +1715,7 @@ export interface FileRouteTypes {
     | '/documentation/technical'
     | '/legal/cookies'
     | '/legal/dpa'
+    | '/legal/eula'
     | '/legal/impressum'
     | '/legal/privacy'
     | '/legal/responsible-ai'
@@ -1876,6 +1886,7 @@ export interface FileRouteTypes {
     | '/documentation/technical'
     | '/legal/cookies'
     | '/legal/dpa'
+    | '/legal/eula'
     | '/legal/impressum'
     | '/legal/privacy'
     | '/legal/responsible-ai'
@@ -2050,6 +2061,7 @@ export interface FileRouteTypes {
     | '/documentation/technical'
     | '/legal/cookies'
     | '/legal/dpa'
+    | '/legal/eula'
     | '/legal/impressum'
     | '/legal/privacy'
     | '/legal/responsible-ai'
@@ -2654,6 +2666,13 @@ declare module '@tanstack/react-router' {
       path: '/dpa'
       fullPath: '/legal/dpa'
       preLoaderRoute: typeof LegalDpaRouteImport
+      parentRoute: typeof LegalRouteRoute
+    }
+    '/legal/eula': {
+      id: '/legal/eula'
+      path: '/eula'
+      fullPath: '/legal/eula'
+      preLoaderRoute: typeof LegalEulaRouteImport
       parentRoute: typeof LegalRouteRoute
     }
     '/legal/impressum': {
@@ -3746,6 +3765,7 @@ const AuthenticatedRouteRouteWithChildren =
 interface LegalRouteRouteChildren {
   LegalCookiesRoute: typeof LegalCookiesRoute
   LegalDpaRoute: typeof LegalDpaRoute
+  LegalEulaRoute: typeof LegalEulaRoute
   LegalImpressumRoute: typeof LegalImpressumRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalResponsibleAiRoute: typeof LegalResponsibleAiRoute
@@ -3755,6 +3775,7 @@ interface LegalRouteRouteChildren {
 const LegalRouteRouteChildren: LegalRouteRouteChildren = {
   LegalCookiesRoute: LegalCookiesRoute,
   LegalDpaRoute: LegalDpaRoute,
+  LegalEulaRoute: LegalEulaRoute,
   LegalImpressumRoute: LegalImpressumRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalResponsibleAiRoute: LegalResponsibleAiRoute,

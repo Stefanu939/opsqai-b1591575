@@ -29,6 +29,13 @@
       "when": 1791072895994,
       "tag": "0003_tighten_storage_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791073102514,
+      "tag": "0004_support_attachments_company_read",
+      "breakpoints": true
     }
   ]
 }
