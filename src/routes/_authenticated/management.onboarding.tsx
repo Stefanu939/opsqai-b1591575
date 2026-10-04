@@ -17,6 +17,7 @@ import { COMPANY_PROFILES } from "@/lib/product-architecture";
 import { createCompany } from "@/lib/companies.functions";
 import { onboardCustomer } from "@/lib/onboarding.functions";
 import { lookupCompanyByCui } from "@/lib/mc-growth.functions";
+import { AnafSummary, type AnafResult } from "@/components/mc/anaf-profile";
 import { WORKSPACES } from "@/lib/mc-pricing";
 import { generatePassword, mailtoUrl, whatsappUrl } from "@/lib/mc-outreach";
 
@@ -75,15 +76,21 @@ function OnboardingWizard() {
   const [months, setMonths] = useState(12);
   const [result, setResult] = useState<Result | null>(null);
 
+  const [anaf, setAnaf] = useState<AnafResult | null>(null);
   const lookup = useServerFn(lookupCompanyByCui);
   const lookupMut = useMutation({
     mutationFn: () => lookup({ data: { cui } }),
     onSuccess: (r) => {
       if (!r.ok) return toast.error(r.error);
+      setAnaf(r);
       setName(r.name);
       setAddress(r.address);
       if (r.phone && !phone) setPhone(r.phone);
-      toast.success("Date completate din registrul ANAF — verifică-le");
+      // Suggest workstation count from employee number (editable).
+      const emp = r.financials?.employees;
+      if (emp != null) setWorkstations(Math.max(1, Math.min(50, Math.ceil(emp / 10))));
+      if (r.inactive || r.deregistered) toast.warning("Atenție: firma apare inactivă sau radiată la ANAF.");
+      else toast.success("Date completate din registrul ANAF — verifică-le");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -118,7 +125,7 @@ function OnboardingWizard() {
           seats,
           expires_at: expires.toISOString(),
           modules: [],
-          notes: [cui && `CUI ${cui}`, address].filter(Boolean).join(" · ") || undefined,
+          notes: [cui && `CUI ${cui}`, anaf?.reg_com && `Reg. Com. ${anaf.reg_com}`, anaf?.caen && `CAEN ${anaf.caen}`, anaf?.financials?.employees != null && `${anaf.financials.employees} angajați`, address].filter(Boolean).join(" · ") || undefined,
           send_email: false,
         },
       } as never);
@@ -173,11 +180,22 @@ function OnboardingWizard() {
               <Label className="text-xs">CUI / CIF</Label>
               <Input className="mt-1" value={cui} onChange={(e) => setCui(e.target.value)} placeholder="RO12345678" />
             </div>
-            <Button variant="outline" disabled={cui.replace(/\D/g, "").length < 2 || lookupMut.isPending} onClick={() => lookupMut.mutate()}>
+            <Button
+              variant="outline"
+              disabled={lookupMut.isPending}
+              onClick={() => {
+                if (cui.replace(/\D/g, "").length < 2) {
+                  toast.info("Introdu mai întâi CUI-ul firmei pentru a prelua datele din ANAF.");
+                  return;
+                }
+                lookupMut.mutate();
+              }}
+            >
               <Wand2 className="mr-1.5 h-4 w-4" />{lookupMut.isPending ? "Caut…" : "Completează automat din ANAF"}
             </Button>
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Completarea manuală e standard. Butonul e opțional și preia doar datele publice ale firmei.</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Scrie întâi CUI-ul, apoi apasă butonul. Completarea manuală rămâne standard; butonul e opțional și preia doar datele publice ale firmei.</p>
+          {anaf && <div className="mt-3"><AnafSummary data={anaf} /></div>}
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div><Label className="text-xs">Denumire firmă</Label><Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} /></div>
             <div>

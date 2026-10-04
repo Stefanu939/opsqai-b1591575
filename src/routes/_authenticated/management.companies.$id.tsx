@@ -18,6 +18,7 @@ import { SharedAccessPanel } from "@/components/mc/shared-access";
 import { InstallHistoryPanel } from "@/components/mc/install-history";
 import { CompanyTopology } from "@/components/mc/company-topology";
 import { CompanyTimeline } from "@/components/mc/company-timeline";
+import { AnafProfileCard } from "@/components/mc/anaf-profile";
 import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -257,6 +258,7 @@ function CompanyDetailPage() {
               )}
             </dl>
           </div>
+          <AnafProfileCard />
         </TabsContent>
 
         <TabsContent value="topology">
