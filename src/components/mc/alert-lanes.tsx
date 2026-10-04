@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
@@ -6,7 +6,7 @@ import { AlertOctagon, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { getMcAlerts, type McAlert } from "@/lib/mc-alerts.functions";
+import { getMcAlerts, reviewLicenseCollision, type McAlert } from "@/lib/mc-alerts.functions";
 
 const LANES = [
   { key: "critical", label: "Needs action now", icon: AlertOctagon, tone: "text-destructive" },
@@ -18,6 +18,18 @@ const LANES = [
 export function AlertLanes() {
   const { session, loading } = useAuth();
   const fetchAlerts = useServerFn(getMcAlerts);
+  const review = useServerFn(reviewLicenseCollision);
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState<string | null>(null);
+  const doReview = async (installId: string, action: "approve" | "dismiss") => {
+    setBusy(installId);
+    try {
+      await review({ data: { install_id: installId, action } });
+      await qc.invalidateQueries({ queryKey: ["mc-alerts"] });
+    } finally {
+      setBusy(null);
+    }
+  };
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const { data, isLoading } = useQuery({
@@ -69,6 +81,28 @@ export function AlertLanes() {
                       {a.company_name}
                     </Link>
                     <span className="ml-1 text-muted-foreground">{a.detail}</span>
+                    {a.kind === "license_collision" && a.install_id ? (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 px-2 text-[11px]"
+                          disabled={busy === a.install_id}
+                          onClick={() => doReview(a.install_id!, "approve")}
+                        >
+                          Aprobă migrarea (ultimul PC devine oficial)
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-[11px]"
+                          disabled={busy === a.install_id}
+                          onClick={() => doReview(a.install_id!, "dismiss")}
+                        >
+                          Marchează verificat
+                        </Button>
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>

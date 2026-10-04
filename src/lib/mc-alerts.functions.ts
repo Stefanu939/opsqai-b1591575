@@ -17,13 +17,15 @@ export type McAlert = {
     | "install_silent"
     | "install_outdated"
     | "products_need_reissue"
-    | "ticket_open";
+    | "ticket_open"
+    | "license_collision";
   severity: "critical" | "warning" | "info";
   company_id: string | null;
   company_name: string;
   detail: string;
   /** In-app destination for the action button. */
   to: string;
+  install_id?: string;
 };
 
 export const getMcAlerts = createServerFn({ method: "POST" })
@@ -41,6 +43,35 @@ export const getMcAlerts = createServerFn({ method: "POST" })
     const { data: companies } = await companiesQ;
     const rows = (companies ?? []).filter((c) => c.active !== false);
     const installIds = rows.map((c) => c.install_id).filter((v): v is string => Boolean(v));
+
+    const since = new Date(Date.now() - 2 * DAY).toISOString();
+    const [{ data: fleet }, { data: beats }] = installIds.length
+      ? await Promise.all([
+          admin
+            .from("selfhost_installations")
+            .select("install_id, approved_fingerprint, collision_reviewed_at")
+            .in("install_id", installIds),
+          admin
+            .from("selfhost_heartbeats")
+            .select("install_id, machine_fingerprint, source_ip_hash, received_at, app_version")
+            .in("install_id", installIds)
+            .gte("received_at", since)
+            .not("machine_fingerprint", "is", null)
+            .order("received_at", { ascending: false })
+            .limit(5000),
+        ])
+      : [{ data: [] }, { data: [] }];
+    const fleetById = new Map((fleet ?? []).map((f) => [f.install_id, f]));
+    const machinesByInstall = new Map<string, Map<string, { last: string; ip: string | null; version: string | null }>>();
+    for (const b of beats ?? []) {
+      const f = fleetById.get(b.install_id);
+      if (f?.collision_reviewed_at && b.received_at < f.collision_reviewed_at) continue;
+      const m = machinesByInstall.get(b.install_id) ?? new Map();
+      if (!m.has(b.machine_fingerprint!)) {
+        m.set(b.machine_fingerprint!, { last: b.received_at, ip: b.source_ip_hash, version: b.app_version });
+      }
+      machinesByInstall.set(b.install_id, m);
+    }
 
     const [{ data: licenses }, { data: installs }, { data: releases }, { data: tickets }] =
       await Promise.all([
@@ -150,6 +181,29 @@ export const getMcAlerts = createServerFn({ method: "POST" })
         }
       }
 
+      if (c.install_id) {
+        const machines = machinesByInstall.get(c.install_id);
+        const approved = fleetById.get(c.install_id)?.approved_fingerprint ?? null;
+        const foreign = machines
+          ? [...machines.keys()].filter((fp) => !approved || fp !== approved)
+          : [];
+        const collision = machines && (machines.size > 1 || (approved && foreign.length > 0));
+        if (collision && machines) {
+          const list = [...machines.entries()]
+            .map(([fp, v]) => `PC ${fp.slice(0, 8)} (ultimul semnal ${new Date(v.last).toLocaleString("ro-RO")}, ${v.version ?? "?"}${v.ip ? `, rețea ${v.ip.slice(0, 6)}` : ""})`)
+            .join("; ");
+          alerts.push({
+            kind: "license_collision",
+            severity: "critical",
+            company_id: c.id,
+            company_name: c.name,
+            install_id: c.install_id,
+            detail: `Aceeași licență raportează de pe ${machines.size} calculatoare diferite în 48h: ${list}. Verificați cu clientul — nicio blocare automată.`,
+            to: "/management/installations",
+          });
+        }
+      }
+
       const install = c.install_id ? installByKey.get(c.install_id) : undefined;
       if (install) {
         const beat = install.last_heartbeat_at as string | null;
@@ -213,4 +267,53 @@ export const getMcAlerts = createServerFn({ method: "POST" })
       },
       alerts: alerts.slice(0, 120),
     };
+  });
+
+/**
+ * Human review of a licence collision (Option A, human-in-the-loop).
+ * "approve" accepts the most recent machine as the official one (legit
+ * migration / restore); "dismiss" only resets the observation window.
+ * Never revokes anything — revocation stays a separate manual action.
+ */
+export const reviewLicenseCollision = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: { install_id: string; action: "approve" | "dismiss" }) => {
+    if (typeof d?.install_id !== "string" || d.install_id.length < 3 || d.install_id.length > 64)
+      throw new Error("install_id invalid");
+    if (d.action !== "approve" && d.action !== "dismiss") throw new Error("action invalid");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const scope = await resolveMcScope(context);
+    const admin = await getCloudSupabaseAdmin("mc-alerts");
+    const { data: company } = await admin
+      .from("companies")
+      .select("id")
+      .eq("install_id", data.install_id)
+      .maybeSingle();
+    if (!company) throw new Error("Not found");
+    if (!scope.isSuperAdmin && !scope.companyIds?.includes(company.id)) throw new Error("Forbidden");
+
+    const now = new Date().toISOString();
+    const patch: Record<string, unknown> = {
+      collision_reviewed_at: now,
+      collision_reviewed_by: (context as { userId?: string }).userId ?? null,
+    };
+    if (data.action === "approve") {
+      const { data: last } = await admin
+        .from("selfhost_heartbeats")
+        .select("machine_fingerprint")
+        .eq("install_id", data.install_id)
+        .not("machine_fingerprint", "is", null)
+        .order("received_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      patch.approved_fingerprint = last?.machine_fingerprint ?? null;
+    }
+    const { error } = await admin
+      .from("selfhost_installations")
+      .update(patch)
+      .eq("install_id", data.install_id);
+    if (error) throw new Error("Update failed");
+    return { ok: true };
   });
