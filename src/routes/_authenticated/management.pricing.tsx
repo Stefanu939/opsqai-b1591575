@@ -195,7 +195,7 @@ function PricingPage() {
     >
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-4">
-          <Panel title="Client">
+          <Panel title="Client" className="overflow-visible">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="relative">
                 <Label className="text-xs">Firmă</Label>
@@ -208,7 +208,7 @@ function PricingPage() {
                   onChange={(e) => { setCustomer(e.target.value); setPickOpen(true); }}
                 />
                 {pickOpen && matches.length > 0 && (
-                  <div className="absolute z-30 mt-1 max-h-72 w-[min(22rem,90vw)] overflow-auto rounded-lg border border-border bg-popover p-1 shadow-lg">
+                  <div className="absolute z-50 mt-1 max-h-72 w-[min(22rem,90vw)] overflow-auto rounded-lg border border-border bg-popover p-1 shadow-lg">
                     {matches.map((o) => (
                       <button
                         key={o.kind + o.id}
