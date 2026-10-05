@@ -205,7 +205,7 @@ export function AccountMenu({
             </span>
             <span className="hidden min-w-0 flex-col leading-tight sm:flex">
               <span className="truncate text-xs font-semibold text-foreground">
-                {user?.email?.split("@")[0] ?? "Account"}
+                {displayName}
               </span>
               <span className="truncate text-[10px] text-muted-foreground">{roleLabel}</span>
             </span>
@@ -214,9 +214,7 @@ export function AccountMenu({
 
         <DropdownMenuContent align="end" className="w-72">
           <DropdownMenuLabel className="space-y-1">
-            <div className="truncate text-sm font-semibold">
-              {user?.email?.split("@")[0] ?? "Account"}
-            </div>
+            <div className="truncate text-sm font-semibold">{displayName}</div>
             <div className="truncate text-xs font-normal text-muted-foreground">
               {user?.email}
             </div>
