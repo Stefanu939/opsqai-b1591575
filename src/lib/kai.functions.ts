@@ -120,7 +120,7 @@ export const askKai = createServerFn({ method: "POST" })
           const { webSearch } = await import("@/lib/web-search.server");
           const results = await webSearch(queries);
           webBlock =
-            "\nREZULTATE CĂUTARE WEB (tocmai efectuată; folosește doar ce apare aici):\n" +
+            "\nREZULTATE CĂUTARE WEB [Web] (tocmai efectuată; folosește doar ce apare aici):\n" +
             results.map((r) => `- ${r.title} | ${r.url} | ${r.snippet.slice(0, 1500)}`).join("\n");
           for (const r of results) {
             for (const m of `${r.title} ${r.snippet}`.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{6,10})\b/gi)) {
@@ -144,7 +144,7 @@ export const askKai = createServerFn({ method: "POST" })
       const { anafLookup } = await import("@/lib/anaf.server");
       const results = await Promise.all(cuis.map((c) => anafLookup(c)));
       anafBlock =
-        "\nDATE ANAF (publice, tocmai interogate):\n" +
+        "\nDATE ANAF [ANAF] (publice, tocmai interogate):\n" +
         results
           .map((r, i) =>
             r.ok
@@ -179,7 +179,7 @@ Acțiuni permise (maxim 5, doar când sunt utile):
 {"type":"call","label":"...","phone":"..."}
 {"type":"add_lead","label":"Adaugă în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
 
-DATE MANAGEMENT CENTER:
+DATE MANAGEMENT CENTER [DB]:
 ${snapshot}${webBlock}${anafBlock}`;
 
     let raw = "";
