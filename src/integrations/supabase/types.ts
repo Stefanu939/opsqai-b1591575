@@ -2531,6 +2531,57 @@ export type Database = {
           },
         ]
       }
+      kai_action_log: {
+        Row: {
+          action_type: string
+          approved_at: string
+          approved_by: string | null
+          approved_by_email: string | null
+          conversation_id: string | null
+          detail: Json
+          error: string | null
+          executed_at: string | null
+          id: string
+          label: string
+          requested_at: string
+          requested_by: string
+          status: string
+          target: string | null
+        }
+        Insert: {
+          action_type: string
+          approved_at?: string
+          approved_by?: string | null
+          approved_by_email?: string | null
+          conversation_id?: string | null
+          detail?: Json
+          error?: string | null
+          executed_at?: string | null
+          id?: string
+          label: string
+          requested_at: string
+          requested_by?: string
+          status: string
+          target?: string | null
+        }
+        Update: {
+          action_type?: string
+          approved_at?: string
+          approved_by?: string | null
+          approved_by_email?: string | null
+          conversation_id?: string | null
+          detail?: Json
+          error?: string | null
+          executed_at?: string | null
+          id?: string
+          label?: string
+          requested_at?: string
+          requested_by?: string
+          status?: string
+          target?: string | null
+        }
+        Relationships: []
+      }
       knowledge_document_images: {
         Row: {
           approved: boolean
