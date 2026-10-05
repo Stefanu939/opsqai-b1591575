@@ -27,6 +27,8 @@ import {
   X,
   ShieldCheck,
   Calculator,
+  FileText,
+  ClipboardCheck,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -36,6 +38,8 @@ import { useAuth } from "@/lib/auth-context";
 import { askKai, logKaiAction, listKaiActions, type KaiAction } from "@/lib/kai.functions";
 import { saveCrmLead } from "@/lib/crm.functions";
 import { listCompanies } from "@/lib/companies.functions";
+import { applyCallDebrief } from "@/lib/sales-tools.functions";
+import { useSalesDoc } from "@/components/mc/sales-docs";
 import { mailtoUrl, telUrl, whatsappUrl } from "@/lib/mc-outreach";
 import { cn } from "@/lib/utils";
 
@@ -273,7 +277,41 @@ export function KaiAssistant() {
     } else if (a.type === "whatsapp") window.open(whatsappUrl(a.phone, a.text), "_blank");
     else if (a.type === "email") window.open(mailtoUrl(a.email, a.subject, a.body), "_blank");
     else if (a.type === "call") window.location.href = telUrl(a.phone);
-    else if (a.type === "add_lead") {
+    else if (a.type === "doc") {
+      try {
+        const emp = Number(a.employees);
+        await makeDoc(a.kind, {
+          company_name: a.company_name,
+          cui: a.cui?.replace(/\D/g, "") || null,
+          contact_name: a.contact_name || null,
+          industry: a.industry || null,
+          employees: Number.isFinite(emp) && emp > 0 ? Math.round(emp) : null,
+        });
+        toast.success("PDF descărcat");
+      } catch (e) {
+        toast.error("Nu am putut genera PDF-ul.");
+        throw e;
+      }
+    } else if (a.type === "debrief") {
+      try {
+        const stages = ["new", "qualified", "demo", "pilot", "offer", "won", "lost"] as const;
+        const stage = stages.find((s) => s === a.stage) ?? null;
+        const r = await saveDebrief({
+          data: {
+            company_name: a.company_name,
+            lead_id: a.lead_id && /^[0-9a-f-]{36}$/i.test(a.lead_id) ? a.lead_id : null,
+            summary: a.summary,
+            stage,
+            next_action_at: a.next_action_at || null,
+            contact_name: a.contact_name || null,
+          },
+        });
+        toast.success(r.created ? `${a.company_name}: lead nou + debrief salvat.` : `Debrief salvat pentru ${a.company_name}.`);
+      } catch (e) {
+        toast.error("Nu am putut salva debrief-ul.");
+        throw e;
+      }
+    } else if (a.type === "add_lead") {
       try {
         await addLead({
           data: {
@@ -340,7 +378,11 @@ export function KaiAssistant() {
               ? Rocket
               : a.type === "pricing"
                 ? Calculator
-              : ExternalLink;
+                : a.type === "doc"
+                  ? FileText
+                  : a.type === "debrief"
+                    ? ClipboardCheck
+                    : ExternalLink;
 
   const lastAssistant = messages.length > 0 && messages[messages.length - 1].role === "assistant";
 
