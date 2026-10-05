@@ -44,7 +44,7 @@ export function KaiOrb({ className }: { className?: string }) {
     <span
       aria-hidden
       className={cn(
-        "relative grid place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.45)]",
+        "relative grid place-items-center rounded-full bg-gradient-to-br from-primary to-primary/55 text-primary-foreground shadow-lg shadow-primary/40",
         className,
       )}
     >
@@ -215,7 +215,7 @@ export function KaiAssistant() {
                   )}
                 >
                   {m.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0.5">
+                    <div className="space-y-1.5 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4">
                       <ReactMarkdown>{m.content}</ReactMarkdown>
                     </div>
                   ) : (
