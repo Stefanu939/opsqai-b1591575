@@ -22,3 +22,4 @@
 - [x] Calculator preț & ofertă PDF (12.000 € / 500 € / 400 €)
 - [x] Topologie flotă, cronologie client, comenzi Cmd+K
 - [x] CRM lead câștigat → buton „Client” deschide wizard-ul completat
+- [x] Kai — Management Center AI assistant (side panel, ⌘K, ANAF CUI analysis, one-click WhatsApp/email/call/CRM actions; human-triggered)
