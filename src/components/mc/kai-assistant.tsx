@@ -25,19 +25,20 @@ import {
   Rocket,
   Check,
   X,
+  ShieldCheck,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
-import { askKai, type KaiAction } from "@/lib/kai.functions";
+import { askKai, logKaiAction, listKaiActions, type KaiAction } from "@/lib/kai.functions";
 import { saveCrmLead } from "@/lib/crm.functions";
 import { listCompanies } from "@/lib/companies.functions";
 import { mailtoUrl, telUrl, whatsappUrl } from "@/lib/mc-outreach";
 import { cn } from "@/lib/utils";
 
-type Msg = { role: "user" | "assistant"; content: string; actions?: KaiAction[]; stopped?: boolean };
+type Msg = { role: "user" | "assistant"; content: string; actions?: KaiAction[]; stopped?: boolean; at?: number };
 type Conv = { id: string; title: string; pinned: boolean; updatedAt: number; messages: Msg[] };
 
 const STORE = "opsqai-kai-conversations-v1";
@@ -84,6 +85,7 @@ export function KaiAssistant() {
   const [convs, setConvs] = useState<Conv[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showAudit, setShowAudit] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState("");
   const [pendingFor, setPendingFor] = useState<string | null>(null);
@@ -95,6 +97,8 @@ export function KaiAssistant() {
   const ask = useServerFn(askKai);
   const addLead = useServerFn(saveCrmLead);
   const fetchCompanies = useServerFn(listCompanies);
+  const logAction = useServerFn(logKaiAction);
+  const fetchAudit = useServerFn(listKaiActions);
   const endRef = useRef<HTMLDivElement>(null);
   const loaded = useRef(false);
 
@@ -150,6 +154,13 @@ export function KaiAssistant() {
     return (companies.data ?? []).filter((c) => c.name.toLowerCase().includes(q)).slice(0, 4);
   }, [input, companies.data]);
 
+  const audit = useQuery({
+    queryKey: ["kai-audit"],
+    queryFn: () => fetchAudit(),
+    enabled: open && showAudit,
+    staleTime: 5_000,
+  });
+
   const sorted = useMemo(
     () => [...convs].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt),
     [convs],
@@ -169,7 +180,7 @@ export function KaiAssistant() {
           senderName: name || undefined,
         },
       });
-      reply = { role: "assistant", content: r.reply, actions: r.actions };
+      reply = { role: "assistant", content: r.reply, actions: r.actions, at: Date.now() };
     } catch {
       reply = { role: "assistant", content: "Nu am putut răspunde acum. Mai încearcă o dată." };
     }
@@ -218,6 +229,7 @@ export function KaiAssistant() {
     if (pendingFor) stop();
     setActiveId(null);
     setShowHistory(false);
+    setShowAudit(false);
     setInput("");
   };
 
@@ -226,7 +238,7 @@ export function KaiAssistant() {
     if (activeId === id) setActiveId(null);
   };
 
-  const runAction = async (a: KaiAction) => {
+  const execAction = async (a: KaiAction) => {
     if (a.type === "open") {
       setOpen(false);
       if (a.to === "/management/companies/$id" && a.id) navigate({ to: "/management/companies/$id", params: { id: a.id } });
@@ -263,10 +275,41 @@ export function KaiAssistant() {
           },
         });
         toast.success(`${a.company_name} a fost adăugată în CRM.`);
-      } catch {
+      } catch (e) {
         toast.error(`Nu am putut adăuga ${a.company_name} în CRM.`);
+        throw e;
       }
     }
+  };
+
+  const targetOf = (a: KaiAction) =>
+    a.type === "open" ? (a.id ? `${a.to}:${a.id}` : a.to)
+      : a.type === "whatsapp" || a.type === "call" ? a.phone ?? null
+        : a.type === "email" ? a.email ?? null
+          : a.company_name;
+
+  const runAction = async (a: KaiAction, requestedAt?: number) => {
+    let status: "executed" | "failed" = "executed";
+    let error: string | null = null;
+    try {
+      await execAction(a);
+    } catch (e) {
+      status = "failed";
+      error = e instanceof Error ? e.message.slice(0, 500) : "error";
+    }
+    const { label, type, ...rest } = a;
+    void logAction({
+      data: {
+        requested_at: new Date(requestedAt ?? Date.now()).toISOString(),
+        action_type: type,
+        label,
+        target: targetOf(a),
+        detail: rest as Record<string, unknown>,
+        status,
+        error,
+        conversation_id: activeId,
+      },
+    }).catch(() => {});
   };
 
   const iconFor = (a: KaiAction) =>
@@ -320,11 +363,26 @@ export function KaiAssistant() {
                 size="icon"
                 aria-label="Istoric conversații"
                 title="Istoric conversații"
-                onClick={() => setShowHistory((v) => !v)}
+                onClick={() => {
+                  setShowHistory((v) => !v);
+                  setShowAudit(false);
+                }}
               >
                 <History className="h-4 w-4" />
               </Button>
-              {active && !showHistory && (
+              <Button
+                variant={showAudit ? "secondary" : "ghost"}
+                size="icon"
+                aria-label="Jurnal acțiuni"
+                title="Jurnal acțiuni (audit)"
+                onClick={() => {
+                  setShowAudit((v) => !v);
+                  setShowHistory(false);
+                }}
+              >
+                <ShieldCheck className="h-4 w-4" />
+              </Button>
+              {active && !showHistory && !showAudit && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -341,7 +399,44 @@ export function KaiAssistant() {
             </div>
           </SheetHeader>
 
-          {showHistory ? (
+          {showAudit ? (
+            <div className="flex-1 space-y-2 overflow-y-auto p-3">
+              <p className="px-1 text-xs text-muted-foreground">
+                Fiecare acțiune propusă de Kai și apăsată de un om. Jurnalul nu poate fi editat.
+              </p>
+              {audit.isLoading && <div className="h-20 animate-pulse rounded-lg bg-secondary/50" />}
+              {audit.data?.length === 0 && (
+                <p className="p-4 text-center text-sm text-muted-foreground">Nicio acțiune înregistrată încă.</p>
+              )}
+              {audit.data?.map((r) => {
+                const t = (v: string | null) => (v ? new Date(v).toLocaleString("ro-RO") : "—");
+                return (
+                  <div key={r.id} className="rounded-lg border border-border bg-card p-3 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-sm font-medium">{r.label}</span>
+                      <span
+                        className={cn(
+                          "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                          r.status === "executed" ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive",
+                        )}
+                      >
+                        {r.status === "executed" ? "Executat" : "Eșuat"}
+                      </span>
+                    </div>
+                    {r.target && <div className="mt-0.5 truncate text-muted-foreground">{r.action_type} · {r.target}</div>}
+                    <ol className="mt-2 space-y-0.5 border-l border-border pl-3">
+                      <li><span className="font-medium">Cerut de {r.requested_by}</span> · {t(r.requested_at)}</li>
+                      <li><span className="font-medium">Aprobat de {r.approved_by_email ?? "—"}</span> · {t(r.approved_at)}</li>
+                      <li>
+                        <span className="font-medium">{r.status === "executed" ? "Executat" : "Eșuat"}</span> · {t(r.executed_at ?? r.approved_at)}
+                        {r.error && <span className="text-destructive"> — {r.error}</span>}
+                      </li>
+                    </ol>
+                  </div>
+                );
+              })}
+            </div>
+          ) : showHistory ? (
             <div className="flex-1 space-y-1 overflow-y-auto p-3">
               {sorted.length === 0 && (
                 <p className="p-4 text-center text-sm text-muted-foreground">Nicio conversație salvată încă.</p>
@@ -377,6 +472,7 @@ export function KaiAssistant() {
                       onClick={() => {
                         setActiveId(c.id);
                         setShowHistory(false);
+                        setShowAudit(false);
                       }}
                     >
                       <div className="truncate text-sm font-medium">{c.title}</div>
@@ -471,7 +567,7 @@ export function KaiAssistant() {
                               size="sm"
                               variant={a.type === "onboard" ? "default" : "secondary"}
                               className="h-8 gap-1.5"
-                              onClick={() => void runAction(a)}
+                              onClick={() => void runAction(a, m.at)}
                             >
                               <Icon className="h-3.5 w-3.5" />
                               {a.label}
@@ -521,7 +617,7 @@ export function KaiAssistant() {
             </div>
           )}
 
-          {quickMatches.length > 0 && !showHistory && (
+          {quickMatches.length > 0 && !showHistory && !showAudit && (
             <div className="flex flex-wrap gap-1.5 border-t border-border px-4 pt-3">
               {quickMatches.map((c) => (
                 <Button
