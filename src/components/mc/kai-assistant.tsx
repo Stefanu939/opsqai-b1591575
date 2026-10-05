@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
@@ -12,11 +12,23 @@ import {
   ExternalLink,
   UserPlus,
   Sparkles,
-  RotateCcw,
   Users,
+  Square,
+  Plus,
+  Pin,
+  PinOff,
+  Pencil,
+  Trash2,
+  History,
+  Copy,
+  RefreshCw,
+  Rocket,
+  Check,
+  X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { askKai, type KaiAction } from "@/lib/kai.functions";
@@ -25,18 +37,31 @@ import { listCompanies } from "@/lib/companies.functions";
 import { mailtoUrl, telUrl, whatsappUrl } from "@/lib/mc-outreach";
 import { cn } from "@/lib/utils";
 
-type Msg = { role: "user" | "assistant"; content: string; actions?: KaiAction[] };
+type Msg = { role: "user" | "assistant"; content: string; actions?: KaiAction[]; stopped?: boolean };
+type Conv = { id: string; title: string; pinned: boolean; updatedAt: number; messages: Msg[] };
+
+const STORE = "opsqai-kai-conversations-v1";
 
 const SUGGESTIONS = [
   "Ce licențe expiră în următoarele 30 de zile?",
   "Ce servere nu au mai dat semnal de peste 48 de ore?",
   "Pe cine din CRM ar trebui să sun azi?",
-  "Analizează CUI 14399840 și scrie-mi un mesaj de abordare",
+  "Caută-mi 5 firme de transport din Cluj cu peste 20 de angajați",
 ];
 
 function firstName(email?: string | null) {
   const local = (email ?? "").split("@")[0].split(/[._-]/)[0];
   return local ? local[0].toUpperCase() + local.slice(1) : "";
+}
+
+const newId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+function relTime(t: number) {
+  const d = Math.round((Date.now() - t) / 60000);
+  if (d < 1) return "acum";
+  if (d < 60) return `${d} min`;
+  if (d < 1440) return `${Math.round(d / 60)} h`;
+  return `${Math.round(d / 1440)} z`;
 }
 
 export function KaiOrb({ className }: { className?: string }) {
@@ -56,7 +81,13 @@ export function KaiOrb({ className }: { className?: string }) {
 export function KaiAssistant() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [convs, setConvs] = useState<Conv[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [renameVal, setRenameVal] = useState("");
+  const [pendingFor, setPendingFor] = useState<string | null>(null);
+  const reqRef = useRef(0);
   const navigate = useNavigate();
   const page = useRouterState({ select: (s) => s.location.pathname });
   const { user, session, loading } = useAuth();
@@ -65,6 +96,26 @@ export function KaiAssistant() {
   const addLead = useServerFn(saveCrmLead);
   const fetchCompanies = useServerFn(listCompanies);
   const endRef = useRef<HTMLDivElement>(null);
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE);
+      if (raw) setConvs(JSON.parse(raw) as Conv[]);
+    } catch {
+      /* ignore */
+    }
+    loaded.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!loaded.current) return;
+    try {
+      localStorage.setItem(STORE, JSON.stringify(convs.slice(0, 50)));
+    } catch {
+      /* ignore */
+    }
+  }, [convs]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -77,9 +128,13 @@ export function KaiAssistant() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const active = convs.find((c) => c.id === activeId) ?? null;
+  const messages = active?.messages ?? [];
+  const pending = pendingFor !== null && pendingFor === activeId;
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, open]);
+  }, [messages.length, open, pending]);
 
   const companies = useQuery({
     queryKey: ["kai-companies"],
@@ -95,27 +150,80 @@ export function KaiAssistant() {
     return (companies.data ?? []).filter((c) => c.name.toLowerCase().includes(q)).slice(0, 4);
   }, [input, companies.data]);
 
-  const mut = useMutation({
-    mutationFn: (history: Msg[]) =>
-      ask({
+  const sorted = useMemo(
+    () => [...convs].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt),
+    [convs],
+  );
+
+  const patch = (id: string, fn: (c: Conv) => Conv) => setConvs((all) => all.map((c) => (c.id === id ? fn(c) : c)));
+
+  const run = async (convId: string, history: Msg[]) => {
+    const req = ++reqRef.current;
+    setPendingFor(convId);
+    let reply: Msg;
+    try {
+      const r = await ask({
         data: {
           messages: history.slice(-20).map((m) => ({ role: m.role, content: m.content })),
           page,
           senderName: name || undefined,
         },
-      }),
-    onSuccess: (r) => setMessages((m) => [...m, { role: "assistant", content: r.reply, actions: r.actions }]),
-    onError: () =>
-      setMessages((m) => [...m, { role: "assistant", content: "Nu am putut răspunde acum. Mai încearcă o dată." }]),
-  });
+      });
+      reply = { role: "assistant", content: r.reply, actions: r.actions };
+    } catch {
+      reply = { role: "assistant", content: "Nu am putut răspunde acum. Mai încearcă o dată." };
+    }
+    if (req !== reqRef.current) return; // stopped or superseded
+    setPendingFor(null);
+    patch(convId, (c) => ({ ...c, messages: [...c.messages, reply], updatedAt: Date.now() }));
+  };
 
   const send = (text: string) => {
     const t = text.trim();
-    if (!t || mut.isPending) return;
-    const next = [...messages, { role: "user" as const, content: t }];
-    setMessages(next);
+    if (!t || pendingFor) return;
+    const userMsg: Msg = { role: "user", content: t };
+    let id = activeId;
+    let history: Msg[];
+    if (!active) {
+      id = newId();
+      history = [userMsg];
+      setConvs((all) => [{ id: id!, title: t.slice(0, 48), pinned: false, updatedAt: Date.now(), messages: history }, ...all]);
+      setActiveId(id);
+    } else {
+      history = [...active.messages, userMsg];
+      patch(active.id, (c) => ({ ...c, messages: history, updatedAt: Date.now() }));
+    }
     setInput("");
-    mut.mutate(next);
+    setShowHistory(false);
+    void run(id!, history);
+  };
+
+  const stop = () => {
+    reqRef.current++;
+    const id = pendingFor;
+    setPendingFor(null);
+    if (id) patch(id, (c) => ({ ...c, messages: [...c.messages, { role: "assistant", content: "_Oprit._", stopped: true }] }));
+  };
+
+  const regenerate = () => {
+    if (!active || pendingFor) return;
+    const msgs = [...active.messages];
+    while (msgs.length && msgs[msgs.length - 1].role === "assistant") msgs.pop();
+    if (!msgs.length) return;
+    patch(active.id, (c) => ({ ...c, messages: msgs }));
+    void run(active.id, msgs);
+  };
+
+  const newChat = () => {
+    if (pendingFor) stop();
+    setActiveId(null);
+    setShowHistory(false);
+    setInput("");
+  };
+
+  const remove = (id: string) => {
+    setConvs((all) => all.filter((c) => c.id !== id));
+    if (activeId === id) setActiveId(null);
   };
 
   const runAction = async (a: KaiAction) => {
@@ -123,6 +231,18 @@ export function KaiAssistant() {
       setOpen(false);
       if (a.to === "/management/companies/$id" && a.id) navigate({ to: "/management/companies/$id", params: { id: a.id } });
       else navigate({ to: a.to as never });
+    } else if (a.type === "onboard") {
+      setOpen(false);
+      navigate({
+        to: "/management/onboarding",
+        search: {
+          company: a.company_name,
+          cui: a.cui?.replace(/\D/g, "") || undefined,
+          contact: a.contact_name || undefined,
+          email: a.email && /@/.test(a.email) ? a.email : undefined,
+          phone: a.phone || undefined,
+        },
+      });
     } else if (a.type === "whatsapp") window.open(whatsappUrl(a.phone, a.text), "_blank");
     else if (a.type === "email") window.open(mailtoUrl(a.email, a.subject, a.body), "_blank");
     else if (a.type === "call") window.location.href = telUrl(a.phone);
@@ -144,13 +264,25 @@ export function KaiAssistant() {
         });
         toast.success(`${a.company_name} a fost adăugată în CRM.`);
       } catch {
-        toast.error("Nu am putut adăuga prospectul în CRM.");
+        toast.error(`Nu am putut adăuga ${a.company_name} în CRM.`);
       }
     }
   };
 
   const iconFor = (a: KaiAction) =>
-    a.type === "whatsapp" ? MessageCircle : a.type === "email" ? Mail : a.type === "call" ? Phone : a.type === "add_lead" ? UserPlus : ExternalLink;
+    a.type === "whatsapp"
+      ? MessageCircle
+      : a.type === "email"
+        ? Mail
+        : a.type === "call"
+          ? Phone
+          : a.type === "add_lead"
+            ? UserPlus
+            : a.type === "onboard"
+              ? Rocket
+              : ExternalLink;
+
+  const lastAssistant = messages.length > 0 && messages[messages.length - 1].role === "assistant";
 
   return (
     <>
@@ -168,86 +300,228 @@ export function KaiAssistant() {
       </button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
-          <SheetHeader className="border-b border-border p-4 text-left">
-            <div className="flex items-center gap-3">
-              <KaiOrb className="h-10 w-10" />
+        <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg [&>button]:hidden">
+          <SheetHeader className="border-b border-border p-3 text-left">
+            <div className="flex items-center gap-2">
+              <KaiOrb className={cn("h-9 w-9 shrink-0", pending && "animate-pulse")} />
               <div className="min-w-0 flex-1">
-                <SheetTitle className="font-display">Kai</SheetTitle>
-                <SheetDescription className="text-xs">Colegul tău din Management Center</SheetDescription>
+                <SheetTitle className="truncate font-display text-base">
+                  {active && !showHistory ? active.title : "Kai"}
+                </SheetTitle>
+                <SheetDescription className="text-xs">
+                  {pending ? "Kai lucrează…" : "Colegul tău din Management Center"}
+                </SheetDescription>
               </div>
-              {messages.length > 0 && (
-                <Button variant="ghost" size="icon" aria-label="Conversație nouă" onClick={() => setMessages([])}>
-                  <RotateCcw className="h-4 w-4" />
+              <Button variant="ghost" size="icon" aria-label="Conversație nouă" title="Conversație nouă" onClick={newChat}>
+                <Plus className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={showHistory ? "secondary" : "ghost"}
+                size="icon"
+                aria-label="Istoric conversații"
+                title="Istoric conversații"
+                onClick={() => setShowHistory((v) => !v)}
+              >
+                <History className="h-4 w-4" />
+              </Button>
+              {active && !showHistory && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={active.pinned ? "Anulează fixarea" : "Fixează"}
+                  title={active.pinned ? "Anulează fixarea" : "Fixează"}
+                  onClick={() => patch(active.id, (c) => ({ ...c, pinned: !c.pinned }))}
+                >
+                  {active.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
                 </Button>
               )}
+              <Button variant="ghost" size="icon" aria-label="Închide" onClick={() => setOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </SheetHeader>
 
-          <div className="flex-1 space-y-4 overflow-y-auto p-4">
-            {messages.length === 0 && (
-              <div className="space-y-4">
-                <div className="rounded-lg border border-border bg-secondary/50 p-3 text-sm">
-                  Salut{name ? `, ${name}` : ""}! Sunt Kai. Văd clienții, licențele, serverele și CRM-ul. Pot verifica
-                  firme după CUI în ANAF și îți pregătesc mesaje. Trimiterea rămâne mereu la tine.
-                </div>
-                <div className="grid gap-2">
-                  {SUGGESTIONS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => send(s)}
-                      className="rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:border-primary/40 hover:bg-primary/5"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {messages.map((m, i) => (
-              <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
+          {showHistory ? (
+            <div className="flex-1 space-y-1 overflow-y-auto p-3">
+              {sorted.length === 0 && (
+                <p className="p-4 text-center text-sm text-muted-foreground">Nicio conversație salvată încă.</p>
+              )}
+              {sorted.map((c) => (
                 <div
+                  key={c.id}
                   className={cn(
-                    "max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm",
-                    m.role === "user" ? "bg-primary text-primary-foreground" : "border border-border bg-card",
+                    "group flex items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 transition-colors hover:border-border hover:bg-secondary/50",
+                    c.id === activeId && "border-primary/30 bg-primary/5",
                   )}
                 >
-                  {m.role === "assistant" ? (
-                    <div className="space-y-1.5 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4">
-                      <ReactMarkdown>{m.content}</ReactMarkdown>
-                    </div>
+                  {c.pinned ? <Pin className="h-3.5 w-3.5 shrink-0 text-primary" /> : <MessageCircle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+                  {renaming === c.id ? (
+                    <form
+                      className="flex flex-1 items-center gap-1"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const v = renameVal.trim();
+                        if (v) patch(c.id, (x) => ({ ...x, title: v.slice(0, 80) }));
+                        setRenaming(null);
+                      }}
+                    >
+                      <Input autoFocus value={renameVal} onChange={(e) => setRenameVal(e.target.value)} className="h-7 text-sm" />
+                      <Button type="submit" size="icon" variant="ghost" className="h-7 w-7" aria-label="Salvează">
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                    </form>
                   ) : (
-                    <span className="whitespace-pre-wrap">{m.content}</span>
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 text-left"
+                      onClick={() => {
+                        setActiveId(c.id);
+                        setShowHistory(false);
+                      }}
+                    >
+                      <div className="truncate text-sm font-medium">{c.title}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {c.messages.length} mesaje · {relTime(c.updatedAt)}
+                      </div>
+                    </button>
                   )}
-                  {m.actions && m.actions.length > 0 && (
-                    <div className="mt-2.5 flex flex-wrap gap-1.5">
-                      {m.actions.map((a, j) => {
-                        const Icon = iconFor(a);
-                        return (
-                          <Button key={j} size="sm" variant="secondary" className="h-8 gap-1.5" onClick={() => void runAction(a)}>
-                            <Icon className="h-3.5 w-3.5" />
-                            {a.label}
-                          </Button>
-                        );
-                      })}
+                  {renaming !== c.id && (
+                    <div className="flex shrink-0 items-center opacity-70 group-hover:opacity-100">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        aria-label={c.pinned ? "Anulează fixarea" : "Fixează"}
+                        onClick={() => patch(c.id, (x) => ({ ...x, pinned: !x.pinned }))}
+                      >
+                        {c.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        aria-label="Redenumește"
+                        onClick={() => {
+                          setRenaming(c.id);
+                          setRenameVal(c.title);
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-destructive"
+                        aria-label="Șterge"
+                        onClick={() => remove(c.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   )}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          ) : (
+            <div className="flex-1 space-y-4 overflow-y-auto p-4">
+              {messages.length === 0 && (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-border bg-secondary/50 p-3 text-sm">
+                    Salut{name ? `, ${name}` : ""}! Sunt Kai. Văd clienții, licențele, serverele și CRM-ul, verific firme în
+                    ANAF și caut firme noi pe internet. Eu pregătesc, tu decizi și trimiți.
+                  </div>
+                  <div className="grid gap-2">
+                    {SUGGESTIONS.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => send(s)}
+                        className="rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:border-primary/40 hover:bg-primary/5"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            {mut.isPending && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <KaiOrb className="h-6 w-6 animate-pulse" />
-                Kai se gândește…
-              </div>
-            )}
-            <div ref={endRef} />
-          </div>
+              {messages.map((m, i) => (
+                <div key={i} className={cn("group flex flex-col", m.role === "user" ? "items-end" : "items-start")}>
+                  <div
+                    className={cn(
+                      "max-w-[90%] rounded-2xl px-3.5 py-2.5 text-sm",
+                      m.role === "user" ? "bg-primary text-primary-foreground" : "border border-border bg-card",
+                      m.stopped && "text-muted-foreground",
+                    )}
+                  >
+                    {m.role === "assistant" ? (
+                      <div className="space-y-1.5 [&_a]:text-primary [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4">
+                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <span className="whitespace-pre-wrap">{m.content}</span>
+                    )}
+                    {m.actions && m.actions.length > 0 && (
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {m.actions.map((a, j) => {
+                          const Icon = iconFor(a);
+                          return (
+                            <Button
+                              key={j}
+                              size="sm"
+                              variant={a.type === "onboard" ? "default" : "secondary"}
+                              className="h-8 gap-1.5"
+                              onClick={() => void runAction(a)}
+                            >
+                              <Icon className="h-3.5 w-3.5" />
+                              {a.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  {m.role === "assistant" && !m.stopped && (
+                    <div className="mt-1 flex gap-0.5 opacity-60 transition-opacity group-hover:opacity-100">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        aria-label="Copiază"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(m.content);
+                          toast.success("Copiat");
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                      {i === messages.length - 1 && (
+                        <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Regenerează" onClick={regenerate}>
+                          <RefreshCw className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
 
-          {quickMatches.length > 0 && (
+              {pending && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <KaiOrb className="h-6 w-6 animate-pulse" />
+                  <span>Kai se gândește</span>
+                  <span className="flex gap-0.5">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
+                  </span>
+                </div>
+              )}
+              {lastAssistant && !pending && null}
+              <div ref={endRef} />
+            </div>
+          )}
+
+          {quickMatches.length > 0 && !showHistory && (
             <div className="flex flex-wrap gap-1.5 border-t border-border px-4 pt-3">
               {quickMatches.map((c) => (
                 <Button
@@ -268,28 +542,39 @@ export function KaiAssistant() {
           )}
 
           <form
-            className="flex items-end gap-2 p-4"
+            className="border-t border-border p-3"
             onSubmit={(e) => {
               e.preventDefault();
               send(input);
             }}
           >
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send(input);
-                }
-              }}
-              rows={1}
-              placeholder="Scrie-i lui Kai…"
-              className="max-h-32 min-h-10 resize-none"
-            />
-            <Button type="submit" size="icon" aria-label="Trimite" disabled={!input.trim() || mut.isPending}>
-              <ArrowUp className="h-4 w-4" />
-            </Button>
+            <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-1.5 focus-within:border-primary/50">
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send(input);
+                  }
+                }}
+                rows={1}
+                placeholder="Scrie-i lui Kai…"
+                className="max-h-32 min-h-9 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+              />
+              {pending ? (
+                <Button type="button" size="icon" variant="destructive" aria-label="Oprește" title="Oprește" onClick={stop} className="rounded-full">
+                  <Square className="h-3.5 w-3.5 fill-current" />
+                </Button>
+              ) : (
+                <Button type="submit" size="icon" aria-label="Trimite" title="Trimite" disabled={!input.trim() || Boolean(pendingFor)} className="rounded-full">
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <p className="mt-1.5 px-1 text-[10px] text-muted-foreground">
+              Kai nu trimite și nu modifică nimic singur. Sursele: [DB] · [ANAF] · [Web] · [Estimare]
+            </p>
           </form>
         </SheetContent>
       </Sheet>

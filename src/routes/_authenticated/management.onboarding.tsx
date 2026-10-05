@@ -32,7 +32,8 @@ export const Route = createFileRoute("/_authenticated/management/onboarding")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>): { company?: string; contact?: string; email?: string; phone?: string } => ({
+  validateSearch: (s: Record<string, unknown>): { company?: string; contact?: string; email?: string; phone?: string; cui?: string } => ({
+    cui: typeof s.cui === "string" ? s.cui : typeof s.cui === "number" ? String(s.cui) : undefined,
     company: typeof s.company === "string" ? s.company : undefined,
     contact: typeof s.contact === "string" ? s.contact : undefined,
     email: typeof s.email === "string" ? s.email : undefined,
@@ -60,7 +61,7 @@ function OnboardingWizard() {
   const [preFirst, ...preRest] = (pre.contact ?? "").trim().split(/\s+/);
   const [step, setStep] = useState(1);
   // step 1
-  const [cui, setCui] = useState("");
+  const [cui, setCui] = useState(pre.cui ?? "");
   const [name, setName] = useState(pre.company ?? "");
   const [address, setAddress] = useState("");
   const [regCom, setRegCom] = useState("");

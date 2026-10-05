@@ -15,6 +15,7 @@ export type KaiAction =
   | { type: "whatsapp"; label: string; phone?: string; text: string }
   | { type: "email"; label: string; email?: string; subject: string; body: string }
   | { type: "call"; label: string; phone: string }
+  | { type: "onboard"; label: string; company_name: string; cui?: string; contact_name?: string; phone?: string; email?: string }
   | {
       type: "add_lead";
       label: string;
@@ -163,6 +164,8 @@ OPSQAI vinde o platformă AI on-premise (Self-Hosted, pe Windows) pentru procedu
 Reguli:
 - Răspunzi DOAR pe baza datelor de mai jos. Nu inventa clienți, cifre sau contacte. Dacă nu ai datele, spune clar și propune pasul următor.
 - REGULĂ DE AUR — surse: fiecare informație importantă (nume, cifră, dată, contact, CUI) poartă o etichetă de sursă imediat după ea: [DB] pentru datele din Management Center (clienți, licențe, servere, CRM), [ANAF] pentru datele din registrul ANAF, [Web] pentru ce vine din căutarea pe internet (adaugă și linkul), [Estimare] pentru orice presupunere sau calcul aproximativ făcut de tine. Dacă nu poți atribui o sursă, nu afirma informația — spune că nu ai date și propune cum se obțin.
+- NU poți crea clienți, emite licențe sau modifica date. Nu spune NICIODATĂ „am creat clientul”, „am emis licența” sau „am adăugat”. Pentru a transforma o firmă în client propui acțiunea "onboard" (deschide înrolarea în 3 pași cu datele precompletate); omul finalizează acolo.
+- Când prezinți o listă de firme, pui câte o acțiune "add_lead" separată pentru FIECARE firmă (cu company_name completat).
 - Nu trimiți nimic singur. Pentru mesaje propui butoane pe care omul le apasă.
 - Nu spui niciodată că OPSQAI e certificat ISO/DORA; clientul rămâne operatorul datelor.
 - Poți face research pe internet: când ți se cere să cauți firme, primești mai jos REZULTATE CĂUTARE WEB și DATE ANAF verificate. Prezintă firmele găsite (nume, CUI, oraș, angajați, cifră de afaceri, de ce se potrivesc), citează sursa (link) și propune pentru fiecare „Adaugă în CRM”. Nu inventa CUI-uri: dacă un CUI nu e confirmat de ANAF, spune că trebuie verificat.
@@ -172,12 +175,13 @@ Pagina curentă: ${data.page ?? "—"}.
 
 Răspunde STRICT cu JSON valid, fără alt text:
 {"reply":"text în markdown simplu (liste scurte, **bold**)","actions":[...]}
-Acțiuni permise (maxim 5, doar când sunt utile):
+Acțiuni permise (maxim 12, doar când sunt utile):
 {"type":"open","label":"...","to":"<una din paginile: ${ALLOWED_PAGES.join(", ")} sau /management/companies/$id>","id":"<id client, doar pentru fișă>"}
 {"type":"whatsapp","label":"...","phone":"...","text":"mesajul complet"}
 {"type":"email","label":"...","email":"...","subject":"...","body":"..."}
 {"type":"call","label":"...","phone":"..."}
-{"type":"add_lead","label":"Adaugă în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
+{"type":"onboard","label":"Înrolează <firma> (3 pași)","company_name":"...","cui":"...","contact_name":"...","phone":"...","email":"..."}
+{"type":"add_lead","label":"Adaugă <firma> în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
 
 DATE MANAGEMENT CENTER [DB]:
 ${snapshot}${webBlock}${anafBlock}`;
@@ -217,10 +221,11 @@ function parseKai(raw: string): KaiReply {
         if (x.type === "whatsapp") return typeof x.text === "string";
         if (x.type === "email") return typeof x.subject === "string" && typeof x.body === "string";
         if (x.type === "call") return typeof x.phone === "string" && x.phone.length > 3;
+        if (x.type === "onboard") return typeof x.company_name === "string" && x.company_name.length > 0;
         if (x.type === "add_lead") return typeof x.company_name === "string" && x.company_name.length > 0;
         return false;
       })
-      .slice(0, 5);
+      .slice(0, 12);
     return { reply: String(j.reply ?? "").trim() || "…", actions };
   } catch {
     return { reply: raw.trim() || "Nu am putut formula un răspuns.", actions: [] };
