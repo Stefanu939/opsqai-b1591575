@@ -58,10 +58,6 @@ const SUGGESTIONS = [
   "Caută-mi 5 firme de transport din Cluj cu peste 20 de angajați",
 ];
 
-function firstName(email?: string | null) {
-  const local = (email ?? "").split("@")[0].split(/[._-]/)[0];
-  return local ? local[0].toUpperCase() + local.slice(1) : "";
-}
 
 const newId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
@@ -101,7 +97,7 @@ export function KaiAssistant() {
   const navigate = useNavigate();
   const page = useRouterState({ select: (s) => s.location.pathname });
   const { user, session, loading } = useAuth();
-  const name = firstName(user?.email);
+  const { firstName: name, fullName } = useMyName();
   const ask = useServerFn(askKai);
   const addLead = useServerFn(saveCrmLead);
   const saveDebrief = useServerFn(applyCallDebrief);
