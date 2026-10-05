@@ -17,6 +17,8 @@ export type KaiAction =
   | { type: "call"; label: string; phone: string }
   | { type: "pricing"; label: string; company_name: string; contact_name?: string; employees?: number; workstations?: number; workspaces?: string[] }
   | { type: "onboard"; label: string; company_name: string; cui?: string; contact_name?: string; phone?: string; email?: string }
+  | { type: "doc"; label: string; kind: "onepager" | "security"; company_name: string; cui?: string; contact_name?: string; industry?: string; employees?: number }
+  | { type: "debrief"; label: string; company_name: string; lead_id?: string; summary: string; stage?: string; next_action_at?: string; contact_name?: string }
   | {
       type: "add_lead";
       label: string;
@@ -92,9 +94,9 @@ export const askKai = createServerFn({ method: "POST" })
         const name = licByInstall.get(i.install_id)?.company_name ?? compByInstall.get(i.install_id)?.name ?? i.install_id.slice(0, 10);
         return `${name} | ${i.app_version ?? "—"} | ${fmt(i.last_heartbeat_at)} | ${h ?? "niciodată"} | ${i.user_count ?? "—"}`;
       }),
-      `PROSPECȚI CRM: nume | contact | telefon | email | etapă | următoarea acțiune | valoare`,
+      `PROSPECȚI CRM: lead_id | nume | contact | telefon | email | etapă | status | următoarea acțiune | ultima activitate | valoare`,
       ...(leads.data ?? []).map(
-        (l) => `${l.company_name} | ${l.contact_name ?? "—"} | ${l.phone ?? "—"} | ${l.email ?? "—"} | ${l.stage} | ${fmt(l.next_action_at)} | ${l.value_amount ?? "—"}`,
+        (l) => `${l.id} | ${l.company_name} | ${l.contact_name ?? "—"} | ${l.phone ?? "—"} | ${l.email ?? "—"} | ${l.stage} | ${l.status} | ${fmt(l.next_action_at)} | ${fmt(l.last_activity_at)} | ${l.value_amount ?? "—"}`,
       ),
     ].join("\n");
 
@@ -168,6 +170,9 @@ Reguli:
 - NU poți crea clienți, emite licențe sau modifica date. Nu spune NICIODATĂ „am creat clientul”, „am emis licența” sau „am adăugat”. Pentru a transforma o firmă în client propui acțiunea "onboard" (deschide înrolarea în 3 pași cu datele precompletate); omul finalizează acolo.
 - Când utilizatorul cere preț / ofertă / cost pentru o firmă, propui acțiunea "pricing" cu datele firmei (angajați din ANAF/DB, workspace Transport dacă CAEN e de transport). Nu calculezi tu prețul în text.
 - Când prezinți o listă de firme, pui câte o acțiune "add_lead" separată pentru FIECARE firmă (cu company_name completat).
+- Când ți se cere one-pager / prezentare / fișă de securitate / GDPR pentru o firmă, propui acțiunea "doc" (kind "onepager" sau "security"). PDF-ul e generat din șablon aprobat; nu îi inventa conținutul în text.
+- Când ți se cere ce follow-up-uri sunt de făcut, folosește PROSPECȚI CRM (status open): termen depășit, azi, sau etape demo/pilot/offer fără activitate de 3+ zile. Pentru fiecare propui "whatsapp"/"call"/"email" cu un mesaj scurt de revenire.
+- DEBRIEF: când utilizatorul îți povestește un apel/întâlnire, extragi firma, rezumatul structurat (ce s-a discutat, nr. stații, ce a cerut clientul), etapa nouă dacă reiese clar, și data următoarei acțiuni (ISO, calculată față de data de azi). Propui acțiunea "debrief" (cu lead_id din CRM dacă firma există). Nu spui că ai salvat — omul confirmă butonul. Dacă clientul a cerut un document, propui și "doc".
 - Nu trimiți nimic singur. Pentru mesaje propui butoane pe care omul le apasă.
 - Nu spui niciodată că OPSQAI e certificat ISO/DORA; clientul rămâne operatorul datelor.
 - Poți face research pe internet: când ți se cere să cauți firme, primești mai jos REZULTATE CĂUTARE WEB și DATE ANAF verificate. Prezintă firmele găsite (nume, CUI, oraș, angajați, cifră de afaceri, de ce se potrivesc), citează sursa (link) și propune pentru fiecare „Adaugă în CRM”. Nu inventa CUI-uri: dacă un CUI nu e confirmat de ANAF, spune că trebuie verificat.
@@ -185,6 +190,8 @@ Acțiuni permise (maxim 12, doar când sunt utile):
 {"type":"onboard","label":"Înrolează <firma> (3 pași)","company_name":"...","cui":"...","contact_name":"...","phone":"...","email":"..."}
 {"type":"pricing","label":"Vezi prețul pentru <firma>","company_name":"...","contact_name":"...","employees":<nr angajați din ANAF/DB, opțional>,"workstations":<aprox. angajați/10>,"workspaces":["opsqai_transport"|"opsqai_hr"]}
 {"type":"add_lead","label":"Adaugă <firma> în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
+{"type":"doc","label":"Descarcă fișa de securitate pentru <firma>","kind":"onepager"|"security","company_name":"...","cui":"...","contact_name":"...","industry":"CAEN/activitate","employees":<nr>}
+{"type":"debrief","label":"Salvează debrief în CRM pentru <firma>","company_name":"...","lead_id":"<lead_id din CRM, dacă există>","summary":"rezumat structurat","stage":"new|qualified|demo|pilot|offer|won|lost (opțional)","next_action_at":"YYYY-MM-DDTHH:mm (opțional)","contact_name":"..."}
 
 DATE MANAGEMENT CENTER [DB]:
 ${snapshot}${webBlock}${anafBlock}`;
@@ -227,6 +234,8 @@ function parseKai(raw: string): KaiReply {
         if (x.type === "pricing") return typeof x.company_name === "string" && x.company_name.length > 0;
         if (x.type === "onboard") return typeof x.company_name === "string" && x.company_name.length > 0;
         if (x.type === "add_lead") return typeof x.company_name === "string" && x.company_name.length > 0;
+        if (x.type === "doc") return (x.kind === "onepager" || x.kind === "security") && typeof x.company_name === "string" && x.company_name.length > 0;
+        if (x.type === "debrief") return typeof x.company_name === "string" && x.company_name.length > 0 && typeof x.summary === "string" && x.summary.length > 0;
         return false;
       })
       .slice(0, 12);

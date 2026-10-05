@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowLeft, Check, Download, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ModulePage } from "@/components/app/module-page";
+import { SalesDocButtons } from "@/components/mc/sales-docs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -213,6 +214,16 @@ function LeadDetailPage() {
     >
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
+          <Panel title="Documente pentru client">
+            <SalesDocButtons
+              target={{
+                company_name: lead.company_name,
+                contact_name: lead.contact_name,
+                cui: (lead.notes ?? "").match(/CUI[:\s]*(?:RO)?(\d{4,10})/i)?.[1] ?? null,
+                industry: lead.notes ?? null,
+              }}
+            />
+          </Panel>
           <Panel title="Stage">
             <div className="flex flex-wrap items-center gap-2">
               {CRM_STAGES.map((s) => (

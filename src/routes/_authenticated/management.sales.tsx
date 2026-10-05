@@ -4,6 +4,7 @@ import { Copy, Mail, MessageCircle, Phone, ShieldQuestion } from "lucide-react";
 import { toast } from "sonner";
 import { ModulePage } from "@/components/app/module-page";
 import { Panel } from "@/components/ui/panel";
+import { FollowUpRadar } from "@/components/mc/follow-up-radar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,6 +66,8 @@ function SalesCockpit() {
       title="Sales Cockpit"
       description="Ține pagina deschisă în timpul apelului: scriptul, obiecțiile și mesajele sunt la un click."
     >
+      <FollowUpRadar sender={sender} />
+
       <Panel title="Cu cine vorbești?">
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Persoană de contact" value={name} onChange={setName} placeholder="dl. Popescu" />

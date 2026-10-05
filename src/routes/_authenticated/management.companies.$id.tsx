@@ -20,6 +20,7 @@ import { CompanyTopology } from "@/components/mc/company-topology";
 import { CompanyTimeline } from "@/components/mc/company-timeline";
 import { AnafProfileCard } from "@/components/mc/anaf-profile";
 import { ModulePage } from "@/components/app/module-page";
+import { SalesDocButtons } from "@/components/mc/sales-docs";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -193,6 +194,7 @@ function CompanyDetailPage() {
               <FileText className="mr-1.5 h-3.5 w-3.5" /> Ofertă PDF
             </Link>
           </Button>
+          <SalesDocButtons target={{ company_name: company.name, industry: (company as { business_type?: string | null }).business_type ?? null }} />
           <ManageCustomerDialog companyId={company.id} companyName={company.name} />
         </div>
       }
