@@ -17,6 +17,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { useMyName } from "@/lib/use-my-name";
 import { audienceForPath } from "@/lib/sign-out-target";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Button } from "@/components/ui/button";
@@ -178,10 +179,8 @@ export function AccountMenu({
 
   const status = (presence.data?.status ?? "available") as PresenceStatusValue;
 
-  const initials = useMemo(() => {
-    const local = user?.email?.split("@")[0] ?? "";
-    return (local.slice(0, 2) || "OQ").toUpperCase();
-  }, [user?.email]);
+  const { fullName, initials } = useMyName();
+  const displayName = fullName || user?.email?.split("@")[0] || "Account";
 
   return (
     <>
