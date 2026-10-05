@@ -137,8 +137,18 @@ function LeadDetailPage() {
     convert({ data: { id: leadId } } as never)
       .then((res) => {
         if (!res.ok && res.needsCustomer) {
-          toast.info("No matching customer yet — create the customer first");
-          navigate({ to: "/management/customers" });
+          toast.info("Continuăm înrolarea în 3 pași cu datele din CRM.");
+          const cuiMatch = (lead.notes ?? "").match(/CUI[:\s]*(?:RO)?(\d{4,10})/i);
+          navigate({
+            to: "/management/onboarding",
+            search: {
+              company: lead.company_name ?? undefined,
+              contact: lead.contact_name ?? undefined,
+              email: lead.email ?? undefined,
+              phone: lead.phone ?? undefined,
+              cui: cuiMatch?.[1],
+            },
+          });
           return;
         }
         toast.success("Converted — continue with the license");
