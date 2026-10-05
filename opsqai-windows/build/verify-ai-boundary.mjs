@@ -34,6 +34,8 @@ export const ALLOWED_PREFIXES = [
   // Connector gateway callers (WhatsApp/Twilio, LinkedIn): LOVABLE_API_KEY is
   // gateway caller auth for a messaging connector, not AI inference.
   "src/lib/transport/whatsapp.server.ts",
+  // Web search connector for MC research (Kai); not AI inference.
+  "src/lib/web-search.server.ts",
   "src/routes/api/public/v1/social/",
   // Cloud legal / marketing / documentation copy (text, not calls).
   "src/lib/customer-templates.ts",
