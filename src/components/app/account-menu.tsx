@@ -1,7 +1,7 @@
 // Shared account menu (top-right) for Self-Hosted, Management Center and
 // Customer Portal: presence status, holidays, profile settings, help, sign out.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   ArrowLeftRight,
