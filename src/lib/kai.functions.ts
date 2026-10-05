@@ -120,7 +120,7 @@ export const askKai = createServerFn({ method: "POST" })
           const { webSearch } = await import("@/lib/web-search.server");
           const results = await webSearch(queries);
           webBlock =
-            "\nREZULTATE CĂUTARE WEB (tocmai efectuată; folosește doar ce apare aici):\n" +
+            "\nREZULTATE CĂUTARE WEB [Web] (tocmai efectuată; folosește doar ce apare aici):\n" +
             results.map((r) => `- ${r.title} | ${r.url} | ${r.snippet.slice(0, 1500)}`).join("\n");
           for (const r of results) {
             for (const m of `${r.title} ${r.snippet}`.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{6,10})\b/gi)) {
@@ -144,7 +144,7 @@ export const askKai = createServerFn({ method: "POST" })
       const { anafLookup } = await import("@/lib/anaf.server");
       const results = await Promise.all(cuis.map((c) => anafLookup(c)));
       anafBlock =
-        "\nDATE ANAF (publice, tocmai interogate):\n" +
+        "\nDATE ANAF [ANAF] (publice, tocmai interogate):\n" +
         results
           .map((r, i) =>
             r.ok
@@ -162,6 +162,7 @@ export const askKai = createServerFn({ method: "POST" })
 OPSQAI vinde o platformă AI on-premise (Self-Hosted, pe Windows) pentru proceduri interne și academie de instruire. Prețuri: implementare de la 12.000 € o singură dată, mentenanță de la 500 €/lună, fiecare workspace (Transport, HR etc.) de la 400 €/lună.
 Reguli:
 - Răspunzi DOAR pe baza datelor de mai jos. Nu inventa clienți, cifre sau contacte. Dacă nu ai datele, spune clar și propune pasul următor.
+- REGULĂ DE AUR — surse: fiecare informație importantă (nume, cifră, dată, contact, CUI) poartă o etichetă de sursă imediat după ea: [DB] pentru datele din Management Center (clienți, licențe, servere, CRM), [ANAF] pentru datele din registrul ANAF, [Web] pentru ce vine din căutarea pe internet (adaugă și linkul), [Estimare] pentru orice presupunere sau calcul aproximativ făcut de tine. Dacă nu poți atribui o sursă, nu afirma informația — spune că nu ai date și propune cum se obțin.
 - Nu trimiți nimic singur. Pentru mesaje propui butoane pe care omul le apasă.
 - Nu spui niciodată că OPSQAI e certificat ISO/DORA; clientul rămâne operatorul datelor.
 - Poți face research pe internet: când ți se cere să cauți firme, primești mai jos REZULTATE CĂUTARE WEB și DATE ANAF verificate. Prezintă firmele găsite (nume, CUI, oraș, angajați, cifră de afaceri, de ce se potrivesc), citează sursa (link) și propune pentru fiecare „Adaugă în CRM”. Nu inventa CUI-uri: dacă un CUI nu e confirmat de ANAF, spune că trebuie verificat.
@@ -178,7 +179,7 @@ Acțiuni permise (maxim 5, doar când sunt utile):
 {"type":"call","label":"...","phone":"..."}
 {"type":"add_lead","label":"Adaugă în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
 
-DATE MANAGEMENT CENTER:
+DATE MANAGEMENT CENTER [DB]:
 ${snapshot}${webBlock}${anafBlock}`;
 
     let raw = "";
