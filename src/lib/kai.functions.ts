@@ -121,11 +121,12 @@ export const askKai = createServerFn({ method: "POST" })
           const results = await webSearch(queries);
           webBlock =
             "\nREZULTATE CĂUTARE WEB (tocmai efectuată; folosește doar ce apare aici):\n" +
-            results.map((r) => `- ${r.title} | ${r.url} | ${r.snippet.slice(0, 400)}`).join("\n");
+            results.map((r) => `- ${r.title} | ${r.url} | ${r.snippet.slice(0, 1500)}`).join("\n");
           for (const r of results) {
             for (const m of `${r.title} ${r.snippet}`.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{6,10})\b/gi)) {
               foundCuis.push(m[1]);
             }
+            for (const m of r.snippet.matchAll(/\|\s*(?:RO)?(\d{4,10})\s*\|\s*[JFC]\d/g)) foundCuis.push(m[1]);
           }
         }
       } catch (e) {

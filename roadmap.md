@@ -23,3 +23,4 @@
 - [x] Topologie flotă, cronologie client, comenzi Cmd+K
 - [x] CRM lead câștigat → buton „Client” deschide wizard-ul completat
 - [x] Kai — Management Center AI assistant (side panel, ⌘K, ANAF CUI analysis, one-click WhatsApp/email/call/CRM actions; human-triggered)
+- [x] Kai web research (internet search + CUI discovery + ANAF verification)
