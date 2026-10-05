@@ -7,6 +7,7 @@ import { getMyPortalOverview, listPortalReleases } from "@/lib/portal.functions"
 import { listAnnouncementsPublic, signPortalStoragePath } from "@/lib/portal-admin.functions";
 import { listSupportConversations } from "@/lib/support.functions";
 import { useAuth } from "@/lib/auth-context";
+import { useMyName } from "@/lib/use-my-name";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import emptyInstallationsIllustration from "@/assets/empty-installations.png";
@@ -119,8 +120,11 @@ function PortalHome() {
     ? (new Date(nextMaint).getTime() - Date.now()) / (1000 * 60 * 60 * 24) < 60
     : false;
   const seats = primary?.install_license?.seats ?? null;
-  const firstName = (data?.email ?? user?.email ?? "").split("@")[0]?.split(/[._-]/)[0] ?? "";
-  const greeting = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : "there";
+  const { firstName: profileFirst } = useMyName();
+  const emailFirst = (data?.email ?? user?.email ?? "").split("@")[0]?.split(/[._-]/)[0] ?? "";
+  const greeting =
+    profileFirst ||
+    (emailFirst ? emailFirst.charAt(0).toUpperCase() + emailFirst.slice(1) : "there");
 
   const downloads = [
     {

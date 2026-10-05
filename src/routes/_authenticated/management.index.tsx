@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
+import { useMyName } from "@/lib/use-my-name";
 
 import {
   Building2,
@@ -133,10 +134,8 @@ function OverviewPage() {
   const tierMix = overviewQ.data?.tierMix ?? [];
   const tierTotal = tierMix.reduce((a, t) => a + t.count, 0);
 
-  const greetName = (() => {
-    const local = session?.user?.email?.split("@")[0]?.split(/[._-]/)[0] ?? "";
-    return local ? local.charAt(0).toUpperCase() + local.slice(1) : "there";
-  })();
+  const { firstName: profileFirst } = useMyName();
+  const greetName = profileFirst || "there";
 
   return (
     <ModulePage eyebrow="Management Center" title="Control Center" width="full">
