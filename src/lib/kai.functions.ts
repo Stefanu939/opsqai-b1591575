@@ -96,9 +96,48 @@ export const askKai = createServerFn({ method: "POST" })
       ),
     ].join("\n");
 
-    // ANAF lookups for any CUI mentioned in the latest message.
     const last = data.messages[data.messages.length - 1].content;
-    const cuis = Array.from(new Set((last.match(/\b(?:RO)?\d{6,10}\b/gi) ?? []).map((c) => c.replace(/\D/g, "")))).slice(0, 3);
+    const { generateAiJson, AiCapabilityError } = await import("@/lib/ai-provider.server");
+
+    // Web research: when asked to find companies, Kai plans searches, reads
+    // the results and pulls CUIs out of them for ANAF verification.
+    let webBlock = "";
+    const foundCuis: string[] = [];
+    if (/\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search)/i.test(last)) {
+      try {
+        const planRaw = await generateAiJson({
+          role: "chat-fast",
+          system:
+            'Generezi interogări de căutare web pentru a găsi firme românești reale și CUI-urile lor. Răspunde STRICT JSON: {"queries":["..."]} cu 2-3 interogări în română. Include o interogare cu "CUI" și una țintită pe site-uri de registru (listafirme.ro, termene.ro, risco.ro).',
+          prompt: last,
+          maxOutputTokens: 300,
+        });
+        const plan = JSON.parse(planRaw.match(/\{[\s\S]*\}/)?.[0] ?? "{}") as { queries?: unknown };
+        const queries = (Array.isArray(plan.queries) ? plan.queries : [])
+          .filter((q): q is string => typeof q === "string" && q.length > 2)
+          .slice(0, 3);
+        if (queries.length) {
+          const { webSearch } = await import("@/lib/web-search.server");
+          const results = await webSearch(queries);
+          webBlock =
+            "\nREZULTATE CĂUTARE WEB (tocmai efectuată; folosește doar ce apare aici):\n" +
+            results.map((r) => `- ${r.title} | ${r.url} | ${r.snippet.slice(0, 400)}`).join("\n");
+          for (const r of results) {
+            for (const m of `${r.title} ${r.snippet}`.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{6,10})\b/gi)) {
+              foundCuis.push(m[1]);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[kai] web research", e);
+        webBlock = "\nCĂUTARE WEB: indisponibilă acum. Spune asta utilizatorului.";
+      }
+    }
+
+    // ANAF lookups for CUIs in the message or found on the web.
+    const cuis = Array.from(
+      new Set([...(last.match(/\b(?:RO)?\d{6,10}\b/gi) ?? []).map((c) => c.replace(/\D/g, "")), ...foundCuis]),
+    ).slice(0, 6);
     let anafBlock = "";
     if (cuis.length) {
       const { anafLookup } = await import("@/lib/anaf.server");
@@ -124,7 +163,8 @@ Reguli:
 - Răspunzi DOAR pe baza datelor de mai jos. Nu inventa clienți, cifre sau contacte. Dacă nu ai datele, spune clar și propune pasul următor.
 - Nu trimiți nimic singur. Pentru mesaje propui butoane pe care omul le apasă.
 - Nu spui niciodată că OPSQAI e certificat ISO/DORA; clientul rămâne operatorul datelor.
-- Nu poți căuta firme după industrie sau oraș (nu există o sursă publică gratuită). Dacă ți se cere prospectare, explică asta și cere CUI-uri; pentru CUI-urile primite analizezi datele ANAF, spui dacă firma pare potrivită (angajați, cifră de afaceri, CAEN) și propui adăugarea în CRM plus un mesaj de prima abordare.
+- Poți face research pe internet: când ți se cere să cauți firme, primești mai jos REZULTATE CĂUTARE WEB și DATE ANAF verificate. Prezintă firmele găsite (nume, CUI, oraș, angajați, cifră de afaceri, de ce se potrivesc), citează sursa (link) și propune pentru fiecare „Adaugă în CRM”. Nu inventa CUI-uri: dacă un CUI nu e confirmat de ANAF, spune că trebuie verificat.
+- Pentru CUI-urile cu date ANAF spui dacă firma pare potrivită (angajați, cifră de afaceri, CAEN) și propui un mesaj de prima abordare.
 - Expeditorul mesajelor se numește ${data.senderName || "Ștefan"}.
 Pagina curentă: ${data.page ?? "—"}.
 
@@ -138,9 +178,8 @@ Acțiuni permise (maxim 5, doar când sunt utile):
 {"type":"add_lead","label":"Adaugă în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
 
 DATE MANAGEMENT CENTER:
-${snapshot}${anafBlock}`;
+${snapshot}${webBlock}${anafBlock}`;
 
-    const { generateAiJson, AiCapabilityError } = await import("@/lib/ai-provider.server");
     let raw = "";
     try {
       raw = await generateAiJson({
@@ -148,7 +187,7 @@ ${snapshot}${anafBlock}`;
         system,
         messages: data.messages.map((m) => ({ role: m.role, content: m.content })),
         temperature: 0.3,
-        maxOutputTokens: 1800,
+        maxOutputTokens: 2500,
       });
     } catch (e) {
       if (e instanceof AiCapabilityError) {
