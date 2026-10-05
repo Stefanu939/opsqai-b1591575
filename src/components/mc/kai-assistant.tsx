@@ -101,6 +101,8 @@ export function KaiAssistant() {
   const name = firstName(user?.email);
   const ask = useServerFn(askKai);
   const addLead = useServerFn(saveCrmLead);
+  const saveDebrief = useServerFn(applyCallDebrief);
+  const makeDoc = useSalesDoc();
   const fetchCompanies = useServerFn(listCompanies);
   const logAction = useServerFn(logKaiAction);
   const fetchAudit = useServerFn(listKaiActions);
