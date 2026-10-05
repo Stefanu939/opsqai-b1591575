@@ -11,9 +11,9 @@ import {
   deriveInstallationStatus,
 } from "@/lib/selfhost-status";
 import { ModulePage } from "@/components/app/module-page";
-import { DataTable, type Column } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -21,8 +21,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Package, Search } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Globe,
+  KeyRound,
+  Package,
+  Search,
+  Server,
+  Users,
+  Wrench,
+} from "lucide-react";
 import { MetricTile } from "@/components/ui/metric-tile";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/management/installations")({
   head: () => ({
@@ -150,6 +161,106 @@ function mergeRows(installs: LicenseInstallRow[], fleet: SelfHostFleetRow[]): Ro
   });
 }
 
+const STATUS_DOT: Record<string, string> = {
+  online: "bg-emerald-500",
+  degraded: "bg-amber-500",
+  offline: "bg-red-500",
+  unknown: "bg-muted-foreground/40",
+};
+
+function InstallationCard({ row: r, currentVersion }: { row: Row; currentVersion: string | null }) {
+  const isOutdated = Boolean(currentVersion && r.app_version && r.app_version !== currentVersion);
+  const dot = STATUS_DOT[r.display_status] ?? STATUS_DOT.unknown;
+
+  return (
+    <div className="group flex flex-col rounded-xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
+      <div className="flex items-start gap-3 p-4 pb-3">
+        <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Server className="h-5 w-5" />
+          <span
+            className={cn(
+              "absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-card",
+              dot,
+            )}
+          />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-semibold text-foreground">
+            {r.organization_name ?? "Unnamed installation"}
+          </div>
+          <div className="truncate font-mono text-[11px] text-muted-foreground">
+            {r.install_id}
+          </div>
+        </div>
+        <Badge variant={statusBadgeVariant(r.display_status)}>{statusLabel(r.display_status)}</Badge>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/60 px-4 py-3 text-xs">
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <Activity className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{relativeTime(r.last_heartbeat_at)}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <Globe className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">
+            {r.country ?? "—"} · {r.primary_language ?? "—"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <Users className="h-3.5 w-3.5 shrink-0" />
+          <span className="tabular-nums">
+            {r.user_count ?? 0} / {r.seats ?? "—"} seats
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <KeyRound className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">
+            {r.license_status ?? "—"}
+            {r.tier ? ` · ${r.tier}` : ""}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5 px-4 pb-3">
+        <Badge variant="outline" className="font-mono text-[10px]">
+          v{r.app_version ?? "?"}
+        </Badge>
+        {isOutdated ? (
+          <Badge variant="outline" className="text-[10px] text-amber-500">
+            outdated → {currentVersion}
+          </Badge>
+        ) : null}
+        {r.enabled_modules.map((m) => (
+          <Badge key={m} variant="secondary" className="text-[10px]">
+            {m}
+          </Badge>
+        ))}
+      </div>
+
+      {r.next_maintenance_at ? (
+        <div className="flex items-center gap-1.5 px-4 pb-3 text-[11px] text-muted-foreground">
+          <Wrench className="h-3 w-3" />
+          Next maintenance {new Date(r.next_maintenance_at).toLocaleDateString()}
+        </div>
+      ) : null}
+
+      <div className="mt-auto flex items-center gap-2 border-t border-border/60 p-3">
+        <Button asChild size="sm" variant="outline" className="flex-1">
+          <Link to="/management/usage/$installId" params={{ installId: r.install_id }}>
+            Usage audit
+            <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="ghost" className="flex-1">
+          <Link to="/management/licenses" search={{ install: r.install_id }}>
+            License
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function InstallationsPage() {
   const listInstalls = useServerFn(listInstallations);
   const listFleet = useServerFn(listSelfHostFleet);
@@ -228,129 +339,7 @@ function InstallationsPage() {
     ? data.filter((r) => r.app_version && r.app_version !== currentVersion).length
     : 0;
 
-  const columns: Column<Row>[] = [
-    {
-      key: "org",
-      header: "Installation",
-      render: (r) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-foreground">{r.organization_name ?? "—"}</span>
-          <span className="font-mono text-xs text-muted-foreground">{r.install_id}</span>
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      header: "Status",
-      render: (r) => (
-        <Badge variant={statusBadgeVariant(r.display_status)}>
-          {statusLabel(r.display_status)}
-        </Badge>
-      ),
-    },
-    {
-      key: "license",
-      header: "License",
-      render: (r) => (
-        <div className="flex flex-col gap-1 text-xs">
-          <Badge variant="outline">{r.license_status ?? "—"}</Badge>
-          <span className="text-muted-foreground">{r.tier ?? "—"}</span>
-        </div>
-      ),
-    },
-    {
-      key: "region",
-      header: "Country / Language",
-      render: (r) => (
-        <span className="text-xs text-muted-foreground">
-          {r.country ?? "—"} · {r.primary_language ?? "—"}
-        </span>
-      ),
-    },
-    {
-      key: "version",
-      header: "App / Installer",
-      render: (r) => (
-        <div className="flex flex-col font-mono text-xs">
-          <span className="flex items-center gap-1.5">
-            {r.app_version ?? "—"}
-            {currentVersion && r.app_version && r.app_version !== currentVersion ? (
-              <Badge variant="outline" className="font-sans text-[10px] text-amber-500">
-                outdated
-              </Badge>
-            ) : null}
-          </span>
-          <span className="text-muted-foreground">{r.installer_version ?? "—"}</span>
-        </div>
-      ),
-    },
-    {
-      key: "users",
-      header: "Users",
-      align: "right",
-      render: (r) => (
-        <span className="tabular-nums">
-          {r.user_count ?? 0}
-          <span className="text-muted-foreground"> / {r.seats ?? "—"}</span>
-        </span>
-      ),
-    },
-    {
-      key: "heartbeat",
-      header: "Last heartbeat",
-      render: (r) => (
-        <span className="text-xs text-muted-foreground">{relativeTime(r.last_heartbeat_at)}</span>
-      ),
-    },
-    {
-      key: "modules",
-      header: "Modules",
-      render: (r) => (
-        <span className="text-xs text-muted-foreground">
-          {r.enabled_modules.length ? r.enabled_modules.join(", ") : "—"}
-        </span>
-      ),
-    },
-    {
-      key: "maintenance",
-      header: "Maintenance",
-      render: (r) => (
-        <div className="flex flex-col text-xs text-muted-foreground">
-          <span>Last: {r.last_maintenance_at ? relativeTime(r.last_maintenance_at) : "—"}</span>
-          <span>
-            Next:{" "}
-            {r.next_maintenance_at
-              ? new Date(r.next_maintenance_at).toLocaleDateString()
-              : "—"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "actions",
-      header: "",
-      align: "right",
-      render: (r) => (
-        <div className="flex items-center justify-end gap-3">
-          <Link
-            to="/management/usage/$installId"
-            params={{ installId: r.install_id }}
-            className="text-xs text-foreground underline underline-offset-4 hover:no-underline"
-          >
-            Usage →
-          </Link>
-          <Link
-            to="/management/licenses"
-            search={{ install: r.install_id }}
-            className="text-xs text-foreground underline underline-offset-4 hover:no-underline"
-          >
-            License →
-          </Link>
-        </div>
-      ),
-    },
-  ];
-
+  const loading = installsQuery.isLoading || fleetQuery.isLoading;
 
   return (
     <ModulePage
@@ -359,16 +348,31 @@ function InstallationsPage() {
       description="Every self-hosted OPSQAI installation: license state, heartbeat telemetry, versions and module coverage. Visibility only — no remote control actions."
     >
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricTile label="Online" value={online} />
-        <MetricTile label="Offline" value={offline} />
-        <MetricTile label="Never reported" value={never} />
+        <MetricTile
+          label="Online"
+          value={online}
+          icon={Activity}
+          tone={online > 0 ? "success" : "default"}
+          onClick={() => setStatus(status === "online" ? "all" : "online")}
+        />
+        <MetricTile
+          label="Offline"
+          value={offline}
+          icon={Server}
+          tone={offline > 0 ? "danger" : "default"}
+          onClick={() => setStatus(status === "offline" ? "all" : "offline")}
+        />
+        <MetricTile label="Never reported" value={never} icon={Package} />
         <MetricTile
           label={currentVersion ? `Outdated (current ${currentVersion})` : "Outdated"}
           value={outdated}
+          icon={Wrench}
+          tone={outdated > 0 ? "warning" : "default"}
+          onClick={() => setOutdatedOnly(!outdatedOnly)}
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -440,24 +444,29 @@ function InstallationsPage() {
           Outdated only
         </label>
         <div className="ml-auto text-xs text-muted-foreground">
-          <span className="tabular-nums">{online}</span> online ·{" "}
-          <span className="tabular-nums">{rows.length}</span> / {data.length}
+          <span className="tabular-nums">{rows.length}</span> / {data.length} shown
         </div>
       </div>
 
-      <DataTable<Row>
-        columns={columns}
-        rows={rows}
-        rowKey={(r) => r.install_id}
-        loading={installsQuery.isLoading || fleetQuery.isLoading}
-        empty={{
-          icon: Package,
-          title: data.length ? "No matches" : "No installations yet",
-          description: data.length
-            ? "Adjust filters to see more results."
-            : "Installations appear here after an installer has phoned home with its first heartbeat.",
-        }}
-      />
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-56 animate-pulse rounded-xl border border-border bg-card" />
+          ))}
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+          {data.length
+            ? "No installation matches the current filters."
+            : "Installations appear here after an installer has phoned home with its first heartbeat."}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map((r) => (
+            <InstallationCard key={r.install_id} row={r} currentVersion={currentVersion} />
+          ))}
+        </div>
+      )}
     </ModulePage>
   );
 }
