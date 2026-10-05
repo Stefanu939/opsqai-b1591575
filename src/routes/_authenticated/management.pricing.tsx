@@ -17,10 +17,19 @@ import { useAuth } from "@/lib/auth-context";
 import { PRICING, WORKSPACES, computeQuote, estimateSavings, eur } from "@/lib/mc-pricing";
 import { renderOfferPdf } from "@/lib/mc-growth.functions";
 import { listCrmLeads, saveCrmOffer } from "@/lib/crm.functions";
+import { listCompanies } from "@/lib/companies.functions";
+import { Sparkles, Building2, Target } from "lucide-react";
 import { mailtoUrl, whatsappUrl } from "@/lib/mc-outreach";
 
 export const Route = createFileRoute("/_authenticated/management/pricing")({
-  validateSearch: z.object({ company: z.string().optional(), lead: z.string().optional() }),
+  validateSearch: z.object({
+    company: z.string().optional(),
+    lead: z.string().optional(),
+    contact: z.string().optional(),
+    employees: z.coerce.number().int().positive().optional(),
+    workstations: z.coerce.number().int().min(0).max(50).optional(),
+    workspaces: z.string().optional(),
+  }),
   head: () => ({
     meta: [
       { title: "Calculator preț & ofertă — OPSQAI Management Center" },
@@ -50,14 +59,16 @@ function PricingPage() {
   const search = Route.useSearch();
   const { session, loading } = useAuth();
   const [customer, setCustomer] = useState(search.company ?? "");
-  const [contact, setContact] = useState("");
+  const [contact, setContact] = useState(search.contact ?? "");
   const [sender, setSender] = useState("Ștefan");
-  const [workstations, setWorkstations] = useState(2);
+  const [workstations, setWorkstations] = useState(search.workstations ?? 2);
   const [maintenance, setMaintenance] = useState<number>(PRICING.maintenanceMonthlyMin);
   const [ws, setWs] = useState<Record<string, { on: boolean; monthly: number }>>(
-    Object.fromEntries(WORKSPACES.map((w) => [w.key, { on: false, monthly: PRICING.workspaceMonthlyMin }])),
+    Object.fromEntries(WORKSPACES.map((w) => [w.key, { on: (search.workspaces ?? "").split(",").includes(w.key), monthly: PRICING.workspaceMonthlyMin }])),
   );
-  const [employees, setEmployees] = useState(25);
+  const [employees, setEmployees] = useState(search.employees ?? 25);
+  const [pickOpen, setPickOpen] = useState(false);
+  const [hint, setHint] = useState<Suggestion | null>(null);
   const [roiOn, setRoiOn] = useState(true);
   const [hourly, setHourly] = useState(15);
   const [minutes, setMinutes] = useState(20);
@@ -83,6 +94,50 @@ function PricingPage() {
     enabled: !loading && Boolean(session?.user?.id),
     retry: false,
   });
+
+  const companiesFn = useServerFn(listCompanies);
+  const companies = useQuery({
+    queryKey: ["mc-companies-pricing", session?.user?.id ?? null],
+    queryFn: () => companiesFn({ data: {} }),
+    enabled: !loading && Boolean(session?.user?.id),
+    retry: false,
+  });
+
+  const options = useMemo<Suggestion[]>(() => {
+    const out: Suggestion[] = [];
+    for (const c of companies.data ?? []) {
+      if ((c as { is_system?: boolean }).is_system) continue;
+      out.push(suggestFor({
+        kind: "client", id: c.id, name: c.name,
+        employees: Math.max(c.user_count ?? 0, c.max_users ?? 0) || null,
+        products: (c.enabled_products as string[] | null) ?? [], businessType: c.business_type ?? "",
+        notes: "",
+      }));
+    }
+    for (const l of leads.data?.leads ?? []) {
+      out.push(suggestFor({
+        kind: "lead", id: l.id, name: l.company_name, contact: l.contact_name ?? "",
+        employees: null, products: l.products ?? [], businessType: "", notes: l.notes ?? "",
+      }));
+    }
+    return out;
+  }, [companies.data, leads.data]);
+
+  const q = customer.trim().toLowerCase();
+  const matches = options.filter((o) => !q || o.name.toLowerCase().includes(q)).slice(0, 8);
+
+  const apply = (o: Suggestion) => {
+    setCustomer(o.name);
+    if (o.contact) setContact(o.contact);
+    if (o.kind === "lead") setLeadId(o.id);
+    if (o.employees) setEmployees(o.employees);
+    setWorkstations(o.workstations);
+    setMaintenance(o.maintenance);
+    setWs(Object.fromEntries(WORKSPACES.map((w) => [w.key, { on: o.workspaces.includes(w.key), monthly: o.workspaceMonthly }])));
+    setHint(o);
+    setPickOpen(false);
+    toast.success(`Date precompletate pentru ${o.name} — le poți modifica oricând.`);
+  };
 
   const pdfFn = useServerFn(renderOfferPdf);
   const pdfMut = useMutation({
@@ -142,10 +197,49 @@ function PricingPage() {
         <div className="space-y-4">
           <Panel title="Client">
             <div className="grid gap-3 sm:grid-cols-3">
-              <div><Label className="text-xs">Firmă</Label><Input className="mt-1" value={customer} onChange={(e) => setCustomer(e.target.value)} /></div>
+              <div className="relative">
+                <Label className="text-xs">Firmă</Label>
+                <Input
+                  className="mt-1"
+                  value={customer}
+                  placeholder="Caută în clienți și CRM…"
+                  onFocus={() => setPickOpen(true)}
+                  onBlur={() => setTimeout(() => setPickOpen(false), 150)}
+                  onChange={(e) => { setCustomer(e.target.value); setPickOpen(true); }}
+                />
+                {pickOpen && matches.length > 0 && (
+                  <div className="absolute z-30 mt-1 max-h-72 w-[min(22rem,90vw)] overflow-auto rounded-lg border border-border bg-popover p-1 shadow-lg">
+                    {matches.map((o) => (
+                      <button
+                        key={o.kind + o.id}
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => apply(o)}
+                        className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
+                      >
+                        {o.kind === "client" ? <Building2 className="mt-0.5 h-4 w-4 text-primary" /> : <Target className="mt-0.5 h-4 w-4 text-muted-foreground" />}
+                        <span className="flex-1">
+                          <span className="block font-medium text-foreground">{o.name}</span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            {o.kind === "client" ? "Client" : "Prospect CRM"} · 1 + {o.workstations} stații{o.workspaces.length ? " · " + o.workspaces.map(wsLabel).join(", ") : ""}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div><Label className="text-xs">Persoană de contact</Label><Input className="mt-1" value={contact} onChange={(e) => setContact(e.target.value)} /></div>
               <div><Label className="text-xs">Pregătit de</Label><Input className="mt-1" value={sender} onChange={(e) => setSender(e.target.value)} /></div>
             </div>
+            {hint && (
+              <div className="mt-3 rounded-lg border border-primary/30 bg-primary/10 p-3 text-xs">
+                <div className="mb-1 flex items-center gap-1.5 font-medium text-primary"><Sparkles className="h-3.5 w-3.5" />Sugestie pentru {hint.name}</div>
+                <ul className="space-y-0.5 text-muted-foreground">
+                  {hint.reasons.map((r) => <li key={r}>• {r}</li>)}
+                </ul>
+              </div>
+            )}
           </Panel>
 
           <Panel title="Pachet">
@@ -260,4 +354,46 @@ function Row({ label, value, big }: { label: string; value: string; big?: boolea
       <span className={big ? "font-display text-2xl font-semibold text-foreground tabular-nums" : "font-medium text-foreground tabular-nums"}>{value}</span>
     </div>
   );
+}
+
+type Suggestion = {
+  kind: "client" | "lead";
+  id: string;
+  name: string;
+  contact?: string;
+  employees: number | null;
+  workstations: number;
+  maintenance: number;
+  workspaces: string[];
+  workspaceMonthly: number;
+  reasons: string[];
+};
+
+const wsLabel = (k: string) => WORKSPACES.find((w) => w.key === k)?.label ?? k;
+
+/** Deterministic suggestion from data we hold — every value stays editable. */
+function suggestFor(i: {
+  kind: "client" | "lead"; id: string; name: string; contact?: string;
+  employees: number | null; products: string[]; businessType: string; notes: string;
+}): Suggestion {
+  const reasons: string[] = [];
+  let employees = i.employees;
+  if (!employees) {
+    const m = i.notes.match(/(\d{1,5})\s*(?:de\s+)?(?:angaja|salaria)/i);
+    if (m) employees = Number(m[1]);
+  }
+  if (employees) reasons.push(`${employees} angajați (${i.kind === "client" ? "utilizatori / locuri din fișă" : "din notițele CRM"})`);
+  else reasons.push("Număr de angajați necunoscut — am pus valori de pornire");
+  const workstations = Math.min(50, employees ? Math.max(1, Math.ceil(employees / 10)) : 2);
+  reasons.push(`1 calculator principal + ${workstations} stații (aprox. o stație la 10 angajați)`);
+  const text = `${i.products.join(" ")} ${i.businessType} ${i.notes}`.toLowerCase();
+  const workspaces: string[] = [];
+  if (/transport|logist|4941|5229|flot/.test(text)) workspaces.push("opsqai_transport");
+  if (/\bhr\b|opsqai_hr|resurse umane|personal/.test(text)) workspaces.push("opsqai_hr");
+  if (workspaces.length) reasons.push(`Workspace recomandat: ${workspaces.map(wsLabel).join(", ")}`);
+  const size = employees ?? 0;
+  const maintenance = size > 150 ? 1000 : size > 50 ? 750 : PRICING.maintenanceMonthlyMin;
+  const workspaceMonthly = size > 150 ? 800 : size > 50 ? 600 : PRICING.workspaceMonthlyMin;
+  reasons.push(`Mentenanță ${maintenance} €/lună (${size > 150 ? "firmă mare" : size > 50 ? "firmă medie" : "standard"})`);
+  return { kind: i.kind, id: i.id, name: i.name, contact: i.contact, employees, workstations, maintenance, workspaces, workspaceMonthly, reasons };
 }

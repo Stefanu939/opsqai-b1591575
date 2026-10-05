@@ -26,6 +26,7 @@ import {
   Check,
   X,
   ShieldCheck,
+  Calculator,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -243,6 +244,20 @@ export function KaiAssistant() {
       setOpen(false);
       if (a.to === "/management/companies/$id" && a.id) navigate({ to: "/management/companies/$id", params: { id: a.id } });
       else navigate({ to: a.to as never });
+    } else if (a.type === "pricing") {
+      setOpen(false);
+      const emp = Number(a.employees);
+      const st = Number(a.workstations);
+      navigate({
+        to: "/management/pricing",
+        search: {
+          company: a.company_name,
+          contact: a.contact_name || undefined,
+          employees: Number.isFinite(emp) && emp > 0 ? Math.round(emp) : undefined,
+          workstations: Number.isFinite(st) && st >= 0 ? Math.min(50, Math.round(st)) : undefined,
+          workspaces: Array.isArray(a.workspaces) && a.workspaces.length ? a.workspaces.join(",") : undefined,
+        },
+      });
     } else if (a.type === "onboard") {
       setOpen(false);
       navigate({
@@ -323,6 +338,8 @@ export function KaiAssistant() {
             ? UserPlus
             : a.type === "onboard"
               ? Rocket
+              : a.type === "pricing"
+                ? Calculator
               : ExternalLink;
 
   const lastAssistant = messages.length > 0 && messages[messages.length - 1].role === "assistant";

@@ -15,6 +15,7 @@ export type KaiAction =
   | { type: "whatsapp"; label: string; phone?: string; text: string }
   | { type: "email"; label: string; email?: string; subject: string; body: string }
   | { type: "call"; label: string; phone: string }
+  | { type: "pricing"; label: string; company_name: string; contact_name?: string; employees?: number; workstations?: number; workspaces?: string[] }
   | { type: "onboard"; label: string; company_name: string; cui?: string; contact_name?: string; phone?: string; email?: string }
   | {
       type: "add_lead";
@@ -165,6 +166,7 @@ Reguli:
 - Răspunzi DOAR pe baza datelor de mai jos. Nu inventa clienți, cifre sau contacte. Dacă nu ai datele, spune clar și propune pasul următor.
 - REGULĂ DE AUR — surse: fiecare informație importantă (nume, cifră, dată, contact, CUI) poartă o etichetă de sursă imediat după ea: [DB] pentru datele din Management Center (clienți, licențe, servere, CRM), [ANAF] pentru datele din registrul ANAF, [Web] pentru ce vine din căutarea pe internet (adaugă și linkul), [Estimare] pentru orice presupunere sau calcul aproximativ făcut de tine. Dacă nu poți atribui o sursă, nu afirma informația — spune că nu ai date și propune cum se obțin.
 - NU poți crea clienți, emite licențe sau modifica date. Nu spune NICIODATĂ „am creat clientul”, „am emis licența” sau „am adăugat”. Pentru a transforma o firmă în client propui acțiunea "onboard" (deschide înrolarea în 3 pași cu datele precompletate); omul finalizează acolo.
+- Când utilizatorul cere preț / ofertă / cost pentru o firmă, propui acțiunea "pricing" cu datele firmei (angajați din ANAF/DB, workspace Transport dacă CAEN e de transport). Nu calculezi tu prețul în text.
 - Când prezinți o listă de firme, pui câte o acțiune "add_lead" separată pentru FIECARE firmă (cu company_name completat).
 - Nu trimiți nimic singur. Pentru mesaje propui butoane pe care omul le apasă.
 - Nu spui niciodată că OPSQAI e certificat ISO/DORA; clientul rămâne operatorul datelor.
@@ -181,6 +183,7 @@ Acțiuni permise (maxim 12, doar când sunt utile):
 {"type":"email","label":"...","email":"...","subject":"...","body":"..."}
 {"type":"call","label":"...","phone":"..."}
 {"type":"onboard","label":"Înrolează <firma> (3 pași)","company_name":"...","cui":"...","contact_name":"...","phone":"...","email":"..."}
+{"type":"pricing","label":"Vezi prețul pentru <firma>","company_name":"...","contact_name":"...","employees":<nr angajați din ANAF/DB, opțional>,"workstations":<aprox. angajați/10>,"workspaces":["opsqai_transport"|"opsqai_hr"]}
 {"type":"add_lead","label":"Adaugă <firma> în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
 
 DATE MANAGEMENT CENTER [DB]:
@@ -221,6 +224,7 @@ function parseKai(raw: string): KaiReply {
         if (x.type === "whatsapp") return typeof x.text === "string";
         if (x.type === "email") return typeof x.subject === "string" && typeof x.body === "string";
         if (x.type === "call") return typeof x.phone === "string" && x.phone.length > 3;
+        if (x.type === "pricing") return typeof x.company_name === "string" && x.company_name.length > 0;
         if (x.type === "onboard") return typeof x.company_name === "string" && x.company_name.length > 0;
         if (x.type === "add_lead") return typeof x.company_name === "string" && x.company_name.length > 0;
         return false;
