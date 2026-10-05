@@ -43,13 +43,26 @@ jobs:
 
       - name: Install NSIS
         shell: pwsh
-        run: choco install nsis -y --no-progress
+        run: |
+          choco install nsis -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "choco install nsis failed ($LASTEXITCODE)" }
 
-      - name: Add NSIS to PATH
+      - name: Locate makensis and add to PATH
         shell: pwsh
         run: |
-          "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append
-          "C:\Program Files\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append
+          $roots = @(${env:ProgramFiles(x86)}, $env:ProgramFiles, 'C:\ProgramData\chocolatey')
+          $exe = $null
+          foreach ($r in $roots) {
+            if ($r -and (Test-Path $r)) {
+              $exe = Get-ChildItem -Path $r -Filter makensis.exe -Recurse -Depth 5 -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($exe) { break }
+            }
+          }
+          if (-not $exe) { throw "makensis.exe not found after NSIS install" }
+          Write-Host "Found makensis: $($exe.FullName)"
+          & $exe.FullName /VERSION
+          $exe.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append
+          "OPSQAI_MAKENSIS=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Resolve version
         id: ver

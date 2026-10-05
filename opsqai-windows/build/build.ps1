@@ -766,12 +766,17 @@ Write-Host ("Payload parts verified: {0}" -f ($packedParts -join ', '))
 # A 64-bit makensis (NSIS 3.10+ ships one under Bin\) has no 2 GB address-space
 # ceiling at all. Prefer it when present; the parts strategy above keeps the
 # 32-bit compiler well inside its limits either way.
-$makensis = @(
-  'C:\Program Files (x86)\NSIS\Bin\makensis.exe',
-  'C:\Program Files\NSIS\Bin\makensis.exe',
-  'C:\Program Files (x86)\NSIS\makensis.exe',
-  'C:\Program Files\NSIS\makensis.exe'
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
+$nsisCandidates = @()
+if ($env:OPSQAI_MAKENSIS) { $nsisCandidates += $env:OPSQAI_MAKENSIS }
+foreach ($base in @(${env:ProgramFiles(x86)}, $env:ProgramFiles, 'C:\Program Files (x86)', 'C:\Program Files')) {
+  if ($base) {
+    $nsisCandidates += (Join-Path $base 'NSIS\Bin\makensis.exe')
+    $nsisCandidates += (Join-Path $base 'NSIS\makensis.exe')
+  }
+}
+$nsisCandidates += 'C:\ProgramData\chocolatey\bin\makensis.exe'
+$nsisCandidates += 'C:\ProgramData\chocolatey\lib\nsis\tools\makensis.exe'
+$makensis = $nsisCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 # Fall back to PATH — CI (and choco installs) expose makensis via PATH
 # rather than the fixed locations above.
 if (-not $makensis) {
@@ -779,7 +784,16 @@ if (-not $makensis) {
   if (-not $onPath) { $onPath = Get-Command makensis -ErrorAction SilentlyContinue }
   if ($onPath) { $makensis = $onPath.Source }
 }
-if (-not $makensis) { throw 'NSIS not found. Install NSIS 3.09+.' }
+# Last resort: search the usual install roots.
+if (-not $makensis) {
+  foreach ($root2 in @(${env:ProgramFiles(x86)}, $env:ProgramFiles, 'C:\ProgramData\chocolatey')) {
+    if ($root2 -and (Test-Path $root2)) {
+      $hit = Get-ChildItem -Path $root2 -Filter makensis.exe -Recurse -ErrorAction SilentlyContinue -Depth 5 | Select-Object -First 1
+      if ($hit) { $makensis = $hit.FullName; break }
+    }
+  }
+}
+if (-not $makensis) { throw 'NSIS not found. Install NSIS 3.09+ (choco install nsis) or set OPSQAI_MAKENSIS.' }
 Write-Host "Using $makensis"
 
 Write-Host "makensis..."
