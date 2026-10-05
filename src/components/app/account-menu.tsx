@@ -1,7 +1,7 @@
 // Shared account menu (top-right) for Self-Hosted, Management Center and
 // Customer Portal: presence status, holidays, profile settings, help, sign out.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   ArrowLeftRight,
@@ -17,6 +17,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { useMyName } from "@/lib/use-my-name";
 import { audienceForPath } from "@/lib/sign-out-target";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Button } from "@/components/ui/button";
@@ -178,10 +179,8 @@ export function AccountMenu({
 
   const status = (presence.data?.status ?? "available") as PresenceStatusValue;
 
-  const initials = useMemo(() => {
-    const local = user?.email?.split("@")[0] ?? "";
-    return (local.slice(0, 2) || "OQ").toUpperCase();
-  }, [user?.email]);
+  const { fullName, initials } = useMyName();
+  const displayName = fullName || user?.email?.split("@")[0] || "Account";
 
   return (
     <>
@@ -206,7 +205,7 @@ export function AccountMenu({
             </span>
             <span className="hidden min-w-0 flex-col leading-tight sm:flex">
               <span className="truncate text-xs font-semibold text-foreground">
-                {user?.email?.split("@")[0] ?? "Account"}
+                {displayName}
               </span>
               <span className="truncate text-[10px] text-muted-foreground">{roleLabel}</span>
             </span>
@@ -215,9 +214,7 @@ export function AccountMenu({
 
         <DropdownMenuContent align="end" className="w-72">
           <DropdownMenuLabel className="space-y-1">
-            <div className="truncate text-sm font-semibold">
-              {user?.email?.split("@")[0] ?? "Account"}
-            </div>
+            <div className="truncate text-sm font-semibold">{displayName}</div>
             <div className="truncate text-xs font-normal text-muted-foreground">
               {user?.email}
             </div>

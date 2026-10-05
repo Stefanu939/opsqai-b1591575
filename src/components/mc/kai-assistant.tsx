@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
+import { useMyName } from "@/lib/use-my-name";
 import { askKai, logKaiAction, listKaiActions, type KaiAction } from "@/lib/kai.functions";
 import { saveCrmLead } from "@/lib/crm.functions";
 import { listCompanies } from "@/lib/companies.functions";
@@ -58,10 +59,6 @@ const SUGGESTIONS = [
   "Caută-mi 5 firme de transport din Cluj cu peste 20 de angajați",
 ];
 
-function firstName(email?: string | null) {
-  const local = (email ?? "").split("@")[0].split(/[._-]/)[0];
-  return local ? local[0].toUpperCase() + local.slice(1) : "";
-}
 
 const newId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
@@ -101,7 +98,7 @@ export function KaiAssistant() {
   const navigate = useNavigate();
   const page = useRouterState({ select: (s) => s.location.pathname });
   const { user, session, loading } = useAuth();
-  const name = firstName(user?.email);
+  const { firstName: name, fullName } = useMyName();
   const ask = useServerFn(askKai);
   const addLead = useServerFn(saveCrmLead);
   const saveDebrief = useServerFn(applyCallDebrief);
@@ -187,7 +184,7 @@ export function KaiAssistant() {
         data: {
           messages: history.slice(-20).map((m) => ({ role: m.role, content: m.content })),
           page,
-          senderName: name || undefined,
+          senderName: fullName || name || undefined,
         },
       });
       reply = { role: "assistant", content: r.reply, actions: r.actions, at: Date.now() };
