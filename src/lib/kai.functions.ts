@@ -231,3 +231,63 @@ function parseKai(raw: string): KaiReply {
     return { reply: raw.trim() || "Nu am putut formula un răspuns.", actions: [] };
   }
 }
+
+// ---------- Audit trail: requested by Kai → approved by human → executed ----------
+
+export const logKaiAction = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        requested_at: z.string().max(40),
+        action_type: z.string().max(40),
+        label: z.string().max(200),
+        target: z.string().max(300).nullish(),
+        detail: z.record(z.string(), z.unknown()).default({}),
+        status: z.enum(["executed", "failed"]),
+        error: z.string().max(500).nullish(),
+        conversation_id: z.string().max(60).nullish(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context as never);
+    const ctx = context as unknown as { userId: string; claims?: { email?: string } };
+    const admin = await getCloudSupabaseAdmin("kai-audit");
+    const now = new Date().toISOString();
+    const { error } = await admin.from("kai_action_log").insert({
+      requested_by: "Kai",
+      requested_at: data.requested_at,
+      approved_by: ctx.userId,
+      approved_by_email: ctx.claims?.email ?? null,
+      approved_at: now,
+      executed_at: data.status === "executed" ? now : null,
+      status: data.status,
+      action_type: data.action_type,
+      label: data.label,
+      target: data.target ?? null,
+      detail: data.detail as never,
+      error: data.error ?? null,
+      conversation_id: data.conversation_id ?? null,
+    } as never);
+    if (error) console.error("[kai-audit]", error.message);
+    return { ok: !error };
+  });
+
+export const listKaiActions = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context as never);
+    const admin = await getCloudSupabaseAdmin("kai-audit");
+    const { data, error } = await admin
+      .from("kai_action_log")
+      .select("id, requested_by, requested_at, approved_by_email, approved_at, executed_at, status, action_type, label, target, error")
+      .order("approved_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Array<{
+      id: string; requested_by: string; requested_at: string; approved_by_email: string | null;
+      approved_at: string; executed_at: string | null; status: string; action_type: string;
+      label: string; target: string | null; error: string | null;
+    }>;
+  });
