@@ -29,7 +29,10 @@ import {
   Calculator,
   FileText,
   ClipboardCheck,
+  Headphones,
+  PhoneOff,
 } from "lucide-react";
+import { useVoiceMode, voiceSupported } from "@/components/mc/use-voice-mode";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -215,6 +218,20 @@ export function KaiAssistant() {
     setShowHistory(false);
     void run(id!, history);
   };
+
+  const voice = useVoiceMode((t) => send(t));
+  const spokenRef = useRef(0);
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (voice.state !== "thinking" || !last || last.role !== "assistant") return;
+    if (spokenRef.current === messages.length) return;
+    spokenRef.current = messages.length;
+    voice.speak(last.content);
+  }, [messages, voice]);
+  useEffect(() => {
+    if (!open) voice.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const stop = () => {
     reqRef.current++;
@@ -705,6 +722,30 @@ export function KaiAssistant() {
               send(input);
             }}
           >
+            {voice.state !== "off" && (
+              <div className="mb-2 flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-3">
+                <button
+                  type="button"
+                  onClick={voice.interrupt}
+                  aria-label="Întrerupe"
+                  className={cn(
+                    "h-10 w-10 shrink-0 rounded-full bg-primary",
+                    voice.state === "listening" && "animate-pulse",
+                    voice.state === "speaking" && "animate-ping [animation-duration:1.6s]",
+                    voice.state === "thinking" && "opacity-60",
+                  )}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">
+                    {voice.state === "listening" ? "Te ascult…" : voice.state === "thinking" ? "Kai se gândește…" : "Kai vorbește — atinge cercul ca să-l întrerupi"}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{voice.interim || "Spune „închide” ca să termini."}</p>
+                </div>
+                <Button type="button" size="icon" variant="destructive" className="rounded-full" aria-label="Încheie convorbirea" title="Încheie convorbirea" onClick={voice.stop}>
+                  <PhoneOff className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-1.5 focus-within:border-primary/50">
               <Textarea
                 value={input}
@@ -719,6 +760,25 @@ export function KaiAssistant() {
                 placeholder="Scrie-i lui Kai…"
                 className="max-h-32 min-h-9 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
               />
+              {voice.state === "off" && !pending && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Mod voce"
+                  title="Mod voce (hands-free)"
+                  className="rounded-full text-primary"
+                  onClick={() => {
+                    if (!voiceSupported()) {
+                      toast.error("Browserul nu suportă modul voce. Folosește Chrome sau Edge.");
+                      return;
+                    }
+                    voice.start();
+                  }}
+                >
+                  <Headphones className="h-4 w-4" />
+                </Button>
+              )}
               {pending ? (
                 <Button type="button" size="icon" variant="destructive" aria-label="Oprește" title="Oprește" onClick={stop} className="rounded-full">
                   <Square className="h-3.5 w-3.5 fill-current" />
