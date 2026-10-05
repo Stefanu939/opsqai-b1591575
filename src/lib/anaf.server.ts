@@ -1,7 +1,7 @@
 // Public ANAF register lookup (TVA register + latest balance sheet). Server-only.
 
 export async function anafLookup(raw: string) {
-  const data = { cui: raw };
+  const cui = Number(raw.replace(/\D/g, ""));
   if (!cui) return { ok: false as const, error: "CUI invalid" };
   try {
     const today = new Date().toISOString().slice(0, 10);

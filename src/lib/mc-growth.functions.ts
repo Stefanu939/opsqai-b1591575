@@ -17,7 +17,6 @@ export const lookupCompanyByCui = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context as never);
-    const cui = Number(data.cui.replace(/\D/g, ""));
     const { anafLookup } = await import("@/lib/anaf.server");
     return anafLookup(data.cui);
   });
