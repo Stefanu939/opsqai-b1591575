@@ -30,3 +30,7 @@
 - [x] Onboarding auto-fills from CRM lead + ANAF
 - [x] Kai: time off, meetings, tasks, team email (@opsqai.de, superadmin)
 - [x] Kai JARVIS persona, neural voice, Car Mode
+
+## Local AI quality (2026-10-07)
+- [x] Qwen 2.5 auto-downloaded by the installer (no manual step for customers)
+- [x] Lower temperature (0.2) + strict native-language quality rule for knowledge chat
