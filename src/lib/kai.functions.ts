@@ -9,6 +9,7 @@ import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
+import { cuiFromText, isValidCui, nameMatches } from "@/lib/cui";
 
 export type KaiAction =
   | { type: "open"; label: string; to: string; id?: string }
@@ -145,27 +146,33 @@ export const askKai = createServerFn({ method: "POST" })
       }
     }
 
-    // ANAF lookups for CUIs in the message or found on the web.
-    const cuis = Array.from(
-      new Set([...(last.match(/\b(?:RO)?\d{6,10}\b/gi) ?? []).map((c) => c.replace(/\D/g, "")), ...foundCuis]),
-    ).slice(0, 6);
+    // ANAF lookups for CUIs in the message or found on the web. Only codes
+    // with a valid control digit are queried; a code found on the web is
+    // kept only when the ANAF name also appears next to it on that page.
+    const typed = (last.match(/\b(?:RO)?\d{2,10}\b/gi) ?? []).map((c) => c.replace(/\D/g, "")).filter((c) => c.length >= 4 && isValidCui(c));
+    const cuis = Array.from(new Set([...typed, ...foundCuis])).slice(0, 8);
     let anafBlock = "";
     if (cuis.length) {
       const { anafLookup } = await import("@/lib/anaf.server");
       const results = await Promise.all(cuis.map((c) => anafLookup(c)));
-      anafBlock =
-        "\nDATE ANAF [ANAF] (publice, tocmai interogate):\n" +
-        results
-          .map((r, i) =>
-            r.ok
-              ? JSON.stringify({
-                  cui: r.cui, nume: r.name, adresa: r.address, telefon: r.phone, reg_com: r.reg_com,
-                  caen: r.caen, activitate: r.caen_name, judet: r.county, oras: r.city,
-                  tva: r.vat_payer, inactiva: r.inactive, radiata: r.deregistered, financiar: r.financials,
-                })
-              : `CUI ${cuis[i]}: ${r.error}`,
-          )
-          .join("\n");
+      const lines: string[] = [];
+      results.forEach((r, i) => {
+        const c = cuis[i];
+        const fromWeb = !typed.includes(c);
+        if (!r.ok) {
+          if (!fromWeb) lines.push(`CUI ${c}: ${r.error}`);
+          return;
+        }
+        if (fromWeb && !nameMatches(r.name, webContext.get(c) ?? "")) return; // number belonged to another firm
+        lines.push(
+          JSON.stringify({
+            cui: r.cui, nume: r.name, adresa: r.address, telefon: r.phone, reg_com: r.reg_com,
+            caen: r.caen, activitate: r.caen_name, judet: r.county, oras: r.city,
+            tva: r.vat_payer, inactiva: r.inactive, radiata: r.deregistered, financiar: r.financials,
+          }),
+        );
+      });
+      if (lines.length) anafBlock = "\nDATE ANAF [ANAF] (publice, tocmai interogate, CUI verificat):\n" + lines.join("\n");
     }
 
     const system = `Ești Kai, asistentul echipei OPSQAI în Management Center. Vorbești ca un coleg prietenos, scurt și concret, în română corectă cu diacritice (sau în limba în care ți se scrie).
