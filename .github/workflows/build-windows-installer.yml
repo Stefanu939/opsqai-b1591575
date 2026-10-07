@@ -153,12 +153,13 @@ jobs:
             opsqai-windows/build/artifacts/OPSQAI-Setup.exe.sha256
 
       - name: Send installer to Management Center (canary, needs approval)
-        if: ${{ steps.ver.outputs.version != '' && env.OPSQAI_CI_TOKEN != '' }}
+        if: ${{ steps.ver.outputs.version != '' }}
         env:
           OPSQAI_CI_TOKEN: ${{ secrets.OPSQAI_CI_TOKEN }}
           MC_URL: ${{ vars.OPSQAI_MC_URL || 'https://opsqai.de' }}
         shell: pwsh
         run: |
+          if (-not $env:OPSQAI_CI_TOKEN) { Write-Warning 'OPSQAI_CI_TOKEN not set; skipping Management Center upload.'; exit 0 }
           $ver = '${{ steps.ver.outputs.version }}'
           $exe = 'opsqai-windows/build/artifacts/OPSQAI-Setup.exe'
           $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
