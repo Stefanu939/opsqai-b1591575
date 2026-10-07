@@ -240,7 +240,7 @@ function OnboardingWizard() {
       </div>
 
       {step === 1 && (
-        <Panel title="Datele firmei">
+        <Panel title="Datele firmei" className="overflow-visible">
           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
             <div>
               <Label className="text-xs">CUI / CIF</Label>
