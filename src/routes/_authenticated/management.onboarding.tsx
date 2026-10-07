@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Building2, Check, Copy, Dices, Download, Mail, MessageCircle, Package, Rocket, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { ModulePage } from "@/components/app/module-page";
@@ -17,6 +17,8 @@ import { COMPANY_PROFILES } from "@/lib/product-architecture";
 import { createCompany } from "@/lib/companies.functions";
 import { onboardCustomer } from "@/lib/onboarding.functions";
 import { lookupCompanyByCui } from "@/lib/mc-growth.functions";
+import { listCrmLeads } from "@/lib/crm.functions";
+import { cuiFromText, isValidCui } from "@/lib/cui";
 import { AnafSummary, type AnafResult } from "@/components/mc/anaf-profile";
 import { WORKSPACES } from "@/lib/mc-pricing";
 import { generatePassword, mailtoUrl, whatsappUrl } from "@/lib/mc-outreach";
@@ -32,7 +34,8 @@ export const Route = createFileRoute("/_authenticated/management/onboarding")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>): { company?: string; contact?: string; email?: string; phone?: string; cui?: string } => ({
+  validateSearch: (s: Record<string, unknown>): { company?: string; contact?: string; email?: string; phone?: string; cui?: string; lead?: string } => ({
+    lead: typeof s.lead === "string" ? s.lead : undefined,
     cui: typeof s.cui === "string" ? s.cui : typeof s.cui === "number" ? String(s.cui) : undefined,
     company: typeof s.company === "string" ? s.company : undefined,
     contact: typeof s.contact === "string" ? s.contact : undefined,
@@ -86,7 +89,7 @@ function OnboardingWizard() {
   const [anaf, setAnaf] = useState<AnafResult | null>(null);
   const lookup = useServerFn(lookupCompanyByCui);
   const lookupMut = useMutation({
-    mutationFn: () => lookup({ data: { cui } }),
+    mutationFn: (c?: string) => lookup({ data: { cui: c ?? cui } }),
     onSuccess: (r) => {
       if (!r.ok) return toast.error(r.error);
       setAnaf(r);
@@ -107,6 +110,56 @@ function OnboardingWizard() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // CRM prospects: search while typing the company name, and prefill from Kai.
+  const leadsFn = useServerFn(listCrmLeads);
+  const leads = useQuery({ queryKey: ["crm-leads-onboarding"], queryFn: () => leadsFn({ data: {} } as never), retry: false });
+  const [pickOpen, setPickOpen] = useState(false);
+  const leadList = (leads.data as { leads?: Array<{ id: string; company_name: string; contact_name: string | null; email: string | null; phone: string | null; notes: string | null }> } | undefined)?.leads ?? [];
+  const nq = name.trim().toLowerCase();
+  const matches = useMemo(() => (nq.length < 2 ? [] : leadList.filter((l) => l.company_name.toLowerCase().includes(nq)).slice(0, 6)), [leadList, nq]);
+
+  const applyLead = (l: (typeof leadList)[number]) => {
+    setName(l.company_name);
+    if (l.contact_name) {
+      const [f, ...r] = l.contact_name.trim().split(/\s+/);
+      setFirst(f ?? "");
+      setLast(r.join(" "));
+    }
+    if (l.email) setEmail(l.email);
+    if (l.phone) setPhone(l.phone);
+    setPickOpen(false);
+    const c = cuiFromText(l.notes);
+    if (c) {
+      setCui(c);
+      lookupMut.mutate(c);
+    } else toast.info(`${l.company_name}: date preluate din CRM. Nu există CUI verificat — introdu-l pentru ANAF.`);
+  };
+
+  // Arriving from Kai or CRM: fill everything automatically, once.
+  const auto = useRef(false);
+  useEffect(() => {
+    if (auto.current) return;
+    if (pre.lead) {
+      if (!leads.data) return;
+      auto.current = true;
+      const l = leadList.find((x) => x.id === pre.lead);
+      if (l) {
+        if (!pre.contact && !pre.email && !pre.phone) applyLead(l);
+        else {
+          const c = (pre.cui && isValidCui(pre.cui) ? pre.cui : null) ?? cuiFromText(l.notes);
+          if (!pre.email && l.email) setEmail(l.email);
+          if (!pre.phone && l.phone) setPhone(l.phone);
+          if (c) { setCui(c); lookupMut.mutate(c); }
+        }
+        return;
+      }
+    }
+    auto.current = true;
+    if (pre.cui && isValidCui(pre.cui)) lookupMut.mutate(pre.cui);
+    else if (pre.cui) toast.warning("CUI-ul primit nu este valid — verifică-l înainte de ANAF.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leads.data]);
 
   const create = useServerFn(createCompany);
   const onboard = useServerFn(onboardCustomer);
@@ -201,16 +254,48 @@ function OnboardingWizard() {
                   toast.info("Introdu mai întâi CUI-ul firmei pentru a prelua datele din ANAF.");
                   return;
                 }
-                lookupMut.mutate();
+                if (!isValidCui(cui)) {
+                  toast.error("CUI invalid — cifra de control nu se potrivește. Verifică numărul.");
+                  return;
+                }
+                lookupMut.mutate(undefined);
               }}
             >
               <Wand2 className="mr-1.5 h-4 w-4" />{lookupMut.isPending ? "Caut…" : "Completează automat din ANAF"}
             </Button>
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Scrie întâi CUI-ul, apoi apasă butonul. Completarea manuală rămâne standard; butonul e opțional și preia doar datele publice ale firmei.</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Alege firma din CRM (se completează singur) sau scrie CUI-ul și apasă butonul. Datele din ANAF rămân editabile.</p>
           {anaf && <div className="mt-3"><AnafSummary data={anaf} /></div>}
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div><Label className="text-xs">Denumire firmă</Label><Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} /></div>
+            <div className="relative">
+              <Label className="text-xs">Denumire firmă</Label>
+              <Input
+                className="mt-1"
+                value={name}
+                placeholder="Scrie — caut în CRM"
+                onChange={(e) => { setName(e.target.value); setPickOpen(true); }}
+                onFocus={() => setPickOpen(true)}
+                onBlur={() => setTimeout(() => setPickOpen(false), 150)}
+              />
+              {pickOpen && matches.length > 0 && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
+                  {matches.map((l) => (
+                    <button
+                      key={l.id}
+                      type="button"
+                      className="flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-accent"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyLead(l)}
+                    >
+                      <span className="font-medium text-foreground">{l.company_name}</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        CRM · {[l.contact_name, cuiFromText(l.notes) && `CUI ${cuiFromText(l.notes)}`].filter(Boolean).join(" · ") || "fără detalii"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div>
               <Label className="text-xs">Profil companie</Label>
               <Select value={profile} onValueChange={setProfile}>
