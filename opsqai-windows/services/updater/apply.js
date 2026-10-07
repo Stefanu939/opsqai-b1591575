@@ -171,7 +171,7 @@ function preFlight(state, cfg, staged) {
   if (!fs.existsSync(staged.path))
     throw new Error(`staged installer missing: ${staged.path}`);
   const gotSha = sha256File(staged.path);
-  if (staged.sha256 && gotSha.toLowerCase() !== staged.sha256.toLowerCase())
+  if (staged.sha256 && gotSha.toLowerCase() !== String(staged.sha256).trim().replace(/^sha256:/i, "").toLowerCase())
     throw new Error(`staged installer hash mismatch (${gotSha} vs ${staged.sha256})`);
   events.push(log("preflight", `sha256 ${gotSha.slice(0, 12)}… ok`));
 
