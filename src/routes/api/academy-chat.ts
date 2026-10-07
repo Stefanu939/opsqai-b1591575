@@ -155,9 +155,25 @@ export const Route = createFileRoute("/api/academy-chat")({
             language?: string | null;
           };
           if (!body.lessonId) return new Response("lessonId required", { status: 400 });
+          // Selector wins; otherwise infer the language the learner named or wrote in,
+          // so answers are validated and never drift back to the lesson's language.
+          const inferLanguage = (): string | null => {
+            const userText = (body.messages ?? [])
+              .filter((m) => m.role === "user")
+              .flatMap((m) => (m.parts ?? []).map((p) => (p.type === "text" ? p.text : "")))
+              .filter((t) => t && t !== "__BEGIN__")
+              .join(" ")
+              .toLowerCase();
+            if (!userText.trim()) return null;
+            if (/\b(rom[aâ]n[aă]?|romanian|rum[aä]nisch)\b/.test(userText)) return "ro";
+            if (/\b(deutsch|german|germană)\b/.test(userText)) return "de";
+            if (/\b(english|engleză|engleza|englisch)\b/.test(userText)) return "en";
+            if (/[ăâîșț]|\b(și|să|sunt|este|vreau|pentru|care|cum)\b/.test(userText)) return "ro";
+            return null;
+          };
           const chosen = body.language && body.language !== "ask"
             ? normalizeAcademyLanguage(body.language)
-            : null;
+            : inferLanguage();
 
           const lesson = await getAcademyRepository(dataCtx).getLesson(body.lessonId);
           if (!lesson) return new Response("Lesson not found", { status: 404 });
@@ -217,7 +233,32 @@ export const Route = createFileRoute("/api/academy-chat")({
             text = "";
           }
 
-          const finalText = text || FALLBACK_RECAP(lesson, chosen);
+          // The recap quotes the lesson as stored. When the learner chose a
+          // different language, translate it first — never show the learner a
+          // lesson written in another language than the one they selected.
+          let finalText = text;
+          if (!finalText) {
+            const recap = FALLBACK_RECAP(lesson, chosen);
+            if (chosen && chosen !== lessonLanguage) {
+              try {
+                const t = streamText({
+                  model: resolveChatModel("chat"),
+                  system: `Translate the text faithfully into ${academyLanguageInstruction(chosen)}. Do not add, remove or explain anything. Keep codes, product names and Markdown as-is. Output only the translation, in grammatically perfect language.`,
+                  messages: [{ role: "user", content: recap }],
+                  temperature: 0.1,
+                });
+                const translated = (await t.text).trim();
+                finalText =
+                  translated && !academyLanguageQualityIssue(translated, chosen)
+                    ? translated
+                    : (RECAP_LEAD[chosen] ?? RECAP_LEAD.en).replace(/:\s*$/, ".");
+              } catch {
+                finalText = (RECAP_LEAD[chosen] ?? RECAP_LEAD.en).replace(/:\s*$/, ".");
+              }
+            } else {
+              finalText = recap;
+            }
+          }
           const stream = createUIMessageStream<UIMessage>({
             originalMessages: body.messages ?? [],
             execute: ({ writer }) => {
