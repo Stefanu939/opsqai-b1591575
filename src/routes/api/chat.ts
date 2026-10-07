@@ -217,7 +217,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   // The answer is validated before the user ever sees it: a wrong-language or
   // speculative answer is regenerated once, then replaced by the refusal.
   const generate=async(correction?:string)=>{
-    const r=streamText({model:resolveChatModel("chat"),system:correction?`${system}\n\n${correction}`:system,messages:convMessages});
+    const r=streamText({model:resolveChatModel("chat"),system:correction?`${system}\n\n${correction}`:system,messages:convMessages,temperature:0.2});
     return (await r.text).trim();
   };
     // Evidence the answer must stay inside of, used for step/citation checks.
