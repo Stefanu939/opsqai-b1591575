@@ -1,8 +1,10 @@
 // Public ANAF register lookup (TVA register + latest balance sheet). Server-only.
 
+import { isValidCui } from "@/lib/cui";
+
 export async function anafLookup(raw: string) {
   const cui = Number(raw.replace(/\D/g, ""));
-  if (!cui) return { ok: false as const, error: "CUI invalid" };
+  if (!cui || !isValidCui(cui)) return { ok: false as const, error: "CUI invalid (cifra de control nu se potrivește)." };
   try {
     const today = new Date().toISOString().slice(0, 10);
     const res = await fetch("https://webservicesp.anaf.ro/api/PlatitorTvaRest/v9/tva", {

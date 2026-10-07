@@ -31,6 +31,7 @@ import { template as accountDeactivated } from "./account-deactivated";
 import { template as securityAlert } from "./security-alert";
 import { template as installationPackageReady } from "./installation-package-ready";
 import { template as criticalAlert } from "./critical-alert";
+import { template as teamMessage } from "./team-message";
 
 /**
  * Central registry — every OPSQAI transactional email lives here.
@@ -43,6 +44,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "support-ticket-created": supportTicketCreated,
   "support-reply": supportReply,
   "test-email": testEmail,
+  "team-message": teamMessage,
   welcome: welcome,
   "password-changed": passwordChanged,
   "role-changed": roleChanged,

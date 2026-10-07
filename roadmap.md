@@ -24,3 +24,9 @@
 - [x] CRM lead câștigat → buton „Client” deschide wizard-ul completat
 - [x] Kai — Management Center AI assistant (side panel, ⌘K, ANAF CUI analysis, one-click WhatsApp/email/call/CRM actions; human-triggered)
 - [x] Kai web research (internet search + CUI discovery + ANAF verification)
+
+## Kai executive (2026-10-07)
+- [x] Verified CUIs only (control digit + name match), CRM CUI in Kai
+- [x] Onboarding auto-fills from CRM lead + ANAF
+- [x] Kai: time off, meetings, tasks, team email (@opsqai.de, superadmin)
+- [ ] Kai JARVIS neural voice + Car Mode (next)

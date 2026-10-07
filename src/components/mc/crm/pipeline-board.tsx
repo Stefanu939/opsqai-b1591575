@@ -160,6 +160,7 @@ export function PipelineBoard({
                                 contact: lead.contact_name ?? undefined,
                                 email: lead.email ?? undefined,
                                 phone: lead.phone ?? undefined,
+                                lead: lead.id,
                               },
                             });
                           }}

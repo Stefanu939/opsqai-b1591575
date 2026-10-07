@@ -9,6 +9,7 @@ import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
+import { cuiFromText, isValidCui, nameMatches } from "@/lib/cui";
 
 export type KaiAction =
   | { type: "open"; label: string; to: string; id?: string }
@@ -16,7 +17,11 @@ export type KaiAction =
   | { type: "email"; label: string; email?: string; subject: string; body: string }
   | { type: "call"; label: string; phone: string }
   | { type: "pricing"; label: string; company_name: string; contact_name?: string; employees?: number; workstations?: number; workspaces?: string[] }
-  | { type: "onboard"; label: string; company_name: string; cui?: string; contact_name?: string; phone?: string; email?: string }
+  | { type: "onboard"; label: string; company_name: string; cui?: string; contact_name?: string; phone?: string; email?: string; lead_id?: string }
+  | { type: "time_off"; label: string; starts_on: string; ends_on: string; reason?: string }
+  | { type: "calendar"; label: string; title: string; starts_at: string; ends_at?: string; kind?: "meeting" | "deadline"; description?: string; location?: string }
+  | { type: "task"; label: string; title: string; due_at: string; description?: string }
+  | { type: "team_email"; label: string; to: string[]; subject: string; body: string }
   | { type: "doc"; label: string; kind: "onepager" | "security"; company_name: string; cui?: string; contact_name?: string; industry?: string; employees?: number }
   | { type: "debrief"; label: string; company_name: string; lead_id?: string; summary: string; stage?: string; next_action_at?: string; contact_name?: string }
   | {
@@ -56,8 +61,14 @@ export const askKai = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<KaiReply> => {
     await requirePlatformAdmin(context as never);
+    const superadmin = await isSuperadmin(context as never);
     const admin = await getCloudSupabaseAdmin("kai");
     const now = Date.now();
+    const team = superadmin
+      ? ((await admin.auth.admin.listUsers({ perPage: 200 })).data?.users ?? [])
+          .filter((u) => u.email && isTeamAddress(u.email))
+          .map((u) => ({ full_name: (u.user_metadata?.full_name as string | undefined) ?? null, email: u.email! }))
+      : [];
 
     const [companies, licenses, installs, leads] = await Promise.all([
       admin.from("companies").select("id, name, subscription_status, business_type, install_id, created_at").limit(300),
@@ -69,7 +80,7 @@ export const askKai = createServerFn({ method: "POST" })
       admin.from("license_installs").select("install_id, last_heartbeat_at, app_version, user_count").limit(300),
       admin
         .from("crm_leads")
-        .select("id, company_name, contact_name, phone, email, stage, status, next_action_at, value_amount, last_activity_at")
+        .select("id, company_name, contact_name, phone, email, stage, status, next_action_at, value_amount, last_activity_at, notes")
         .order("updated_at", { ascending: false })
         .limit(150),
     ]);
@@ -94,10 +105,13 @@ export const askKai = createServerFn({ method: "POST" })
         const name = licByInstall.get(i.install_id)?.company_name ?? compByInstall.get(i.install_id)?.name ?? i.install_id.slice(0, 10);
         return `${name} | ${i.app_version ?? "—"} | ${fmt(i.last_heartbeat_at)} | ${h ?? "niciodată"} | ${i.user_count ?? "—"}`;
       }),
-      `PROSPECȚI CRM: lead_id | nume | contact | telefon | email | etapă | status | următoarea acțiune | ultima activitate | valoare`,
+      `PROSPECȚI CRM: lead_id | nume | CUI (din note, verificat) | contact | telefon | email | etapă | status | următoarea acțiune | ultima activitate | valoare`,
       ...(leads.data ?? []).map(
-        (l) => `${l.id} | ${l.company_name} | ${l.contact_name ?? "—"} | ${l.phone ?? "—"} | ${l.email ?? "—"} | ${l.stage} | ${l.status} | ${fmt(l.next_action_at)} | ${fmt(l.last_activity_at)} | ${l.value_amount ?? "—"}`,
+        (l) => `${l.id} | ${l.company_name} | ${cuiFromText(l.notes) ?? "—"} | ${l.contact_name ?? "—"} | ${l.phone ?? "—"} | ${l.email ?? "—"} | ${l.stage} | ${l.status} | ${fmt(l.next_action_at)} | ${fmt(l.last_activity_at)} | ${l.value_amount ?? "—"}`,
       ),
+      ...(superadmin
+        ? [`ECHIPA OPSQAI (singurii destinatari permiși pentru team_email): nume | email`, ...team.map((t) => `${t.full_name ?? "—"} | ${t.email}`)]
+        : []),
     ].join("\n");
 
     const last = data.messages[data.messages.length - 1].content;
@@ -107,6 +121,7 @@ export const askKai = createServerFn({ method: "POST" })
     // the results and pulls CUIs out of them for ANAF verification.
     let webBlock = "";
     const foundCuis: string[] = [];
+    const webContext = new Map<string, string>();
     if (/\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search)/i.test(last)) {
       try {
         const planRaw = await generateAiJson({
@@ -127,10 +142,15 @@ export const askKai = createServerFn({ method: "POST" })
             "\nREZULTATE CĂUTARE WEB [Web] (tocmai efectuată; folosește doar ce apare aici):\n" +
             results.map((r) => `- ${r.title} | ${r.url} | ${r.snippet.slice(0, 1500)}`).join("\n");
           for (const r of results) {
-            for (const m of `${r.title} ${r.snippet}`.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{6,10})\b/gi)) {
-              foundCuis.push(m[1]);
-            }
-            for (const m of r.snippet.matchAll(/\|\s*(?:RO)?(\d{4,10})\s*\|\s*[JFC]\d/g)) foundCuis.push(m[1]);
+            const text = `${r.title} ${r.snippet}`;
+            const add = (c: string, at: number) => {
+              if (!isValidCui(c)) return;
+              foundCuis.push(c);
+              // Keep the text right around the number: the company name must appear there.
+              webContext.set(c, `${webContext.get(c) ?? ""} ${r.title} ${text.slice(Math.max(0, at - 160), at + 60)}`);
+            };
+            for (const m of text.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{2,10})\b/gi)) add(m[1], m.index ?? 0);
+            for (const m of text.matchAll(/\|\s*(?:RO)?(\d{4,10})\s*\|\s*[JFC]\d/g)) add(m[1], m.index ?? 0);
           }
         }
       } catch (e) {
@@ -139,27 +159,33 @@ export const askKai = createServerFn({ method: "POST" })
       }
     }
 
-    // ANAF lookups for CUIs in the message or found on the web.
-    const cuis = Array.from(
-      new Set([...(last.match(/\b(?:RO)?\d{6,10}\b/gi) ?? []).map((c) => c.replace(/\D/g, "")), ...foundCuis]),
-    ).slice(0, 6);
+    // ANAF lookups for CUIs in the message or found on the web. Only codes
+    // with a valid control digit are queried; a code found on the web is
+    // kept only when the ANAF name also appears next to it on that page.
+    const typed = (last.match(/\b(?:RO)?\d{2,10}\b/gi) ?? []).map((c) => c.replace(/\D/g, "")).filter((c) => c.length >= 4 && isValidCui(c));
+    const cuis = Array.from(new Set([...typed, ...foundCuis])).slice(0, 8);
     let anafBlock = "";
     if (cuis.length) {
       const { anafLookup } = await import("@/lib/anaf.server");
       const results = await Promise.all(cuis.map((c) => anafLookup(c)));
-      anafBlock =
-        "\nDATE ANAF [ANAF] (publice, tocmai interogate):\n" +
-        results
-          .map((r, i) =>
-            r.ok
-              ? JSON.stringify({
-                  cui: r.cui, nume: r.name, adresa: r.address, telefon: r.phone, reg_com: r.reg_com,
-                  caen: r.caen, activitate: r.caen_name, judet: r.county, oras: r.city,
-                  tva: r.vat_payer, inactiva: r.inactive, radiata: r.deregistered, financiar: r.financials,
-                })
-              : `CUI ${cuis[i]}: ${r.error}`,
-          )
-          .join("\n");
+      const lines: string[] = [];
+      results.forEach((r, i) => {
+        const c = cuis[i];
+        const fromWeb = !typed.includes(c);
+        if (!r.ok) {
+          if (!fromWeb) lines.push(`CUI ${c}: ${r.error}`);
+          return;
+        }
+        if (fromWeb && !nameMatches(r.name, webContext.get(c) ?? "")) return; // number belonged to another firm
+        lines.push(
+          JSON.stringify({
+            cui: r.cui, nume: r.name, adresa: r.address, telefon: r.phone, reg_com: r.reg_com,
+            caen: r.caen, activitate: r.caen_name, judet: r.county, oras: r.city,
+            tva: r.vat_payer, inactiva: r.inactive, radiata: r.deregistered, financiar: r.financials,
+          }),
+        );
+      });
+      if (lines.length) anafBlock = "\nDATE ANAF [ANAF] (publice, tocmai interogate, CUI verificat):\n" + lines.join("\n");
     }
 
     const system = `Ești Kai, asistentul echipei OPSQAI în Management Center. Vorbești ca un coleg prietenos, scurt și concret, în română corectă cu diacritice (sau în limba în care ți se scrie).
@@ -173,6 +199,12 @@ Reguli:
 - Când ți se cere one-pager / prezentare / fișă de securitate / GDPR pentru o firmă, propui acțiunea "doc" (kind "onepager" sau "security"). PDF-ul e generat din șablon aprobat; nu îi inventa conținutul în text.
 - Când ți se cere ce follow-up-uri sunt de făcut, folosește PROSPECȚI CRM (status open): termen depășit, azi, sau etape demo/pilot/offer fără activitate de 3+ zile. Pentru fiecare propui "whatsapp"/"call"/"email" cu un mesaj scurt de revenire.
 - DEBRIEF: când utilizatorul îți povestește un apel/întâlnire, extragi firma, rezumatul structurat (ce s-a discutat, nr. stații, ce a cerut clientul), etapa nouă dacă reiese clar, și data următoarei acțiuni (ISO, calculată față de data de azi). Propui acțiunea "debrief" (cu lead_id din CRM dacă firma există). Nu spui că ai salvat — omul confirmă butonul. Dacă clientul a cerut un document, propui și "doc".
+- ONBOARD din CRM: dacă firma există în PROSPECȚI CRM, pui în "onboard" lead_id-ul, CUI-ul din coloana CUI și contactul/telefonul/emailul din CRM — formularul în 3 pași se completează automat din ANAF.
+- CUI: folosești DOAR CUI-uri din coloana CUI a CRM sau din DATE ANAF. Nu scrii niciodată un CUI văzut doar pe web sau dedus. Dacă nu ai CUI verificat, lași câmpul "cui" gol și spui că trebuie verificat.
+- CONCEDIU: când utilizatorul cere concediu pentru el, propui "time_off" (starts_on/ends_on YYYY-MM-DD, calculate față de data de azi). Concediul se înregistrează pe contul celui care apasă butonul.
+- ȘEDINȚE: când ți se cere o ședință/întâlnire în calendar, propui "calendar" (starts_at YYYY-MM-DDTHH:mm ora României, ends_at implicit +1h).
+- TASK: când ți se cere un task / reminder / „să nu uit”, propui "task" cu due_at YYYY-MM-DDTHH:mm.
+- EMAIL INTERN: ${superadmin ? `poți propune "team_email" DOAR către adrese @${TEAM_DOMAIN} din ECHIPA OPSQAI. Niciodată către clienți sau alte domenii — pentru clienți folosești "email" (se deschide în aplicația de mail, omul trimite).` : `utilizatorul curent NU este superadmin, deci nu propui "team_email"; spune că doar un superadmin poate trimite emailuri interne prin Kai.`}
 - Nu trimiți nimic singur. Pentru mesaje propui butoane pe care omul le apasă.
 - Nu spui niciodată că OPSQAI e certificat ISO/DORA; clientul rămâne operatorul datelor.
 - Poți face research pe internet: când ți se cere să cauți firme, primești mai jos REZULTATE CĂUTARE WEB și DATE ANAF verificate. Prezintă firmele găsite (nume, CUI, oraș, angajați, cifră de afaceri, de ce se potrivesc), citează sursa (link) și propune pentru fiecare „Adaugă în CRM”. Nu inventa CUI-uri: dacă un CUI nu e confirmat de ANAF, spune că trebuie verificat.
@@ -187,7 +219,11 @@ Acțiuni permise (maxim 12, doar când sunt utile):
 {"type":"whatsapp","label":"...","phone":"...","text":"mesajul complet"}
 {"type":"email","label":"...","email":"...","subject":"...","body":"..."}
 {"type":"call","label":"...","phone":"..."}
-{"type":"onboard","label":"Înrolează <firma> (3 pași)","company_name":"...","cui":"...","contact_name":"...","phone":"...","email":"..."}
+{"type":"onboard","label":"Înrolează <firma> (3 pași)","company_name":"...","cui":"<doar verificat>","contact_name":"...","phone":"...","email":"...","lead_id":"<din CRM, dacă există>"}
+{"type":"time_off","label":"Setează concediu 15–20 nov","starts_on":"YYYY-MM-DD","ends_on":"YYYY-MM-DD","reason":"..."}
+{"type":"calendar","label":"Adaugă ședința în calendar","title":"...","starts_at":"YYYY-MM-DDTHH:mm","ends_at":"YYYY-MM-DDTHH:mm","kind":"meeting","description":"...","location":"..."}
+{"type":"task","label":"Adaugă task","title":"...","due_at":"YYYY-MM-DDTHH:mm","description":"..."}${superadmin ? `
+{"type":"team_email","label":"Trimite email echipei","to":["nume@${TEAM_DOMAIN}"],"subject":"...","body":"text simplu"}` : ""}
 {"type":"pricing","label":"Vezi prețul pentru <firma>","company_name":"...","contact_name":"...","employees":<nr angajați din ANAF/DB, opțional>,"workstations":<aprox. angajați/10>,"workspaces":["opsqai_transport"|"opsqai_hr"]}
 {"type":"add_lead","label":"Adaugă <firma> în CRM","company_name":"...","contact_name":"...","phone":"...","email":"...","notes":"CUI, CAEN, angajați, cifră de afaceri"}
 {"type":"doc","label":"Descarcă fișa de securitate pentru <firma>","kind":"onepager"|"security","company_name":"...","cui":"...","contact_name":"...","industry":"CAEN/activitate","employees":<nr>}
@@ -212,10 +248,25 @@ ${snapshot}${webBlock}${anafBlock}`;
       console.error("[kai]", e);
       return { reply: "Nu am putut răspunde acum. Mai încearcă o dată.", actions: [] };
     }
-    return parseKai(raw);
+    return parseKai(raw, superadmin);
   });
 
-function parseKai(raw: string): KaiReply {
+const TEAM_DOMAIN = "opsqai.de";
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+/** True only for the platform owner or an explicit superadmin role. */
+async function isSuperadmin(context: { supabase: unknown; userId: string }) {
+  const { getActorRoles } = await import("@/lib/authorization");
+  const r = await getActorRoles(context.supabase, context.userId);
+  return r.isPlatformOwner || r.roles.some((x) => x === "superadmin" || x === "platform_owner");
+}
+
+export function isTeamAddress(email: string) {
+  return new RegExp(`^[^@\\s]+@${TEAM_DOMAIN.replace(".", "\\.")}$`, "i").test(email.trim());
+}
+
+function parseKai(raw: string, superadmin = false): KaiReply {
   const m = raw.match(/\{[\s\S]*\}/);
   try {
     const j = JSON.parse(m ? m[0] : raw) as { reply?: unknown; actions?: unknown };
@@ -232,7 +283,18 @@ function parseKai(raw: string): KaiReply {
         if (x.type === "email") return typeof x.subject === "string" && typeof x.body === "string";
         if (x.type === "call") return typeof x.phone === "string" && x.phone.length > 3;
         if (x.type === "pricing") return typeof x.company_name === "string" && x.company_name.length > 0;
-        if (x.type === "onboard") return typeof x.company_name === "string" && x.company_name.length > 0;
+        if (x.type === "onboard") {
+          if (typeof x.cui === "string" && !isValidCui(x.cui)) delete x.cui; // never pass an unverifiable CUI
+          return typeof x.company_name === "string" && x.company_name.length > 0;
+        }
+        if (x.type === "time_off") return typeof x.starts_on === "string" && DATE_RE.test(x.starts_on) && typeof x.ends_on === "string" && DATE_RE.test(x.ends_on) && x.ends_on >= x.starts_on;
+        if (x.type === "calendar") return typeof x.title === "string" && x.title.length > 0 && typeof x.starts_at === "string" && DT_RE.test(x.starts_at);
+        if (x.type === "task") return typeof x.title === "string" && x.title.length > 0 && typeof x.due_at === "string" && DT_RE.test(x.due_at);
+        if (x.type === "team_email") {
+          if (!superadmin || !Array.isArray(x.to) || typeof x.subject !== "string" || typeof x.body !== "string") return false;
+          x.to = (x.to as unknown[]).filter((e): e is string => typeof e === "string" && isTeamAddress(e)).slice(0, 20);
+          return (x.to as string[]).length > 0;
+        }
         if (x.type === "add_lead") return typeof x.company_name === "string" && x.company_name.length > 0;
         if (x.type === "doc") return (x.kind === "onepager" || x.kind === "security") && typeof x.company_name === "string" && x.company_name.length > 0;
         if (x.type === "debrief") return typeof x.company_name === "string" && x.company_name.length > 0 && typeof x.summary === "string" && x.summary.length > 0;
@@ -303,4 +365,41 @@ export const listKaiActions = createServerFn({ method: "POST" })
       approved_at: string; executed_at: string | null; status: string; action_type: string;
       label: string; target: string | null; error: string | null;
     }>;
+  });
+
+// ---------- Internal team email (superadmin only, @opsqai.de only) ----------
+
+export const sendTeamEmail = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        to: z.array(z.string().email()).min(1).max(20),
+        subject: z.string().trim().min(1).max(200),
+        body: z.string().trim().min(1).max(8000),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context as never);
+    if (!(await isSuperadmin(context as never))) throw new Error("Doar un superadmin poate trimite emailuri interne prin Kai.");
+    const bad = data.to.filter((e) => !isTeamAddress(e));
+    if (bad.length) throw new Error(`Kai trimite doar către echipa OPSQAI (@${TEAM_DOMAIN}). Refuzat: ${bad.join(", ")}`);
+    const ctx = context as unknown as { claims?: { email?: string } };
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+    const sent: string[] = [];
+    const failed: string[] = [];
+    for (const to of data.to) {
+      try {
+        const r = await sendTemplateEmail("team-message", to, {
+          templateData: { subject: data.subject, body: data.body, sender: ctx.claims?.email ?? "OPSQAI" },
+          replyTo: ctx.claims?.email,
+        });
+        (r.sent ? sent : failed).push(to);
+      } catch (e) {
+        console.error("[kai-team-email]", e);
+        failed.push(to);
+      }
+    }
+    return { sent, failed };
   });
