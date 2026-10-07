@@ -142,6 +142,13 @@ export const Route = createFileRoute("/api/public/v1/updates/check")({
           publishedAt: string | null;
         }
 
+        // Release rows may store "sha256:<hex>" (CI/MC format); installations
+        // compare against the bare lowercase hex digest.
+        const normSha = (v: string | null | undefined) => {
+          const h = (v ?? "").trim().replace(/^sha256:/i, "").toLowerCase();
+          return /^[a-f0-9]{64}$/.test(h) ? h : null;
+        };
+
         const isHttpUrl = (v: string | null | undefined) =>
           typeof v === "string" && /^https?:\/\//i.test(v);
 
@@ -153,7 +160,7 @@ export const Route = createFileRoute("/api/public/v1/updates/check")({
             minVersion: r.min_supported ?? null,
             storagePath: r.package_storage_path ?? null,
             directUrl: isHttpUrl(r.docker_image) ? r.docker_image : null,
-            sha256: r.checksum ?? null,
+            sha256: normSha(r.checksum),
             size: null,
             tagName: null,
             publishedAt: r.published_at ?? null,
@@ -165,7 +172,7 @@ export const Route = createFileRoute("/api/public/v1/updates/check")({
             minVersion: r.min_version ?? null,
             storagePath: r.package_storage_path ?? null,
             directUrl: isHttpUrl(r.zip_url) ? r.zip_url : null,
-            sha256: r.exe_sha256 ?? null,
+            sha256: normSha(r.exe_sha256),
             size: r.exe_size_bytes ?? r.zip_size_bytes ?? null,
             tagName: r.tag_name ?? null,
             publishedAt: r.published_at ?? null,

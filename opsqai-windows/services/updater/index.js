@@ -145,7 +145,7 @@ function download(url, dest, expectedSha256, meta = {}) {
         out.on("finish", () => {
           out.close();
           const got = hash.digest("hex");
-          if (got !== expectedSha256.toLowerCase()) {
+          if (got !== String(expectedSha256).trim().replace(/^sha256:/i, "").toLowerCase()) {
             fs.unlinkSync(tmp);
             writeProgress({ phase: "failed", version: meta.version ?? null, received, total, error: "sha256 mismatch" });
             return reject(new Error(`sha256 mismatch (want ${expectedSha256}, got ${got})`));
