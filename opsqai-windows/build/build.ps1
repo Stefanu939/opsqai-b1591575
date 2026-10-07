@@ -404,10 +404,10 @@ $sevenZip = Join-Path $toolsDest '7zr.exe'
 # Mirrors matter: www.7-zip.org intermittently fails DNS resolution on GitHub
 # runners ("No such host is known"). Integrity is guaranteed by the SHA-256 pin
 # checked immediately below, so alternate hosts are safe.
-Fetch 'https://www.7-zip.org/a/7zr.exe' $sevenZip @(
-  'https://7-zip.org/a/7zr.exe',
-  'http://www.7-zip.org/a/7zr.exe',
-  'https://sourceforge.net/projects/sevenzip/files/7-Zip/24.09/7zr.exe/download'
+# Versioned URL (never changes content) so the SHA-256 pin stays valid when
+# 7-Zip publishes a new 'latest' 7zr.exe.
+Fetch 'https://github.com/ip7z/7zip/releases/download/25.01/7zr.exe' $sevenZip @(
+  'https://sourceforge.net/projects/sevenzip/files/7-Zip/25.01/7zr.exe/download'
 )
 $sevenZipSha = (Get-FileHash -Algorithm SHA256 -Path $sevenZip).Hash.ToLowerInvariant()
 # The pin lives in build\vendor-pins.json so Release builds do not depend on
