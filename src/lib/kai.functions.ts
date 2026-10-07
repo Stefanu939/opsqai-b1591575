@@ -139,7 +139,8 @@ export const askKai = createServerFn({ method: "POST" })
     let webBlock = "";
     const foundCuis: string[] = [];
     const webContext = new Map<string, string>();
-    if (/\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search)/i.test(last)) {
+    const offTopic = /(cod(uri)? de reducere|cupon|voucher|discount|reduceri la|nike|adidas|zara|emag|horoscop|rețet|retet|meci|pariu)/i.test(last);
+    if (!offTopic && /\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search)/i.test(last)) {
       try {
         const planRaw = await generateAiJson({
           role: "chat-fast",
