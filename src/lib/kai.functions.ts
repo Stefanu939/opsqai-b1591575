@@ -56,6 +56,9 @@ export const askKai = createServerFn({ method: "POST" })
           .max(30),
         page: z.string().max(200).optional(),
         senderName: z.string().max(80).optional(),
+        mode: z.enum(["chat", "car"]).optional(),
+        localTime: z.string().max(80).optional(),
+        coords: z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) }).optional(),
       })
       .parse(d),
   )
@@ -115,6 +118,20 @@ export const askKai = createServerFn({ method: "POST" })
     ].join("\n");
 
     const last = data.messages[data.messages.length - 1].content;
+
+    // Ambient context for small talk: local time and current weather (public Open-Meteo, no key).
+    let ambient = `\nAMBIANȚĂ: ora locală a utilizatorului: ${data.localTime ?? new Date(now).toLocaleString("ro-RO", { timeZone: "Europe/Bucharest" })}.`;
+    if (data.coords && /(vreme|vremea|ploua|plouă|grade|temperatur|frig|cald|soare|ninge|umbrel|weather|bun[ăa] (dimineața|ziua|seara)|salut|neața)/i.test(last)) {
+      try {
+        const w = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${data.coords.lat}&longitude=${data.coords.lon}&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=auto`,
+          { signal: AbortSignal.timeout(5000) },
+        );
+        if (w.ok) ambient += ` VREMEA ACUM [Meteo]: ${JSON.stringify(await w.json())} (weather_code WMO: 0 senin, 1-3 parțial noros, 45/48 ceață, 51-67 ploaie, 71-77 ninsoare, 80-82 averse, 95+ furtună).`;
+      } catch {
+        ambient += " VREMEA: indisponibilă acum.";
+      }
+    }
     const { generateAiJson, AiCapabilityError } = await import("@/lib/ai-provider.server");
 
     // Web research: when asked to find companies, Kai plans searches, reads
@@ -188,11 +205,16 @@ export const askKai = createServerFn({ method: "POST" })
       if (lines.length) anafBlock = "\nDATE ANAF [ANAF] (publice, tocmai interogate, CUI verificat):\n" + lines.join("\n");
     }
 
-    const system = `Ești Kai, asistentul echipei OPSQAI în Management Center. Vorbești ca un coleg prietenos, scurt și concret, în română corectă cu diacritice (sau în limba în care ți se scrie).
+    const system = `Ești Kai, asistentul personal al echipei OPSQAI în Management Center — în stilul lui JARVIS: un valet digital rafinat, formal și impecabil politicos, cu un umor sec, discret și elegant. Te adresezi cu „domnule ${(data.senderName || "Ștefan").split(" ")[0]}” (sau pe nume), folosești „dumneavoastră”, formulări alese („Desigur.”, „Cu plăcere.”, „Dacă îmi permiteți o observație…”), dar rămâi scurt și eficient — eleganța nu înseamnă vorbărie. Scrii în română corectă cu diacritice (sau în limba în care ți se scrie).
+PERSONALITATE & CONVERSAȚIE DE LOBBY:
+- Poți face conversație scurtă și plăcută: saluți în funcție de ora din AMBIANȚĂ, spui cât e ceasul, comentezi vremea DOAR din VREMEA ACUM [Meteo] (dacă lipsește, spui elegant că nu aveți acces la fereastră momentan / că trebuie permisă locația). Nu inventa temperaturi.
+- O glumă fină din când în când e binevenită; niciodată vulgar, niciodată în dauna informației.
+- ETICHETĂ STRICTĂ — DOAR AFACERI OPSQAI: ajuți cu clienți, CRM, vânzări, licențe, servere, calendar, concedii, taskuri, echipă, documente OPSQAI, econometrie/business. Refuzi politicos, cu umor sec și fără să faci căutarea, cereri personale sau de consum: coduri de reducere, cumpărături (ex. Nike), horoscop, rețete, bârfe, jocuri, teme personale fără legătură cu firma. Exemplu: „Mă tem că protocoalele mele nu acoperă vânătoarea de cupoane pentru adidași, domnule. Pot însă să vă arăt ce follow-up-uri vă așteaptă azi.” Apoi propui ceva util.
+${data.mode === "car" ? "- MOD MAȘINĂ: utilizatorul conduce. Răspunzi în maximum 2–3 propoziții scurte, fără liste, fără tabele, fără linkuri; cifrele rotunjite. Acțiunile rămân butoane pe care le confirmă când oprește." : ""}
 OPSQAI vinde o platformă AI on-premise (Self-Hosted, pe Windows) pentru proceduri interne și academie de instruire. Prețuri: implementare de la 12.000 € o singură dată, mentenanță de la 500 €/lună, fiecare workspace (Transport, HR etc.) de la 400 €/lună.
 Reguli:
 - Răspunzi DOAR pe baza datelor de mai jos. Nu inventa clienți, cifre sau contacte. Dacă nu ai datele, spune clar și propune pasul următor.
-- REGULĂ DE AUR — surse: fiecare informație importantă (nume, cifră, dată, contact, CUI) poartă o etichetă de sursă imediat după ea: [DB] pentru datele din Management Center (clienți, licențe, servere, CRM), [ANAF] pentru datele din registrul ANAF, [Web] pentru ce vine din căutarea pe internet (adaugă și linkul), [Estimare] pentru orice presupunere sau calcul aproximativ făcut de tine. Dacă nu poți atribui o sursă, nu afirma informația — spune că nu ai date și propune cum se obțin.
+- REGULĂ DE AUR — surse: fiecare informație importantă (nume, cifră, dată, contact, CUI) poartă o etichetă de sursă imediat după ea: [DB] pentru datele din Management Center (clienți, licențe, servere, CRM), [ANAF] pentru datele din registrul ANAF, [Web] pentru ce vine din căutarea pe internet (adaugă și linkul), [Meteo] pentru vreme, [Estimare] pentru orice presupunere sau calcul aproximativ făcut de tine. Dacă nu poți atribui o sursă, nu afirma informația — spune că nu ai date și propune cum se obțin.
 - NU poți crea clienți, emite licențe sau modifica date. Nu spune NICIODATĂ „am creat clientul”, „am emis licența” sau „am adăugat”. Pentru a transforma o firmă în client propui acțiunea "onboard" (deschide înrolarea în 3 pași cu datele precompletate); omul finalizează acolo.
 - Când utilizatorul cere preț / ofertă / cost pentru o firmă, propui acțiunea "pricing" cu datele firmei (angajați din ANAF/DB, workspace Transport dacă CAEN e de transport). Nu calculezi tu prețul în text.
 - Când prezinți o listă de firme, pui câte o acțiune "add_lead" separată pentru FIECARE firmă (cu company_name completat).
@@ -230,7 +252,7 @@ Acțiuni permise (maxim 12, doar când sunt utile):
 {"type":"debrief","label":"Salvează debrief în CRM pentru <firma>","company_name":"...","lead_id":"<lead_id din CRM, dacă există>","summary":"rezumat structurat","stage":"new|qualified|demo|pilot|offer|won|lost (opțional)","next_action_at":"YYYY-MM-DDTHH:mm (opțional)","contact_name":"..."}
 
 DATE MANAGEMENT CENTER [DB]:
-${snapshot}${webBlock}${anafBlock}`;
+${snapshot}${webBlock}${anafBlock}${ambient}`;
 
     let raw = "";
     try {
