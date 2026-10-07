@@ -107,6 +107,7 @@ export const askKai = createServerFn({ method: "POST" })
     // the results and pulls CUIs out of them for ANAF verification.
     let webBlock = "";
     const foundCuis: string[] = [];
+    const webContext = new Map<string, string>();
     if (/\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search)/i.test(last)) {
       try {
         const planRaw = await generateAiJson({
@@ -127,10 +128,15 @@ export const askKai = createServerFn({ method: "POST" })
             "\nREZULTATE CĂUTARE WEB [Web] (tocmai efectuată; folosește doar ce apare aici):\n" +
             results.map((r) => `- ${r.title} | ${r.url} | ${r.snippet.slice(0, 1500)}`).join("\n");
           for (const r of results) {
-            for (const m of `${r.title} ${r.snippet}`.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{6,10})\b/gi)) {
-              foundCuis.push(m[1]);
-            }
-            for (const m of r.snippet.matchAll(/\|\s*(?:RO)?(\d{4,10})\s*\|\s*[JFC]\d/g)) foundCuis.push(m[1]);
+            const text = `${r.title} ${r.snippet}`;
+            const add = (c: string, at: number) => {
+              if (!isValidCui(c)) return;
+              foundCuis.push(c);
+              // Keep the text right around the number: the company name must appear there.
+              webContext.set(c, `${webContext.get(c) ?? ""} ${r.title} ${text.slice(Math.max(0, at - 160), at + 60)}`);
+            };
+            for (const m of text.matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s]*(?:RO)?\s?(\d{2,10})\b/gi)) add(m[1], m.index ?? 0);
+            for (const m of text.matchAll(/\|\s*(?:RO)?(\d{4,10})\s*\|\s*[JFC]\d/g)) add(m[1], m.index ?? 0);
           }
         }
       } catch (e) {
