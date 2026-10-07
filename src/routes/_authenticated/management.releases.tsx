@@ -335,6 +335,43 @@ function ReleasesPage() {
         <NewReleaseDialog onCreate={(v) => createMut.mutate(v)} pending={createMut.isPending} />
       }
     >
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit checksum — {editing?.version}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="sha-edit">SHA-256 (64 hex characters)</Label>
+            <Input
+              id="sha-edit"
+              value={shaDraft}
+              onChange={(e) => setShaDraft(e.target.value)}
+              placeholder="e.g. 3f2a…"
+              className="font-mono text-xs"
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              On Windows: <code>Get-FileHash .\OPSQAI-Setup.exe -Algorithm SHA256</code>. Installations
+              reject the package if this value doesn't match the file.
+            </p>
+            {shaDraft && !shaValid && (
+              <p className="text-xs text-destructive">Must be exactly 64 hex characters.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!shaValid || checksumMut.isPending}
+              onClick={() => editing && checksumMut.mutate({ id: editing.id, sha256: shaClean })}
+            >
+              Save checksum
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <StatCard
           label="Active installs with portal access"
