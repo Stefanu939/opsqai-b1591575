@@ -25,12 +25,28 @@ const pdfLibTslib = {
   },
 };
 
+// Safety net: some config versions emit a top-level `createRequire(import.meta.url)`
+// in the server runtime. On Cloudflare Workers `import.meta.url` is undefined, so
+// every published page crashed with a 500. Give it a fallback after minification.
+const workerImportMetaUrlFallback = {
+  name: "opsqai-worker-import-meta-url-fallback",
+  enforce: "post" as const,
+  generateBundle(this: { environment?: { name?: string } }, _opts: unknown, bundle: Record<string, { type: string; code?: string }>) {
+    if (this.environment?.name === "client") return;
+    for (const chunk of Object.values(bundle)) {
+      if (chunk.type !== "chunk" || !chunk.code) continue;
+      if (!chunk.code.includes("(import.meta.url)")) continue;
+      chunk.code = chunk.code.replace(/\(import\.meta\.url\)/g, '(import.meta.url||"file:///worker/index.js")');
+    }
+  },
+};
+
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
   vite: {
-    plugins: [pdfLibTslib, mcpPlugin()],
+    plugins: [pdfLibTslib, mcpPlugin(), workerImportMetaUrlFallback],
     ...(selfhostAliases ? { resolve: { alias: selfhostAliases } } : {}),
   },
 });
