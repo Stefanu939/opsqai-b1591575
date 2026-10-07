@@ -185,6 +185,7 @@ import { Route as AuthenticatedAppProductsTransportWorkspaceRouteImport } from '
 import { Route as ApiPublicV1HrReviewRouteImport } from './routes/api/public/v1/hr/review'
 import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
+import { Route as ApiPublicV1ReleasesCiRouteImport } from './routes/api/public/v1/releases/ci'
 import { Route as ApiPublicV1SocialPublishDueRouteImport } from './routes/api/public/v1/social/publish-due'
 import { Route as ApiPublicV1UpdatesCheckRouteImport } from './routes/api/public/v1/updates/check'
 import { Route as ApiPublicV1UpdatesPeerPackageRouteImport } from './routes/api/public/v1/updates/peer-package'
@@ -1145,6 +1146,11 @@ const ApiPublicV1LicenseReleasesRoute =
     path: '/api/public/v1/license/releases',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1ReleasesCiRoute = ApiPublicV1ReleasesCiRouteImport.update({
+  id: '/api/public/v1/releases/ci',
+  path: '/api/public/v1/releases/ci',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1SocialPublishDueRoute =
   ApiPublicV1SocialPublishDueRouteImport.update({
     id: '/api/public/v1/social/publish-due',
@@ -1339,6 +1345,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
+  '/api/public/v1/releases/ci': typeof ApiPublicV1ReleasesCiRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
   '/api/public/v1/updates/check': typeof ApiPublicV1UpdatesCheckRoute
   '/api/public/v1/updates/peer-package': typeof ApiPublicV1UpdatesPeerPackageRoute
@@ -1512,6 +1519,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
+  '/api/public/v1/releases/ci': typeof ApiPublicV1ReleasesCiRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
   '/api/public/v1/updates/check': typeof ApiPublicV1UpdatesCheckRoute
   '/api/public/v1/updates/peer-package': typeof ApiPublicV1UpdatesPeerPackageRoute
@@ -1694,6 +1702,7 @@ export interface FileRoutesById {
   '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
+  '/api/public/v1/releases/ci': typeof ApiPublicV1ReleasesCiRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
   '/api/public/v1/updates/check': typeof ApiPublicV1UpdatesCheckRoute
   '/api/public/v1/updates/peer-package': typeof ApiPublicV1UpdatesPeerPackageRoute
@@ -1876,6 +1885,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
+    | '/api/public/v1/releases/ci'
     | '/api/public/v1/social/publish-due'
     | '/api/public/v1/updates/check'
     | '/api/public/v1/updates/peer-package'
@@ -2049,6 +2059,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
+    | '/api/public/v1/releases/ci'
     | '/api/public/v1/social/publish-due'
     | '/api/public/v1/updates/check'
     | '/api/public/v1/updates/peer-package'
@@ -2230,6 +2241,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
+    | '/api/public/v1/releases/ci'
     | '/api/public/v1/social/publish-due'
     | '/api/public/v1/updates/check'
     | '/api/public/v1/updates/peer-package'
@@ -2321,6 +2333,7 @@ export interface RootRouteChildren {
   ApiPublicV1HrReviewRoute: typeof ApiPublicV1HrReviewRoute
   ApiPublicV1LicenseHeartbeatRoute: typeof ApiPublicV1LicenseHeartbeatRoute
   ApiPublicV1LicenseReleasesRoute: typeof ApiPublicV1LicenseReleasesRoute
+  ApiPublicV1ReleasesCiRoute: typeof ApiPublicV1ReleasesCiRoute
   ApiPublicV1SocialPublishDueRoute: typeof ApiPublicV1SocialPublishDueRoute
   ApiPublicV1UpdatesCheckRoute: typeof ApiPublicV1UpdatesCheckRoute
   ApiPublicV1UpdatesPeerPackageRoute: typeof ApiPublicV1UpdatesPeerPackageRoute
@@ -3560,6 +3573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1LicenseReleasesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/releases/ci': {
+      id: '/api/public/v1/releases/ci'
+      path: '/api/public/v1/releases/ci'
+      fullPath: '/api/public/v1/releases/ci'
+      preLoaderRoute: typeof ApiPublicV1ReleasesCiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/social/publish-due': {
       id: '/api/public/v1/social/publish-due'
       path: '/api/public/v1/social/publish-due'
@@ -3994,6 +4014,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1HrReviewRoute: ApiPublicV1HrReviewRoute,
   ApiPublicV1LicenseHeartbeatRoute: ApiPublicV1LicenseHeartbeatRoute,
   ApiPublicV1LicenseReleasesRoute: ApiPublicV1LicenseReleasesRoute,
+  ApiPublicV1ReleasesCiRoute: ApiPublicV1ReleasesCiRoute,
   ApiPublicV1SocialPublishDueRoute: ApiPublicV1SocialPublishDueRoute,
   ApiPublicV1UpdatesCheckRoute: ApiPublicV1UpdatesCheckRoute,
   ApiPublicV1UpdatesPeerPackageRoute: ApiPublicV1UpdatesPeerPackageRoute,

@@ -7,6 +7,7 @@ import {
   listReleases,
   createRelease,
   setCurrentRelease,
+  promoteRelease,
   deleteRelease,
   listInstallations,
 } from "@/lib/releases.functions";
@@ -73,6 +74,7 @@ function ReleasesPage() {
   const create = useServerFn(createRelease);
   const setCurrent = useServerFn(setCurrentRelease);
   const remove = useServerFn(deleteRelease);
+  const promote = useServerFn(promoteRelease);
   const snapshot = useServerFn(getPortalSnapshot);
 
   const { data = [], isLoading } = useQuery({
@@ -113,6 +115,15 @@ function ReleasesPage() {
     mutationFn: (id: string) => setCurrent({ data: { id } }),
     onSuccess: () => {
       toast.success("Set as current");
+      qc.invalidateQueries({ queryKey: ["mc-releases"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const promoteMut = useMutation({
+    mutationFn: (id: string) => promote({ data: { id, channel: "stable" } }),
+    onSuccess: () => {
+      toast.success("Promoted to stable — customers will now see this update");
       qc.invalidateQueries({ queryKey: ["mc-releases"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -235,7 +246,27 @@ function ReleasesPage() {
       align: "right",
       render: (r) => (
         <div className="flex justify-end gap-1">
-          {!r.is_current && (
+          {r.channel === "canary" && (
+            <Button
+              size="sm"
+              onClick={async () => {
+                if (
+                  await confirmAction({
+                    title: `Promote ${r.version} to stable?`,
+                    description:
+                      "This build came from GitHub. After promotion every customer installation will be offered this update.",
+                    confirmLabel: "Promote to stable",
+                  })
+                )
+                  promoteMut.mutate(r.id);
+              }}
+              disabled={promoteMut.isPending}
+            >
+              <Rocket className="mr-1 h-3.5 w-3.5" />
+              Promote to stable
+            </Button>
+          )}
+          {!r.is_current && r.channel !== "canary" && (
             <Button
               size="sm"
               variant="ghost"

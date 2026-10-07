@@ -151,3 +151,22 @@ jobs:
           files: |
             opsqai-windows/build/artifacts/OPSQAI-Setup.exe
             opsqai-windows/build/artifacts/OPSQAI-Setup.exe.sha256
+
+      - name: Send installer to Management Center (canary, needs approval)
+        if: ${{ steps.ver.outputs.version != '' }}
+        env:
+          OPSQAI_CI_TOKEN: ${{ secrets.OPSQAI_CI_TOKEN }}
+          MC_URL: ${{ vars.OPSQAI_MC_URL || 'https://opsqai.de' }}
+        shell: pwsh
+        run: |
+          if (-not $env:OPSQAI_CI_TOKEN) { Write-Warning 'OPSQAI_CI_TOKEN not set; skipping Management Center upload.'; exit 0 }
+          $ver = '${{ steps.ver.outputs.version }}'
+          $exe = 'opsqai-windows/build/artifacts/OPSQAI-Setup.exe'
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
+          $h = @{ Authorization = "Bearer $env:OPSQAI_CI_TOKEN" }
+          $api = "$env:MC_URL/api/public/v1/releases/ci"
+          $start = Invoke-RestMethod -Method Post -Uri $api -Headers $h -ContentType 'application/json' -Body (@{ action='start'; version=$ver } | ConvertTo-Json)
+          Invoke-WebRequest -Method Put -Uri $start.upload_url -InFile $exe -ContentType 'application/octet-stream' -UseBasicParsing | Out-Null
+          $done = Invoke-RestMethod -Method Post -Uri $api -Headers $h -ContentType 'application/json' -Body (@{ action='finish'; version=$ver; sha256=$hash } | ConvertTo-Json)
+          Write-Host "Management Center: v$ver saved as canary (id $($done.id)). Promote it in MC → Releases."
+          "### Sent to Management Center`nv$ver is waiting in **MC → Releases** as *canary*. Press **Promote to stable** to release it." | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
