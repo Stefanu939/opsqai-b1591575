@@ -8,6 +8,7 @@ import {
   createRelease,
   setCurrentRelease,
   promoteRelease,
+  updateReleaseChecksum,
   deleteRelease,
   listInstallations,
 } from "@/lib/releases.functions";
@@ -36,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Rocket, Plus, Trash2, ExternalLink } from "lucide-react";
+import { Rocket, Plus, Trash2, ExternalLink, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,6 +76,20 @@ function ReleasesPage() {
   const setCurrent = useServerFn(setCurrentRelease);
   const remove = useServerFn(deleteRelease);
   const promote = useServerFn(promoteRelease);
+  const saveChecksum = useServerFn(updateReleaseChecksum);
+  const [editing, setEditing] = useState<Release | null>(null);
+  const [shaDraft, setShaDraft] = useState("");
+  const shaClean = shaDraft.trim().replace(/^sha256:/i, "");
+  const shaValid = /^[a-fA-F0-9]{64}$/.test(shaClean);
+  const checksumMut = useMutation({
+    mutationFn: (v: { id: string; sha256: string }) => saveChecksum({ data: v }),
+    onSuccess: () => {
+      toast.success("Checksum updated");
+      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["mc-releases"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const snapshot = useServerFn(getPortalSnapshot);
 
   const { data = [], isLoading } = useQuery({
@@ -246,6 +261,18 @@ function ReleasesPage() {
       align: "right",
       render: (r) => (
         <div className="flex justify-end gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setEditing(r);
+              setShaDraft((r.checksum ?? "").replace(/^sha256:/i, ""));
+            }}
+            aria-label={`Edit checksum for ${r.version}`}
+            title="Edit SHA-256 checksum"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
           {r.channel === "canary" && (
             <Button
               size="sm"
@@ -308,6 +335,43 @@ function ReleasesPage() {
         <NewReleaseDialog onCreate={(v) => createMut.mutate(v)} pending={createMut.isPending} />
       }
     >
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit checksum — {editing?.version}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="sha-edit">SHA-256 (64 hex characters)</Label>
+            <Input
+              id="sha-edit"
+              value={shaDraft}
+              onChange={(e) => setShaDraft(e.target.value)}
+              placeholder="e.g. 3f2a…"
+              className="font-mono text-xs"
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              On Windows: <code>Get-FileHash .\OPSQAI-Setup.exe -Algorithm SHA256</code>. Installations
+              reject the package if this value doesn't match the file.
+            </p>
+            {shaDraft && !shaValid && (
+              <p className="text-xs text-destructive">Must be exactly 64 hex characters.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!shaValid || checksumMut.isPending}
+              onClick={() => editing && checksumMut.mutate({ id: editing.id, sha256: shaClean })}
+            >
+              Save checksum
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <StatCard
           label="Active installs with portal access"
