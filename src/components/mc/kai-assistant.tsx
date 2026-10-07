@@ -31,6 +31,7 @@ import {
   ClipboardCheck,
   Headphones,
   PhoneOff,
+  CalendarPlus,
 } from "lucide-react";
 import { useVoiceMode, voiceSupported } from "@/components/mc/use-voice-mode";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -39,7 +40,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { useMyName } from "@/lib/use-my-name";
-import { askKai, logKaiAction, listKaiActions, type KaiAction } from "@/lib/kai.functions";
+import { askKai, logKaiAction, listKaiActions, sendTeamEmail, type KaiAction } from "@/lib/kai.functions";
+import { upsertCalendarEvent } from "@/lib/calendar.functions";
+import { requestTimeOff } from "@/lib/time-off.functions";
 import { saveCrmLead } from "@/lib/crm.functions";
 import { listCompanies } from "@/lib/companies.functions";
 import { applyCallDebrief } from "@/lib/sales-tools.functions";
@@ -102,6 +105,9 @@ export function KaiAssistant() {
   const ask = useServerFn(askKai);
   const addLead = useServerFn(saveCrmLead);
   const saveDebrief = useServerFn(applyCallDebrief);
+  const saveEvent = useServerFn(upsertCalendarEvent);
+  const askTimeOff = useServerFn(requestTimeOff);
+  const mailTeam = useServerFn(sendTeamEmail);
   const makeDoc = useSalesDoc();
   const fetchCompanies = useServerFn(listCompanies);
   const logAction = useServerFn(logKaiAction);
@@ -288,6 +294,7 @@ export function KaiAssistant() {
           contact: a.contact_name || undefined,
           email: a.email && /@/.test(a.email) ? a.email : undefined,
           phone: a.phone || undefined,
+          lead: a.lead_id && /^[0-9a-f-]{36}$/i.test(a.lead_id) ? a.lead_id : undefined,
         },
       });
     } else if (a.type === "whatsapp") window.open(whatsappUrl(a.phone, a.text), "_blank");
@@ -327,6 +334,45 @@ export function KaiAssistant() {
         toast.error("Nu am putut salva debrief-ul.");
         throw e;
       }
+    } else if (a.type === "time_off") {
+      try {
+        const r = await askTimeOff({ data: { startsOn: a.starts_on, endsOn: a.ends_on, reason: a.reason || null } });
+        toast.success(r.status === "approved" ? `Concediu ${a.starts_on} – ${a.ends_on} aprobat și pus în calendar.` : `Cerere de concediu ${a.starts_on} – ${a.ends_on} trimisă spre aprobare.`);
+      } catch (e) {
+        toast.error("Nu am putut seta concediul.");
+        throw e;
+      }
+    } else if (a.type === "calendar" || a.type === "task") {
+      try {
+        const start = new Date(a.type === "task" ? a.due_at : a.starts_at);
+        const end = a.type === "calendar" && a.ends_at ? new Date(a.ends_at) : new Date(start.getTime() + (a.type === "task" ? 30 : 60) * 60_000);
+        await saveEvent({
+          data: {
+            title: a.type === "task" ? `Task: ${a.title}` : a.title,
+            description: a.description || null,
+            kind: a.type === "task" ? "deadline" : (a.kind ?? "meeting"),
+            location: a.type === "calendar" ? a.location || null : null,
+            starts_at: start.toISOString(),
+            ends_at: end.toISOString(),
+            all_day: false,
+            scope: "platform",
+          },
+        });
+        toast.success(a.type === "task" ? `Task adăugat: ${a.title}` : `Ședință adăugată în calendar: ${a.title}`);
+      } catch (e) {
+        toast.error("Nu am putut adăuga în calendar.");
+        throw e;
+      }
+    } else if (a.type === "team_email") {
+      try {
+        const r = await mailTeam({ data: { to: a.to, subject: a.subject, body: a.body } });
+        if (r.sent.length) toast.success(`Email trimis către ${r.sent.join(", ")}`);
+        if (r.failed.length) toast.error(`Nu s-a putut trimite către ${r.failed.join(", ")}`);
+        if (!r.sent.length) throw new Error("not sent");
+      } catch (e) {
+        toast.error(e instanceof Error && e.message !== "not sent" ? e.message : "Emailul nu a fost trimis.");
+        throw e;
+      }
     } else if (a.type === "add_lead") {
       try {
         await addLead({
@@ -355,7 +401,10 @@ export function KaiAssistant() {
     a.type === "open" ? (a.id ? `${a.to}:${a.id}` : a.to)
       : a.type === "whatsapp" || a.type === "call" ? a.phone ?? null
         : a.type === "email" ? a.email ?? null
-          : a.company_name;
+          : a.type === "team_email" ? a.to.join(", ")
+            : a.type === "time_off" ? `${a.starts_on}..${a.ends_on}`
+              : a.type === "calendar" || a.type === "task" ? a.title
+                : a.company_name;
 
   const runAction = async (a: KaiAction, requestedAt?: number) => {
     let status: "executed" | "failed" = "executed";
@@ -398,7 +447,11 @@ export function KaiAssistant() {
                   ? FileText
                   : a.type === "debrief"
                     ? ClipboardCheck
-                    : ExternalLink;
+                    : a.type === "team_email"
+                      ? Mail
+                      : a.type === "time_off" || a.type === "calendar" || a.type === "task"
+                        ? CalendarPlus
+                        : ExternalLink;
 
   const lastAssistant = messages.length > 0 && messages[messages.length - 1].role === "assistant";
 
