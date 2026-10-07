@@ -685,6 +685,15 @@ export function KaiAssistant() {
                     ) : (
                       <span className="whitespace-pre-wrap">{m.content}</span>
                     )}
+                    {m.actions?.map((a, j) =>
+                      a.type === "team_email" ? (
+                        <div key={`p${j}`} className="mt-2.5 rounded-lg border border-primary/30 bg-primary/5 p-2.5 text-xs">
+                          <div className="text-muted-foreground">Către: <span className="text-foreground">{a.to.join(", ")}</span></div>
+                          <div className="mt-0.5 font-medium text-foreground">{a.subject}</div>
+                          <div className="mt-1 whitespace-pre-wrap text-muted-foreground">{a.body}</div>
+                        </div>
+                      ) : null,
+                    )}
                     {m.actions && m.actions.length > 0 && (
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {m.actions.map((a, j) => {
