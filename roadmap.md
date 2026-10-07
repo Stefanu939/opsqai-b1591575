@@ -29,4 +29,4 @@
 - [x] Verified CUIs only (control digit + name match), CRM CUI in Kai
 - [x] Onboarding auto-fills from CRM lead + ANAF
 - [x] Kai: time off, meetings, tasks, team email (@opsqai.de, superadmin)
-- [ ] Kai JARVIS neural voice + Car Mode (next)
+- [x] Kai JARVIS persona, neural voice, Car Mode
