@@ -18,5 +18,5 @@
 - Self-Hosted remote workstations: the main computer maps a router port via UPnP (platform service, remote.json) and pairs remote PCs with a one-time code carrying the local CA fingerprint, which the workstation pins — direct company-to-company traffic, no OPSQAI relay or VPN.
 - Licence collision detection is alert-only (human-in-the-loop): heartbeats carry a hashed machine fingerprint, MC flags >1 machine per install_id in 48h and never auto-revokes — legit migrations/restores must not stop a customer.
 - Kai's spoken replies use the authenticated /api/kai-voice route (neural TTS stream, staff-only, cloud-only) with the device voice as fallback — one place to change voice/model.
-- Pin `@lovable.dev/vite-tanstack-config` to 2.25.2: 2.25.3/2.26.0 emit `createRequire(import.meta.url)` without fallback, which crashes every published page.
+- Pin `@lovable.dev/vite-tanstack-config` to 2.25.2 (exact) and keep the `opsqai-worker-import-meta-url-fallback` plugin in vite.config.ts: 2.25.3/2.26.0 emit `createRequire(import.meta.url)` without fallback, which crashes every published page, and the pin has been silently reverted before.
 - Windows builds reach MC via GitHub Actions → /api/public/v1/releases/ci (OPSQAI_CI_TOKEN) as channel "canary"; only an admin "Promote to stable" exposes them to customers — no manual download/re-upload, human approval kept.
