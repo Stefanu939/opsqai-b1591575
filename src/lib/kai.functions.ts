@@ -70,7 +70,7 @@ export const askKai = createServerFn({ method: "POST" })
       admin.from("license_installs").select("install_id, last_heartbeat_at, app_version, user_count").limit(300),
       admin
         .from("crm_leads")
-        .select("id, company_name, contact_name, phone, email, stage, status, next_action_at, value_amount, last_activity_at")
+        .select("id, company_name, contact_name, phone, email, stage, status, next_action_at, value_amount, last_activity_at, notes")
         .order("updated_at", { ascending: false })
         .limit(150),
     ]);
@@ -95,9 +95,9 @@ export const askKai = createServerFn({ method: "POST" })
         const name = licByInstall.get(i.install_id)?.company_name ?? compByInstall.get(i.install_id)?.name ?? i.install_id.slice(0, 10);
         return `${name} | ${i.app_version ?? "—"} | ${fmt(i.last_heartbeat_at)} | ${h ?? "niciodată"} | ${i.user_count ?? "—"}`;
       }),
-      `PROSPECȚI CRM: lead_id | nume | contact | telefon | email | etapă | status | următoarea acțiune | ultima activitate | valoare`,
+      `PROSPECȚI CRM: lead_id | nume | CUI (din note, verificat) | contact | telefon | email | etapă | status | următoarea acțiune | ultima activitate | valoare`,
       ...(leads.data ?? []).map(
-        (l) => `${l.id} | ${l.company_name} | ${l.contact_name ?? "—"} | ${l.phone ?? "—"} | ${l.email ?? "—"} | ${l.stage} | ${l.status} | ${fmt(l.next_action_at)} | ${fmt(l.last_activity_at)} | ${l.value_amount ?? "—"}`,
+        (l) => `${l.id} | ${l.company_name} | ${cuiFromText(l.notes) ?? "—"} | ${l.contact_name ?? "—"} | ${l.phone ?? "—"} | ${l.email ?? "—"} | ${l.stage} | ${l.status} | ${fmt(l.next_action_at)} | ${fmt(l.last_activity_at)} | ${l.value_amount ?? "—"}`,
       ),
     ].join("\n");
 
