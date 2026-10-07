@@ -17,3 +17,4 @@
 - Self-Hosted multi-PC: the first install is the company server (DB, AI, first admin); other PCs install in Workstation mode (desktop app only, paired via /api/public/station-probe, config in station.json) — one database per company, accounts only created by the server's admin.
 - Self-Hosted remote workstations: the main computer maps a router port via UPnP (platform service, remote.json) and pairs remote PCs with a one-time code carrying the local CA fingerprint, which the workstation pins — direct company-to-company traffic, no OPSQAI relay or VPN.
 - Licence collision detection is alert-only (human-in-the-loop): heartbeats carry a hashed machine fingerprint, MC flags >1 machine per install_id in 48h and never auto-revokes — legit migrations/restores must not stop a customer.
+- Kai's spoken replies use the authenticated /api/kai-voice route (neural TTS stream, staff-only, cloud-only) with the device voice as fallback — one place to change voice/model.

@@ -32,6 +32,7 @@ import {
   Headphones,
   PhoneOff,
   CalendarPlus,
+  Car,
 } from "lucide-react";
 import { useVoiceMode, voiceSupported } from "@/components/mc/use-voice-mode";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -179,9 +180,22 @@ export function KaiAssistant() {
     [convs],
   );
 
+  const coordsRef = useRef<{ lat: number; lon: number } | null>(null);
+  const locAsked = useRef(false);
+  const askLocation = () => {
+    if (locAsked.current || typeof navigator === "undefined" || !navigator.geolocation) return;
+    locAsked.current = true;
+    navigator.geolocation.getCurrentPosition(
+      (p) => { coordsRef.current = { lat: +p.coords.latitude.toFixed(2), lon: +p.coords.longitude.toFixed(2) }; },
+      () => {},
+      { maximumAge: 30 * 60_000, timeout: 8000 },
+    );
+  };
+
   const patch = (id: string, fn: (c: Conv) => Conv) => setConvs((all) => all.map((c) => (c.id === id ? fn(c) : c)));
 
   const run = async (convId: string, history: Msg[]) => {
+    askLocation();
     const req = ++reqRef.current;
     setPendingFor(convId);
     let reply: Msg;
@@ -191,6 +205,9 @@ export function KaiAssistant() {
           messages: history.slice(-20).map((m) => ({ role: m.role, content: m.content })),
           page,
           senderName: fullName || name || undefined,
+          mode: carRef.current ? "car" : "chat",
+          localTime: new Date().toLocaleString("ro-RO", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }),
+          coords: coordsRef.current ?? undefined,
         },
       });
       reply = { role: "assistant", content: r.reply, actions: r.actions, at: Date.now() };
@@ -223,6 +240,42 @@ export function KaiAssistant() {
   };
 
   const voice = useVoiceMode((t) => send(t));
+
+  // ---- Car Mode: fullscreen hands-free cockpit ----
+  const [car, setCar] = useState(false);
+  const carRef = useRef(false);
+  carRef.current = car;
+  const wakeRef = useRef<{ release: () => Promise<void> } | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("kai") === "car") setCar(true);
+  }, []);
+  useEffect(() => {
+    if (!car) {
+      void wakeRef.current?.release().catch(() => {});
+      wakeRef.current = null;
+      return;
+    }
+    const nav = navigator as unknown as { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } };
+    const lock = () => nav.wakeLock?.request("screen").then((l) => { wakeRef.current = l; }).catch(() => {});
+    void lock();
+    const onVis = () => { if (document.visibilityState === "visible") void lock(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [car]);
+  const startCar = () => {
+    if (!voiceSupported()) {
+      toast.error("Modul Mașină are nevoie de Chrome sau Edge (recunoaștere vocală).");
+      return;
+    }
+    setOpen(false);
+    setCar(true);
+    askLocation();
+    if (voice.state === "off") voice.start();
+  };
+  const endCar = () => {
+    voice.stop();
+    setCar(false);
+  };
   const spokenRef = useRef(0);
   useEffect(() => {
     const last = messages[messages.length - 1];
@@ -232,7 +285,7 @@ export function KaiAssistant() {
     voice.speak(last.content);
   }, [messages, voice]);
   useEffect(() => {
-    if (!open) voice.stop();
+    if (!open && !carRef.current) voice.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -469,6 +522,25 @@ export function KaiAssistant() {
         </span>
         <kbd className="hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium md:inline">⌘K</kbd>
       </button>
+      <button
+        type="button"
+        onClick={startCar}
+        aria-label="Mod Mașină"
+        title="Mod Mașină — vorbește cu Kai la volan"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/5 text-primary transition-colors hover:border-primary/50"
+      >
+        <Car className="h-4 w-4" />
+      </button>
+      {car && (
+        <CarMode
+          state={voice.state}
+          interim={voice.interim}
+          lastReply={lastAssistant ? messages[messages.length - 1].content : ""}
+          onTap={() => (voice.state === "off" ? voice.start() : voice.state === "speaking" ? voice.interrupt() : undefined)}
+          onEnd={endCar}
+          onOpenChat={() => { endCar(); setOpen(true); }}
+        />
+      )}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg [&>button]:hidden">
@@ -855,5 +927,66 @@ export function KaiAssistant() {
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+function CarMode(p: {
+  state: "off" | "listening" | "thinking" | "speaking";
+  interim: string;
+  lastReply: string;
+  onTap: () => void;
+  onEnd: () => void;
+  onOpenChat: () => void;
+}) {
+  const [clock, setClock] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setClock(new Date()), 15_000);
+    return () => clearInterval(t);
+  }, []);
+  const label =
+    p.state === "listening" ? "Vă ascult, domnule." : p.state === "thinking" ? "Un moment…" : p.state === "speaking" ? "Atingeți pentru a mă întrerupe" : "Atingeți pentru a vorbi";
+  const reply = p.lastReply.replace(/\[(DB|ANAF|Web|Meteo|Estimare)\]/g, "").replace(/[*_#`]/g, "").slice(0, 220);
+  return (
+    <div className="fixed inset-0 z-[100] flex select-none flex-col bg-background text-foreground" role="dialog" aria-label="Mod Mașină">
+      <div className="flex items-center justify-between p-5">
+        <div>
+          <div className="font-display text-4xl font-semibold tabular-nums">
+            {clock.toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}
+          </div>
+          <div className="text-sm capitalize text-muted-foreground">
+            {clock.toLocaleDateString("ro-RO", { weekday: "long", day: "numeric", month: "long" })}
+          </div>
+        </div>
+        <button type="button" onClick={p.onOpenChat} className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground">
+          Vezi conversația
+        </button>
+      </div>
+      <button type="button" onClick={p.onTap} className="flex flex-1 flex-col items-center justify-center gap-8 px-6" aria-label={label}>
+        <span className="relative flex h-56 w-56 items-center justify-center sm:h-72 sm:w-72">
+          <span
+            className={cn(
+              "absolute inset-0 rounded-full border-2 border-primary/50",
+              p.state === "listening" && "animate-pulse",
+              p.state === "speaking" && "animate-ping [animation-duration:1.8s]",
+            )}
+          />
+          <span className={cn("absolute inset-6 rounded-full bg-primary/15 blur-xl", p.state === "thinking" && "animate-pulse")} />
+          <KaiOrb className="h-32 w-32 sm:h-40 sm:w-40" />
+        </span>
+        <span className="text-center font-display text-2xl font-medium sm:text-3xl">{label}</span>
+        <span className="line-clamp-3 min-h-[3.5rem] max-w-xl text-center text-base text-muted-foreground">
+          {p.state === "listening" ? p.interim : reply}
+        </span>
+      </button>
+      <div className="p-5 pb-8">
+        <button
+          type="button"
+          onClick={p.onEnd}
+          className="flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-destructive text-lg font-semibold text-destructive-foreground"
+        >
+          <PhoneOff className="h-6 w-6" /> Închide Modul Mașină
+        </button>
+      </div>
+    </div>
   );
 }

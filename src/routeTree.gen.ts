@@ -50,6 +50,7 @@ import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
+import { Route as ApiKaiVoiceRouteImport } from './routes/api/kai-voice'
 import { Route as ApiKbUploadRouteImport } from './routes/api/kb-upload'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
@@ -392,6 +393,11 @@ const ApiCustomerWriterRoute = ApiCustomerWriterRouteImport.update({
 const ApiInternalChatRoute = ApiInternalChatRouteImport.update({
   id: '/api/internal-chat',
   path: '/api/internal-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKaiVoiceRoute = ApiKaiVoiceRouteImport.update({
+  id: '/api/kai-voice',
+  path: '/api/kai-voice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiKbUploadRoute = ApiKbUploadRouteImport.update({
@@ -1198,6 +1204,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/kai-voice': typeof ApiKaiVoiceRoute
   '/api/kb-upload': typeof ApiKbUploadRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -1372,6 +1379,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/kai-voice': typeof ApiKaiVoiceRoute
   '/api/kb-upload': typeof ApiKbUploadRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -1551,6 +1559,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/kai-voice': typeof ApiKaiVoiceRoute
   '/api/kb-upload': typeof ApiKbUploadRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -1732,6 +1741,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
+    | '/api/kai-voice'
     | '/api/kb-upload'
     | '/api/tts'
     | '/api/workspace-chat'
@@ -1906,6 +1916,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
+    | '/api/kai-voice'
     | '/api/kb-upload'
     | '/api/tts'
     | '/api/workspace-chat'
@@ -2084,6 +2095,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
+    | '/api/kai-voice'
     | '/api/kb-upload'
     | '/api/tts'
     | '/api/workspace-chat'
@@ -2262,6 +2274,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
   ApiInternalChatRoute: typeof ApiInternalChatRoute
+  ApiKaiVoiceRoute: typeof ApiKaiVoiceRoute
   ApiKbUploadRoute: typeof ApiKbUploadRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
@@ -2600,6 +2613,13 @@ declare module '@tanstack/react-router' {
       path: '/api/internal-chat'
       fullPath: '/api/internal-chat'
       preLoaderRoute: typeof ApiInternalChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/kai-voice': {
+      id: '/api/kai-voice'
+      path: '/api/kai-voice'
+      fullPath: '/api/kai-voice'
+      preLoaderRoute: typeof ApiKaiVoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/kb-upload': {
@@ -3927,6 +3947,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
   ApiInternalChatRoute: ApiInternalChatRoute,
+  ApiKaiVoiceRoute: ApiKaiVoiceRoute,
   ApiKbUploadRoute: ApiKbUploadRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,

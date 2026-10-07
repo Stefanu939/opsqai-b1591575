@@ -1,7 +1,8 @@
-// Hands-free voice mode for Kai (Variant A: turn-based, browser-native).
-// Listening and pause detection run in the browser (no cost); speech output
-// uses the device's Romanian voice. Only the normal Kai text call is billed.
+// Hands-free voice mode for Kai (turn-based).
+// Listening and pause detection run in the browser (no cost). Speech output
+// uses Kai's neural "JARVIS" voice; the device voice is only a fallback.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { speakNeural, unlockAudio } from "@/components/mc/neural-speech";
 
 export type VoiceState = "off" | "listening" | "thinking" | "speaking";
 
@@ -32,6 +33,7 @@ export function useVoiceMode(onUtterance: (text: string) => void) {
   const [state, setState] = useState<VoiceState>("off");
   const [interim, setInterim] = useState("");
   const recRef = useRef<Rec>(null);
+  const audioRef = useRef<AbortController | null>(null);
   const stateRef = useRef<VoiceState>("off");
   const cbRef = useRef(onUtterance);
   cbRef.current = onUtterance;
@@ -93,25 +95,41 @@ export function useVoiceMode(onUtterance: (text: string) => void) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const speakDevice = (clean: string) => {
+    const synth = window.speechSynthesis;
+    if (!synth) return listen();
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = "ro-RO";
+    const voice = synth.getVoices().find((v) => v.lang.toLowerCase().startsWith("ro"));
+    if (voice) u.voice = voice;
+    u.rate = 1.0;
+    u.onend = () => {
+      if (stateRef.current === "speaking") listen();
+    };
+    u.onerror = u.onend;
+    synth.speak(u);
+  };
+
   const speak = useCallback(
     (text: string) => {
       if (stateRef.current === "off") return;
       const clean = cleanForSpeech(text);
       if (!clean) return listen();
-      const synth = window.speechSynthesis;
-      synth.cancel();
-      const u = new SpeechSynthesisUtterance(clean);
-      u.lang = "ro-RO";
-      const voice = synth.getVoices().find((v) => v.lang.toLowerCase().startsWith("ro"));
-      if (voice) u.voice = voice;
-      u.rate = 1.02;
-      u.onend = () => {
-        if (stateRef.current === "speaking") listen();
-      };
-      u.onerror = u.onend;
+      audioRef.current?.abort();
+      const ctrl = new AbortController();
+      audioRef.current = ctrl;
       set("speaking");
-      synth.speak(u);
+      speakNeural(clean, ctrl.signal)
+        .then(() => {
+          if (!ctrl.signal.aborted && stateRef.current === "speaking") listen();
+        })
+        .catch(() => {
+          if (ctrl.signal.aborted || stateRef.current !== "speaking") return;
+          speakDevice(clean); // neural voice unavailable → device voice
+        });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [listen],
   );
 
@@ -124,11 +142,13 @@ export function useVoiceMode(onUtterance: (text: string) => void) {
     } catch {
       /* ignore */
     }
+    audioRef.current?.abort();
     if (typeof window !== "undefined") window.speechSynthesis?.cancel();
   }, []);
 
   const start = useCallback(() => {
     window.speechSynthesis?.getVoices(); // warm up voice list
+    unlockAudio(); // must happen inside the tap for mobile browsers
     stateRef.current = "listening";
     listen();
   }, [listen]);
@@ -136,7 +156,8 @@ export function useVoiceMode(onUtterance: (text: string) => void) {
   /** Tap while Kai talks: interrupt and listen right away. */
   const interrupt = useCallback(() => {
     if (stateRef.current !== "speaking") return;
-    window.speechSynthesis.cancel();
+    audioRef.current?.abort();
+    window.speechSynthesis?.cancel();
     stateRef.current = "listening";
     listen();
   }, [listen]);
