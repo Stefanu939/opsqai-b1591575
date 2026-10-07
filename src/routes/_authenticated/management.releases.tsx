@@ -8,6 +8,7 @@ import {
   createRelease,
   setCurrentRelease,
   promoteRelease,
+  updateReleaseChecksum,
   deleteRelease,
   listInstallations,
 } from "@/lib/releases.functions";
@@ -36,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Rocket, Plus, Trash2, ExternalLink } from "lucide-react";
+import { Rocket, Plus, Trash2, ExternalLink, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,6 +76,20 @@ function ReleasesPage() {
   const setCurrent = useServerFn(setCurrentRelease);
   const remove = useServerFn(deleteRelease);
   const promote = useServerFn(promoteRelease);
+  const saveChecksum = useServerFn(updateReleaseChecksum);
+  const [editing, setEditing] = useState<Release | null>(null);
+  const [shaDraft, setShaDraft] = useState("");
+  const shaClean = shaDraft.trim().replace(/^sha256:/i, "");
+  const shaValid = /^[a-fA-F0-9]{64}$/.test(shaClean);
+  const checksumMut = useMutation({
+    mutationFn: (v: { id: string; sha256: string }) => saveChecksum({ data: v }),
+    onSuccess: () => {
+      toast.success("Checksum updated");
+      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["mc-releases"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const snapshot = useServerFn(getPortalSnapshot);
 
   const { data = [], isLoading } = useQuery({
@@ -246,6 +261,18 @@ function ReleasesPage() {
       align: "right",
       render: (r) => (
         <div className="flex justify-end gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setEditing(r);
+              setShaDraft((r.checksum ?? "").replace(/^sha256:/i, ""));
+            }}
+            aria-label={`Edit checksum for ${r.version}`}
+            title="Edit SHA-256 checksum"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
           {r.channel === "canary" && (
             <Button
               size="sm"

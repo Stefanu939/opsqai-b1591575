@@ -173,3 +173,31 @@ export const promoteRelease = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** Admin correction of a release checksum (e.g. after re-uploading the installer). */
+export const updateReleaseChecksum = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        sha256: z
+          .string()
+          .trim()
+          .transform((s) => s.replace(/^sha256:/i, ""))
+          .pipe(z.string().regex(/^[a-fA-F0-9]{64}$/, "SHA-256 must be 64 hex characters")),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    const db = getCloudSupabase(context, "releases");
+    const { data: saved, error } = await db
+      .from("license_releases")
+      .update({ checksum: `sha256:${data.sha256.toLowerCase()}` })
+      .eq("id", data.id)
+      .select("id");
+    if (error) throw new Error(error.message);
+    if (!saved?.length) throw new Error("Release was not updated. Please retry.");
+    return { ok: true };
+  });
