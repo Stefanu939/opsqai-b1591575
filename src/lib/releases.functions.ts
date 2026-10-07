@@ -142,3 +142,34 @@ export const listInstallations = createServerFn({ method: "POST" })
       license: byId.get(r.install_id) ?? null,
     }));
   });
+
+/** Human approval step for CI-delivered builds: canary → stable/beta, now live. */
+export const promoteRelease = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: uuidString(), channel: z.enum(["stable", "beta"]).default("stable") }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    const supabaseAdmin = getCloudSupabase(context, "releases");
+    const { data: rel, error: relErr } = await supabaseAdmin
+      .from("license_releases")
+      .select("channel, package_storage_path")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (relErr) throw new Error(relErr.message);
+    if (!rel) throw new Error("Release not found");
+    if (rel.channel !== "canary") throw new Error("Only canary (GitHub) builds can be promoted");
+    if (!rel.package_storage_path) throw new Error("This build has no installer file");
+    await supabaseAdmin
+      .from("license_releases")
+      .update({ is_current: false })
+      .eq("channel", data.channel)
+      .eq("is_current", true);
+    const { error } = await supabaseAdmin
+      .from("license_releases")
+      .update({ channel: data.channel, is_current: true, published_at: new Date().toISOString() })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
