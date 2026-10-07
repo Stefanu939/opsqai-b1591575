@@ -318,3 +318,35 @@ export async function generateAiJson(req: AiTextRequest): Promise<string> {
   assertAiCapability("jsonOutput");
   return generateAiText(req);
 }
+
+/**
+ * Streams Kai's expressive neural voice (24 kHz PCM over SSE). Only the
+ * cloud Lovable engine supports this; other engines throw so callers can
+ * fall back to the device voice.
+ */
+export async function streamNeuralSpeech(
+  text: string,
+  signal?: AbortSignal,
+): Promise<Response> {
+  if (activeAiProviderId() !== "lovable") {
+    throw new AiCapabilityError({ capability: "textToSpeech", providerId: activeAiProviderId() });
+  }
+  const { url, headers } = resolveTTS();
+  const steer =
+    "Read the following in Romanian as a refined, calm British-style butler and personal AI assistant: deep, warm, unhurried, " +
+    "precise articulation, a hint of dry wit, never robotic. Text: ";
+  return fetch(url, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-3.1-flash-tts-preview",
+      contents: [{ role: "user", parts: [{ text: steer + text }] }],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } },
+      },
+      stream_format: "sse",
+    }),
+    signal,
+  });
+}

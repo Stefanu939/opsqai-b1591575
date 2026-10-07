@@ -395,7 +395,16 @@ function finish(row, state, kind) {
     automatic: true,
     error: row.failed_step || null,
   });
-  writeJson(PROGRESS, { phase: "done", version: row.to_version, at: new Date().toISOString() });
+  // Only a real successful install is "done"; a rollback/failure must never
+  // prompt the user to restart as if the new version were installed.
+  const ok = row.outcome === "success" && kind === "update";
+  writeJson(PROGRESS, {
+    phase: ok ? "done" : "failed",
+    outcome: row.outcome,
+    error: row.failed_step || null,
+    version: ok ? row.to_version : row.from_version,
+    at: new Date().toISOString(),
+  });
   try {
     const s = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
     s.lastApply = { version: row.to_version, outcome: row.outcome, kind, at: row.finished_at };

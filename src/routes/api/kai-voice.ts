@@ -4,8 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 // Kai's neural "JARVIS-style" voice (Management Center staff only, Cloud only).
 // Streams 24 kHz PCM over SSE from the AI Gateway speech endpoint.
 
-const MODEL = "google/gemini-3.1-flash-tts-preview";
-const VOICE = "Charon"; // deep, calm, informative male voice
 
 export const Route = createFileRoute("/api/kai-voice")({
   server: {
@@ -16,8 +14,7 @@ export const Route = createFileRoute("/api/kai-voice")({
         if (!token) return new Response("Unauthorized", { status: 401 });
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-        const apiKey = process.env.LOVABLE_API_KEY;
-        if (!url || !key || !apiKey) return new Response("Server misconfigured", { status: 500 });
+        if (!url || !key) return new Response("Server misconfigured", { status: 500 });
         const supabase = createClient(url, key, {
           global: { headers: { Authorization: `Bearer ${token}` } },
           auth: { persistSession: false, autoRefreshToken: false },
@@ -37,23 +34,14 @@ export const Route = createFileRoute("/api/kai-voice")({
         }
         if (!text || text.length > 1500) return new Response("bad text", { status: 400 });
 
-        const steer =
-          "Read the following in Romanian as a refined, calm British-style butler and personal AI assistant: deep, warm, unhurried, " +
-          "precise articulation, a hint of dry wit, never robotic. Text: ";
-        const upstream = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: MODEL,
-            contents: [{ role: "user", parts: [{ text: steer + text }] }],
-            generationConfig: {
-              responseModalities: ["AUDIO"],
-              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } },
-            },
-            stream_format: "sse",
-          }),
-          signal: request.signal,
-        });
+        const { streamNeuralSpeech } = await import("@/lib/ai-provider.server");
+        let upstream: Response;
+        try {
+          upstream = await streamNeuralSpeech(text, request.signal);
+        } catch (e) {
+          console.error("[kai-voice]", e);
+          return new Response(JSON.stringify({ error: "voice_unavailable" }), { status: 501, headers: { "Content-Type": "application/json" } });
+        }
         if (!upstream.ok || !upstream.body) {
           const detail = await upstream.text().catch(() => "");
           console.error("[kai-voice]", upstream.status, detail.slice(0, 300));
