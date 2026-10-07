@@ -65,7 +65,9 @@ export const askKai = createServerFn({ method: "POST" })
     const admin = await getCloudSupabaseAdmin("kai");
     const now = Date.now();
     const team = superadmin
-      ? (await admin.from("profiles").select("full_name, email").ilike("email", `%@${TEAM_DOMAIN}`).limit(50)).data ?? []
+      ? ((await admin.auth.admin.listUsers({ perPage: 200 })).data?.users ?? [])
+          .filter((u) => u.email && isTeamAddress(u.email))
+          .map((u) => ({ full_name: (u.user_metadata?.full_name as string | undefined) ?? null, email: u.email! }))
       : [];
 
     const [companies, licenses, installs, leads] = await Promise.all([
