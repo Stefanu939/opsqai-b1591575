@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import ReactMarkdown from "react-markdown";
+import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
+import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { PromptInput, PromptInputTextarea, PromptInputFooter, PromptInputSubmit } from "@/components/ai-elements/prompt-input";
+import { Tool, ToolHeader, ToolContent, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
+import { Shimmer } from "@/components/ai-elements/shimmer";
+import { kaiActionKey, resolveKaiConfirmation, type KaiActionResult } from "@/lib/kai-confirmation";
 import { toast } from "sonner";
 import {
   ArrowUp,
@@ -11,7 +16,8 @@ import {
   Phone,
   ExternalLink,
   UserPlus,
-  Sparkles,
+  Maximize2,
+  Minimize2,
   Users,
   Square,
   Plus,
@@ -35,10 +41,10 @@ import {
   Car,
 } from "lucide-react";
 import { useVoiceMode, voiceSupported } from "@/components/mc/use-voice-mode";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import { useAuth } from "@/lib/auth-context";
 import { useMyName } from "@/lib/use-my-name";
 import { askKai, logKaiAction, listKaiActions, sendTeamEmail, type KaiAction } from "@/lib/kai.functions";
@@ -51,7 +57,7 @@ import { useSalesDoc } from "@/components/mc/sales-docs";
 import { mailtoUrl, telUrl, whatsappUrl } from "@/lib/mc-outreach";
 import { cn } from "@/lib/utils";
 
-type Msg = { role: "user" | "assistant"; content: string; actions?: KaiAction[]; stopped?: boolean; at?: number };
+type Msg = { role: "user" | "assistant"; content: string; actions?: KaiAction[]; results?: Record<string, KaiActionResult>; stopped?: boolean; at?: number };
 type Conv = { id: string; title: string; pinned: boolean; updatedAt: number; messages: Msg[] };
 
 const STORE = "opsqai-kai-conversations-v1";
@@ -79,17 +85,23 @@ export function KaiOrb({ className }: { className?: string }) {
     <span
       aria-hidden
       className={cn(
-        "relative grid place-items-center rounded-full bg-gradient-to-br from-primary to-primary/55 text-primary-foreground shadow-lg shadow-primary/40",
+        "relative grid place-items-center rounded-full border border-primary/35 bg-primary/10 text-primary",
         className,
       )}
     >
-      <Sparkles className="h-1/2 w-1/2" />
+      <svg viewBox="0 0 48 48" className="h-3/4 w-3/4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path d="M12 15v18m0-9 15-9m-15 9 15 9M34 18v12" strokeLinecap="round" />
+        <circle cx="34" cy="13" r="2" fill="currentColor" stroke="none" />
+      </svg>
     </span>
   );
 }
 
 export function KaiAssistant() {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const actionLocks = useRef(new Set<string>());
   const [input, setInput] = useState("");
   const [convs, setConvs] = useState<Conv[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -119,7 +131,14 @@ export function KaiAssistant() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORE);
-      if (raw) setConvs(JSON.parse(raw) as Conv[]);
+      if (raw) {
+        const saved = JSON.parse(raw) as Conv[];
+        if (Array.isArray(saved)) {
+          setConvs(saved);
+          const selected = localStorage.getItem(`${STORE}-active`);
+          setActiveId(saved.some((c) => c.id === selected) ? selected : saved[0]?.id ?? null);
+        }
+      }
     } catch {
       /* ignore */
     }
@@ -145,6 +164,22 @@ export function KaiAssistant() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (!loaded.current) return;
+    if (activeId) localStorage.setItem(`${STORE}-active`, activeId);
+    else localStorage.removeItem(`${STORE}-active`);
+  }, [activeId]);
+
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener("opsqai:open-kai", show);
+    return () => window.removeEventListener("opsqai:open-kai", show);
+  }, []);
+
+  useEffect(() => {
+    if (open && !showHistory && !showAudit && !renaming) composerRef.current?.focus();
+  }, [open, activeId, pendingFor, showHistory, showAudit, renaming]);
 
   const active = convs.find((c) => c.id === activeId) ?? null;
   const messages = active?.messages ?? [];
@@ -222,21 +257,41 @@ export function KaiAssistant() {
   const send = (text: string) => {
     const t = text.trim();
     if (!t || pendingFor) return;
-    const userMsg: Msg = { role: "user", content: t };
-    let id = activeId;
-    let history: Msg[];
-    if (!active) {
-      id = newId();
-      history = [userMsg];
-      setConvs((all) => [{ id: id!, title: t.slice(0, 48), pinned: false, updatedAt: Date.now(), messages: history }, ...all]);
-      setActiveId(id);
-    } else {
-      history = [...active.messages, userMsg];
-      patch(active.id, (c) => ({ ...c, messages: history, updatedAt: Date.now() }));
+    if (/^(conversație nouă|conversatie noua)$/i.test(t)) {
+      newChat();
+      voice.speak("Desigur. Începem o conversație nouă.");
+      return;
     }
+    const userMsg: Msg = { role: "user", content: t, at: Date.now() };
+    if (active) {
+      const proposal = [...active.messages].reverse().find((m) => m.role === "assistant" && m.actions?.length);
+      const available = proposal?.actions?.filter((a) => !proposal.results?.[kaiActionKey(a)]) ?? [];
+      const approval = resolveKaiConfirmation(t, available);
+      if (approval.kind !== "none") {
+        patch(active.id, (c) => ({ ...c, messages: [...c.messages, userMsg], updatedAt: Date.now() }));
+        setInput("");
+        if (approval.kind === "matched" && proposal) {
+          void runAction(approval.action, proposal.at, active.id);
+        } else {
+          const content = approval.kind === "missing"
+            ? "Nu există o acțiune nouă de confirmat. Acțiunile finalizate nu sunt executate din nou."
+            : "Am nevoie de o confirmare precisă: numele firmei sau acțiunea dorită, fără schimbarea datelor propuse.";
+          patch(active.id, (c) => ({ ...c, messages: [...c.messages, { role: "assistant", content, at: Date.now() }] }));
+          voice.speak(content);
+        }
+        return;
+      }
+    }
+    const id = active?.id ?? newId();
+    const history = active ? [...active.messages, userMsg] : [userMsg];
+    if (!active) {
+      setConvs((all) => [{ id, title: t.slice(0, 48), pinned: false, updatedAt: Date.now(), messages: history }, ...all]);
+      setActiveId(id);
+    } else patch(active.id, (c) => ({ ...c, messages: history, updatedAt: Date.now() }));
     setInput("");
     setShowHistory(false);
-    void run(id!, history);
+    composerRef.current?.focus();
+    void run(id, history);
   };
 
   const voice = useVoiceMode((t) => send(t));
@@ -267,6 +322,7 @@ export function KaiAssistant() {
       toast.error("Modul Mașină are nevoie de Chrome sau Edge (recunoaștere vocală).");
       return;
     }
+    carRef.current = true;
     setOpen(false);
     setCar(true);
     askLocation();
@@ -274,14 +330,16 @@ export function KaiAssistant() {
   };
   const endCar = () => {
     voice.stop();
+    carRef.current = false;
     setCar(false);
   };
-  const spokenRef = useRef(0);
+  const spokenRef = useRef("");
   useEffect(() => {
     const last = messages[messages.length - 1];
     if (voice.state !== "thinking" || !last || last.role !== "assistant") return;
-    if (spokenRef.current === messages.length) return;
-    spokenRef.current = messages.length;
+    const spokenKey = `${activeId}:${last.at ?? messages.length}`;
+    if (spokenRef.current === spokenKey) return;
+    spokenRef.current = spokenKey;
     voice.speak(last.content);
   }, [messages, voice]);
   useEffect(() => {
@@ -307,6 +365,8 @@ export function KaiAssistant() {
 
   const newChat = () => {
     if (pendingFor) stop();
+    voice.stop();
+    spokenRef.current = "";
     setActiveId(null);
     setShowHistory(false);
     setShowAudit(false);
@@ -363,7 +423,7 @@ export function KaiAssistant() {
           industry: a.industry || null,
           employees: Number.isFinite(emp) && emp > 0 ? Math.round(emp) : null,
         });
-        toast.success("PDF descărcat");
+        toast.success("Document HTML deschis");
       } catch (e) {
         toast.error("Nu am putut genera PDF-ul.");
         throw e;
@@ -421,6 +481,7 @@ export function KaiAssistant() {
         const r = await mailTeam({ data: { to: a.to, subject: a.subject, body: a.body } });
         if (r.sent.length) toast.success(`Email trimis către ${r.sent.join(", ")}`);
         if (r.failed.length) toast.error(`Nu s-a putut trimite către ${r.failed.join(", ")}`);
+        if (r.failed.length) throw new Error(`Trimitere parțială: ${r.sent.length} trimise, ${r.failed.length} eșuate. Verifică jurnalul înainte de o nouă cerere.`);
         if (!r.sent.length) throw new Error("not sent");
       } catch (e) {
         toast.error(e instanceof Error && e.message !== "not sent" ? e.message : "Emailul nu a fost trimis.");
@@ -459,28 +520,50 @@ export function KaiAssistant() {
               : a.type === "calendar" || a.type === "task" ? a.title
                 : a.company_name;
 
-  const runAction = async (a: KaiAction, requestedAt?: number) => {
+  const runAction = async (a: KaiAction, requestedAt?: number, conversationId = activeId) => {
+    if (!conversationId || pendingFor) return;
+    const key = kaiActionKey(a);
+    const lock = `${conversationId}:${requestedAt}:${key}`;
+    if (actionLocks.current.has(lock)) return;
+    const conversation = convs.find((c) => c.id === conversationId);
+    const proposal = conversation?.messages.find((m) => m.at === requestedAt && m.actions?.some((action) => kaiActionKey(action) === key));
+    if (!proposal || proposal.results?.[key]) return;
+    actionLocks.current.add(lock);
+    const update = (result: KaiActionResult) => patch(conversationId, (c) => ({ ...c, messages: c.messages.map((m) => m === proposal || (m.at === requestedAt && m.actions?.some((action) => kaiActionKey(action) === key)) ? { ...m, results: { ...m.results, [key]: result } } : m) }));
+    update({ status: "running" });
+    setPendingFor(conversationId);
     let status: "executed" | "failed" = "executed";
     let error: string | null = null;
+    let content = "";
     try {
       await execAction(a);
+      content = a.type === "add_lead" ? `${a.company_name} a fost adăugată în CRM.`
+        : a.type === "time_off" ? "Cererea de concediu a fost înregistrată; aprobarea urmează regulile echipei."
+        : a.type === "calendar" ? `Ședința „${a.title}” a fost adăugată în calendar.`
+        : a.type === "task" ? `Taskul „${a.title}” a fost adăugat.`
+        : a.type === "team_email" ? "Emailul a fost trimis către destinatarii OPSQAI confirmați."
+        : a.type === "debrief" ? `Debrief-ul pentru ${a.company_name} a fost salvat.`
+        : a.type === "email" || a.type === "whatsapp" ? "Am deschis mesajul pregătit. Trimiterea rămâne în aplicația dumneavoastră."
+        : a.type === "doc" ? "Documentul HTML personalizat a fost pregătit."
+        : a.type === "onboard" ? "Am deschis înrolarea cu datele completate; licența se finalizează în cei trei pași."
+        : `Am deschis: ${a.label}.`;
+      update({ status, message: content });
     } catch (e) {
       status = "failed";
-      error = e instanceof Error ? e.message.slice(0, 500) : "error";
+      error = e instanceof Error ? e.message.slice(0, 500) : "Acțiunea nu s-a finalizat.";
+      content = `Nu am putut finaliza „${a.label}”: ${error}. Nu am reluat automat acțiunea.`;
+      update({ status, message: content });
     }
+    setPendingFor(null);
+    patch(conversationId, (c) => ({ ...c, messages: [...c.messages, { role: "assistant", content, at: Date.now() }], updatedAt: Date.now() }));
     const { label, type, ...rest } = a;
-    void logAction({
-      data: {
-        requested_at: new Date(requestedAt ?? Date.now()).toISOString(),
-        action_type: type,
-        label,
-        target: targetOf(a),
-        detail: rest as Record<string, unknown>,
-        status,
-        error,
-        conversation_id: activeId,
-      },
-    }).catch(() => {});
+    try {
+      const auditResult = await logAction({ data: {
+        requested_at: new Date(requestedAt ?? Date.now()).toISOString(), action_type: type, label,
+        target: targetOf(a), detail: { ...rest, confirmation: "explicit-user-approval" }, status, error, conversation_id: conversationId,
+      } });
+      if (!auditResult.ok) toast.error("Acțiunea s-a încheiat, dar jurnalul nu a putut fi salvat.");
+    } catch { toast.error("Acțiunea s-a încheiat, dar jurnalul nu a putut fi salvat."); }
   };
 
   const iconFor = (a: KaiAction) =>
@@ -510,8 +593,10 @@ export function KaiAssistant() {
 
   return (
     <>
-      <button
+      <Button
+        variant="ghost"
         type="button"
+        aria-label="Deschide Kai"
         onClick={() => setOpen(true)}
         className="group flex min-w-0 max-w-xl flex-1 items-center gap-2.5 rounded-full border border-primary/25 bg-primary/5 py-1.5 pl-1.5 pr-3 text-left text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
       >
@@ -521,8 +606,9 @@ export function KaiAssistant() {
           <span className="hidden sm:inline"> · Întreabă-mă orice despre clienți, licențe, vânzări…</span>
         </span>
         <kbd className="hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium md:inline">⌘K</kbd>
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="ghost"
         type="button"
         onClick={startCar}
         aria-label="Mod Mașină"
@@ -530,7 +616,7 @@ export function KaiAssistant() {
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/5 text-primary transition-colors hover:border-primary/50"
       >
         <Car className="h-4 w-4" />
-      </button>
+      </Button>
       {car && (
         <CarMode
           state={voice.state}
@@ -542,18 +628,19 @@ export function KaiAssistant() {
         />
       )}
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg [&>button]:hidden">
-          <SheetHeader className="border-b border-border p-3 text-left">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent onOpenAutoFocus={(e) => { e.preventDefault(); composerRef.current?.focus(); }} className={cn("flex h-[min(820px,92dvh)] w-[calc(100%-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-lg border-primary/20 p-0 [&>button]:hidden", expanded && "h-[calc(100dvh-2rem)] max-w-5xl")}>
+          <DialogHeader className="shrink-0 border-b border-border bg-secondary/40 p-3 text-left">
+
             <div className="flex items-center gap-2">
               <KaiOrb className={cn("h-9 w-9 shrink-0", pending && "animate-pulse")} />
               <div className="min-w-0 flex-1">
-                <SheetTitle className="truncate font-display text-base">
-                  {active && !showHistory ? active.title : "Kai"}
-                </SheetTitle>
-                <SheetDescription className="text-xs">
-                  {pending ? "Kai lucrează…" : "Colegul tău din Management Center"}
-                </SheetDescription>
+                <DialogTitle className="truncate font-display text-base">
+                  Kai <span className="font-sans text-xs font-normal text-muted-foreground">· alături de tine</span>
+                </DialogTitle>
+                <DialogDescription className="text-xs">
+                  {pending ? "Kai lucrează…" : active?.title ?? "Cu ce începem azi?"}
+                </DialogDescription>
               </div>
               <Button variant="ghost" size="icon" aria-label="Conversație nouă" title="Conversație nouă" onClick={newChat}>
                 <Plus className="h-4 w-4" />
@@ -593,16 +680,19 @@ export function KaiAssistant() {
                   {active.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
                 </Button>
               )}
+              <Button variant="ghost" size="icon" className="hidden sm:inline-flex" aria-label={expanded ? "Micșorează Kai" : "Extinde Kai"} title={expanded ? "Micșorează" : "Extinde"} onClick={() => setExpanded((v) => !v)}>
+                {expanded ? <Minimize2 /> : <Maximize2 />}
+              </Button>
               <Button variant="ghost" size="icon" aria-label="Închide" onClick={() => setOpen(false)}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
-          </SheetHeader>
+          </DialogHeader>
 
           {showAudit ? (
             <div className="flex-1 space-y-2 overflow-y-auto p-3">
               <p className="px-1 text-xs text-muted-foreground">
-                Fiecare acțiune propusă de Kai și apăsată de un om. Jurnalul nu poate fi editat.
+                Fiecare acțiune propusă de Kai și confirmată de dumneavoastră. Jurnalul nu poate fi editat.
               </p>
               {audit.isLoading && <div className="h-20 animate-pulse rounded-lg bg-secondary/50" />}
               {audit.data?.length === 0 && (
@@ -719,44 +809,35 @@ export function KaiAssistant() {
               ))}
             </div>
           ) : (
-            <div className="flex-1 space-y-4 overflow-y-auto p-4">
+            <Conversation className="min-h-0"><ConversationContent className="gap-5 p-4 sm:p-6">
               {messages.length === 0 && (
                 <div className="space-y-4">
-                  <div className="rounded-lg border border-border bg-secondary/50 p-3 text-sm">
-                    Salut{name ? `, ${name}` : ""}! Sunt Kai. Văd clienții, licențele, serverele și CRM-ul, verific firme în
-                    ANAF și caut firme noi pe internet. Eu pregătesc, tu decizi și trimiți.
+                  <div className="flex flex-col items-center gap-3 py-6 text-center">
+                    <KaiOrb className="h-16 w-16" />
+                    <h2 className="font-display text-2xl font-semibold">Bună{name ? `, ${name}` : ""}.</h2>
+                    <p className="text-sm text-muted-foreground">Sunt aici. Ce pregătim împreună?</p>
+                    <Button variant="outline" onClick={startCar} className="gap-2"><Car /> {active ? "Reia Modul Mașină" : "Mod Mașină"}</Button>
                   </div>
                   <div className="grid gap-2">
                     {SUGGESTIONS.map((s) => (
-                      <button
+                      <Button
+                        variant="outline"
                         key={s}
                         type="button"
                         onClick={() => send(s)}
-                        className="rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:border-primary/40 hover:bg-primary/5"
+                        className="h-auto justify-start whitespace-normal rounded-lg border-border px-3 py-3 text-left text-sm hover:border-primary/40"
                       >
                         {s}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
               )}
 
               {messages.map((m, i) => (
-                <div key={i} className={cn("group flex flex-col", m.role === "user" ? "items-end" : "items-start")}>
-                  <div
-                    className={cn(
-                      "max-w-[90%] rounded-2xl px-3.5 py-2.5 text-sm",
-                      m.role === "user" ? "bg-primary text-primary-foreground" : "border border-border bg-card",
-                      m.stopped && "text-muted-foreground",
-                    )}
-                  >
-                    {m.role === "assistant" ? (
-                      <div className="space-y-1.5 [&_a]:text-primary [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4">
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      <span className="whitespace-pre-wrap">{m.content}</span>
-                    )}
+                <Message key={i} from={m.role} className="max-w-full">
+                  <MessageContent className={cn("max-w-full break-words", m.role === "user" && "group-[.is-user]:bg-primary group-[.is-user]:text-primary-foreground", m.stopped && "text-muted-foreground")}>
+                    {m.role === "assistant" ? <MessageResponse>{m.content}</MessageResponse> : <span className="whitespace-pre-wrap">{m.content}</span>}
                     {m.actions?.map((a, j) =>
                       a.type === "team_email" ? (
                         <div key={`p${j}`} className="mt-2.5 rounded-lg border border-primary/30 bg-primary/5 p-2.5 text-xs">
@@ -766,26 +847,20 @@ export function KaiAssistant() {
                         </div>
                       ) : null,
                     )}
-                    {m.actions && m.actions.length > 0 && (
-                      <div className="mt-2.5 flex flex-wrap gap-1.5">
-                        {m.actions.map((a, j) => {
-                          const Icon = iconFor(a);
-                          return (
-                            <Button
-                              key={j}
-                              size="sm"
-                              variant={a.type === "onboard" ? "default" : "secondary"}
-                              className="h-8 gap-1.5"
-                              onClick={() => void runAction(a, m.at)}
-                            >
-                              <Icon className="h-3.5 w-3.5" />
-                              {a.label}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                    {m.actions?.map((a, j) => {
+                      const result = m.results?.[kaiActionKey(a)];
+                      const Icon = iconFor(a);
+                      return <div key={j} className="mt-3 w-full min-w-0">
+                        <Tool defaultOpen={false} className="mb-2 bg-secondary/20">
+                          <ToolHeader type="dynamic-tool" toolName={a.type} title={a.label} state={result?.status === "executed" ? "output-available" : result?.status === "failed" ? "output-error" : result?.status === "running" ? "input-available" : "approval-requested"} />
+                          <ToolContent><ToolInput input={a} /><ToolOutput output={result?.status === "executed" ? result.message : undefined} errorText={result?.status === "failed" ? result.message : undefined} /></ToolContent>
+                        </Tool>
+                        {!result && <Button size="sm" variant="secondary" className="h-auto min-h-10 max-w-full gap-2 whitespace-normal text-left" disabled={Boolean(pendingFor)} onClick={() => void runAction(a, m.at)}><Icon />{a.label}<Check className="shrink-0" /></Button>}
+                        {result?.message && <p className={cn("text-xs", result.status === "failed" ? "text-destructive" : "text-success")}>{result.message}</p>}
+                        {result?.status === "running" && <p className="text-xs text-muted-foreground">Confirmat · în curs de executare</p>}
+                      </div>;
+                    })}
+                  </MessageContent>
                   {m.role === "assistant" && !m.stopped && (
                     <div className="mt-1 flex gap-0.5 opacity-60 transition-opacity group-hover:opacity-100">
                       <Button
@@ -807,23 +882,18 @@ export function KaiAssistant() {
                       )}
                     </div>
                   )}
-                </div>
+                </Message>
               ))}
 
               {pending && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <KaiOrb className="h-6 w-6 animate-pulse" />
-                  <span>Kai se gândește</span>
-                  <span className="flex gap-0.5">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
-                  </span>
+                  <Shimmer>Kai se gândește…</Shimmer>
                 </div>
               )}
               {lastAssistant && !pending && null}
               <div ref={endRef} />
-            </div>
+            </ConversationContent><ConversationScrollButton /></Conversation>
           )}
 
           {quickMatches.length > 0 && !showHistory && !showAudit && (
@@ -846,13 +916,7 @@ export function KaiAssistant() {
             </div>
           )}
 
-          <form
-            className="border-t border-border p-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              send(input);
-            }}
-          >
+          <div className="shrink-0 border-t border-border p-3 sm:p-4">
             {voice.state !== "off" && (
               <div className="mb-2 flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-3">
                 <button
@@ -877,20 +941,10 @@ export function KaiAssistant() {
                 </Button>
               </div>
             )}
-            <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-1.5 focus-within:border-primary/50">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    send(input);
-                  }
-                }}
-                rows={1}
-                placeholder="Scrie-i lui Kai…"
-                className="max-h-32 min-h-9 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
-              />
+            <PromptInput onSubmit={({ text }) => send(text)}>
+              <PromptInputTextarea ref={composerRef} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Scrie-i lui Kai…" className="min-h-16" />
+              <PromptInputFooter>
+                <Button type="button" size="icon" variant="ghost" aria-label="Reia Modul Mașină" title="Reia Modul Mașină" onClick={startCar}><Car /></Button>
               {voice.state === "off" && !pending && (
                 <Button
                   type="button"
@@ -910,22 +964,12 @@ export function KaiAssistant() {
                   <Headphones className="h-4 w-4" />
                 </Button>
               )}
-              {pending ? (
-                <Button type="button" size="icon" variant="destructive" aria-label="Oprește" title="Oprește" onClick={stop} className="rounded-full">
-                  <Square className="h-3.5 w-3.5 fill-current" />
-                </Button>
-              ) : (
-                <Button type="submit" size="icon" aria-label="Trimite" title="Trimite" disabled={!input.trim() || Boolean(pendingFor)} className="rounded-full">
-                  <ArrowUp className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <p className="mt-1.5 px-1 text-[10px] text-muted-foreground">
-              Kai nu trimite și nu modifică nimic singur. Sursele: [DB] · [ANAF] · [Web] · [Estimare]
-            </p>
-          </form>
-        </SheetContent>
-      </Sheet>
+                <PromptInputSubmit aria-label={pending ? "Oprește" : "Trimite"} title={pending ? "Oprește" : "Trimite"} status={pending ? "submitted" : "ready"} onStop={stop} disabled={!pending && (!input.trim() || Boolean(pendingFor))} className="ml-auto shrink-0" />
+              </PromptInputFooter>
+            </PromptInput>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -957,11 +1001,11 @@ function CarMode(p: {
             {clock.toLocaleDateString("ro-RO", { weekday: "long", day: "numeric", month: "long" })}
           </div>
         </div>
-        <button type="button" onClick={p.onOpenChat} className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground">
+        <Button variant="outline" type="button" onClick={p.onOpenChat} className="px-4 py-2 text-sm">
           Vezi conversația
-        </button>
+        </Button>
       </div>
-      <button type="button" onClick={p.onTap} className="flex flex-1 flex-col items-center justify-center gap-8 px-6" aria-label={label}>
+      <Button variant="ghost" type="button" onClick={p.onTap} className="h-auto min-h-0 flex-1 flex-col items-center justify-center gap-8 whitespace-normal px-6 hover:bg-transparent" aria-label={label}>
         <span className="relative flex h-56 w-56 items-center justify-center sm:h-72 sm:w-72">
           <span
             className={cn(
@@ -970,22 +1014,23 @@ function CarMode(p: {
               p.state === "speaking" && "animate-ping [animation-duration:1.8s]",
             )}
           />
-          <span className={cn("absolute inset-6 rounded-full bg-primary/15 blur-xl", p.state === "thinking" && "animate-pulse")} />
+
           <KaiOrb className="h-32 w-32 sm:h-40 sm:w-40" />
         </span>
         <span className="text-center font-display text-2xl font-medium sm:text-3xl">{label}</span>
         <span className="line-clamp-3 min-h-[3.5rem] max-w-xl text-center text-base text-muted-foreground">
           {p.state === "listening" ? p.interim : reply}
         </span>
-      </button>
+      </Button>
       <div className="p-5 pb-8">
-        <button
+        <Button
+          variant="destructive"
           type="button"
           onClick={p.onEnd}
           className="flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-destructive text-lg font-semibold text-destructive-foreground"
         >
           <PhoneOff className="h-6 w-6" /> Închide Modul Mașină
-        </button>
+        </Button>
       </div>
     </div>
   );
