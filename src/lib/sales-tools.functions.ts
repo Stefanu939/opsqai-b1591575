@@ -201,3 +201,57 @@ export const applyCallDebrief = createServerFn({ method: "POST" })
     await admin.from("crm_lead_events").insert({ lead_id: leadId, kind: "activity", detail: `debrief${data.stage ? ` → ${data.stage}` : ""}`, actor_user_id: userId } as never);
     return { lead_id: leadId, created };
   });
+
+// ── Client analysis (Kai) ────────────────────────────────────────────────
+export type ClientAnalysis = {
+  profile: string;
+  pains: string[];
+  angle: string;
+  questions: string[];
+  objections: { q: string; a: string }[];
+  tone: "protocol" | "distant" | "friendly" | "generic";
+  pilotGoal: string;
+  modules: string[];
+};
+
+export const analyzeClient = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        company: z.string().min(1).max(200),
+        industry: z.string().max(120).nullish(),
+        contact: z.string().max(120).nullish(),
+        role: z.string().max(120).nullish(),
+        employees: z.number().int().min(0).max(1_000_000).nullish(),
+        notes: z.string().max(3000).nullish(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }): Promise<ClientAnalysis> => {
+    await requirePlatformAdmin(context as never);
+    const { generateAiJson } = await import("@/lib/ai-provider.server");
+    const raw = await generateAiJson({
+      role: "chat",
+      system: `Ești consultant senior de vânzări B2B pentru OPSQAI (platformă AI self-hosted: Core = asistent pe documente interne cu surse citate + Academy cu lecții și teste; HR; Transport; module custom). Datele rămân pe serverul clientului; clientul e operatorul datelor. Nu pretinde certificări ISO/DORA. Nu menționa prețuri: oferta este un pilot GRATUIT de 30 de zile pe un departament. Nu inventa cifre despre firmă; formulează ca ipoteze ("probabil", "de verificat"). Scrie în română corectă, cu diacritice.
+Răspunde STRICT JSON:
+{"profile":"2-3 propoziții, profil operațional dedus","pains":["3-4 dureri probabile"],"angle":"unghiul de deschidere, o propoziție","questions":["5-8 întrebări de diagnostic"],"objections":[{"q":"obiecție anticipată","a":"răspuns"}],"tone":"protocol|distant|friendly|generic","pilotGoal":"obiectiv măsurabil pentru pilot","modules":["Core","HR","Transport","Custom" relevante]}`,
+      prompt: JSON.stringify(data),
+      maxOutputTokens: 1800,
+    });
+    const j = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? "{}") as Partial<ClientAnalysis>;
+    const arr = (x: unknown) => (Array.isArray(x) ? x.filter((s): s is string => typeof s === "string").slice(0, 8) : []);
+    const tones = ["protocol", "distant", "friendly", "generic"] as const;
+    return {
+      profile: String(j.profile ?? ""),
+      pains: arr(j.pains),
+      angle: String(j.angle ?? ""),
+      questions: arr(j.questions),
+      objections: Array.isArray(j.objections)
+        ? j.objections.filter((o) => o && typeof o.q === "string" && typeof o.a === "string").slice(0, 5)
+        : [],
+      tone: tones.includes(j.tone as never) ? (j.tone as ClientAnalysis["tone"]) : "generic",
+      pilotGoal: String(j.pilotGoal ?? ""),
+      modules: arr(j.modules),
+    };
+  });
