@@ -166,7 +166,7 @@ function OnboardingWizard() {
   const runMut = useMutation({
     mutationFn: async () => {
       const seats = 1 + workstations;
-      await create({
+      const created = (await create({
         data: {
           name: name.trim(),
           business_type: profile,
@@ -177,9 +177,12 @@ function OnboardingWizard() {
           admin_password: password,
           admin_first_name: first.trim() || undefined,
           admin_last_name: last.trim() || undefined,
+          cui: cui.trim() || null,
+          install_id: makeInstallId(name),
         },
-      } as never);
-      const installId = makeInstallId(name);
+      } as never)) as { install_id?: string | null; resumed?: boolean };
+      if (created.resumed) toast.info("Reluăm înrolarea începută anterior pentru această firmă.");
+      const installId = created.install_id || makeInstallId(name);
       const expires = new Date();
       expires.setMonth(expires.getMonth() + months);
       const r = await onboard({

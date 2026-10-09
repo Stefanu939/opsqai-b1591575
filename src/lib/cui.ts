@@ -14,6 +14,11 @@ export function isValidCui(raw: string | number | null | undefined): boolean {
   return c === control;
 }
 
+/** Canonical storage form: digits only ("RO 123" → "123"). */
+export function normalizeCui(raw: string | number | null | undefined): string {
+  return String(raw ?? "").replace(/\D/g, "");
+}
+
 /** First valid CUI mentioned in free text (e.g. CRM notes "CUI 12345678"). */
 export function cuiFromText(text: string | null | undefined): string | null {
   for (const m of String(text ?? "").matchAll(/\b(?:CUI|CIF|cod fiscal)[:\s#]*(?:RO)?\s?(\d{2,10})\b/gi)) {
