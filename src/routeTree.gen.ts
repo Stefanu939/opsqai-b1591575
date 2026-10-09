@@ -16,7 +16,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as CompanyRouteImport } from './routes/company'
-import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DiscoveryRouteImport } from './routes/discovery'
 import { Route as DocumentationRouteImport } from './routes/documentation'
@@ -28,7 +27,9 @@ import { Route as InvestRouteImport } from './routes/invest'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ModulesRouteImport } from './routes/modules'
+import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PilotRouteImport } from './routes/pilot'
+import { Route as PressRouteImport } from './routes/press'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as ProductOverviewRouteImport } from './routes/product-overview'
@@ -57,6 +58,8 @@ import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-cha
 import { Route as AuthMicrosoftRouteImport } from './routes/auth.microsoft'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as CompareIndexRouteImport } from './routes/compare.index'
+import { Route as CompareSlugRouteImport } from './routes/compare.$slug'
 import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
 import { Route as DocumentationAdministratorGuideRouteImport } from './routes/documentation.administrator-guide'
 import { Route as DocumentationArchitectureRouteImport } from './routes/documentation.architecture'
@@ -224,11 +227,6 @@ const CompanyRoute = CompanyRouteImport.update({
   path: '/company',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CompareRoute = CompareRouteImport.update({
-  id: '/compare',
-  path: '/compare',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -284,9 +282,19 @@ const ModulesRoute = ModulesRouteImport.update({
   path: '/modules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PilotRoute = PilotRouteImport.update({
   id: '/pilot',
   path: '/pilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressRoute = PressRouteImport.update({
+  id: '/press',
+  path: '/press',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -430,6 +438,16 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BlogRoute,
+} as any)
+const CompareIndexRoute = CompareIndexRouteImport.update({
+  id: '/compare/',
+  path: '/compare/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareSlugRoute = CompareSlugRouteImport.update({
+  id: '/compare/$slug',
+  path: '/compare/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentationIndexRoute = DocumentationIndexRouteImport.update({
   id: '/',
@@ -1177,7 +1195,6 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -1188,7 +1205,9 @@ export interface FileRoutesByFullPath {
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/partners': typeof PartnersRoute
   '/pilot': typeof PilotRoute
+  '/press': typeof PressRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1216,6 +1235,7 @@ export interface FileRoutesByFullPath {
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -1232,6 +1252,7 @@ export interface FileRoutesByFullPath {
   '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/solutions/': typeof SolutionsIndexRoute
   '/verify/': typeof VerifyIndexRoute
@@ -1357,7 +1378,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/first-run': typeof FirstRunRoute
@@ -1367,7 +1387,9 @@ export interface FileRoutesByTo {
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/partners': typeof PartnersRoute
   '/pilot': typeof PilotRoute
+  '/press': typeof PressRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1392,6 +1414,7 @@ export interface FileRoutesByTo {
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -1408,6 +1431,7 @@ export interface FileRoutesByTo {
   '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog': typeof BlogIndexRoute
+  '/compare': typeof CompareIndexRoute
   '/documentation': typeof DocumentationIndexRoute
   '/solutions': typeof SolutionsIndexRoute
   '/verify': typeof VerifyIndexRoute
@@ -1534,7 +1558,6 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -1545,7 +1568,9 @@ export interface FileRoutesById {
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/partners': typeof PartnersRoute
   '/pilot': typeof PilotRoute
+  '/press': typeof PressRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1573,6 +1598,7 @@ export interface FileRoutesById {
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -1589,6 +1615,7 @@ export interface FileRoutesById {
   '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/solutions/': typeof SolutionsIndexRoute
   '/verify/': typeof VerifyIndexRoute
@@ -1717,7 +1744,6 @@ export interface FileRouteTypes {
     | '/blog'
     | '/brand'
     | '/company'
-    | '/compare'
     | '/contact'
     | '/discovery'
     | '/documentation'
@@ -1728,7 +1754,9 @@ export interface FileRouteTypes {
     | '/invest'
     | '/mcp'
     | '/modules'
+    | '/partners'
     | '/pilot'
+    | '/press'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -1756,6 +1784,7 @@ export interface FileRouteTypes {
     | '/api/workspace-chat'
     | '/auth/microsoft'
     | '/blog/$slug'
+    | '/compare/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -1772,6 +1801,7 @@ export interface FileRouteTypes {
     | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
+    | '/compare/'
     | '/documentation/'
     | '/solutions/'
     | '/verify/'
@@ -1897,7 +1927,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/brand'
     | '/company'
-    | '/compare'
     | '/contact'
     | '/discovery'
     | '/first-run'
@@ -1907,7 +1936,9 @@ export interface FileRouteTypes {
     | '/invest'
     | '/mcp'
     | '/modules'
+    | '/partners'
     | '/pilot'
+    | '/press'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -1932,6 +1963,7 @@ export interface FileRouteTypes {
     | '/api/workspace-chat'
     | '/auth/microsoft'
     | '/blog/$slug'
+    | '/compare/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -1948,6 +1980,7 @@ export interface FileRouteTypes {
     | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog'
+    | '/compare'
     | '/documentation'
     | '/solutions'
     | '/verify'
@@ -2073,7 +2106,6 @@ export interface FileRouteTypes {
     | '/blog'
     | '/brand'
     | '/company'
-    | '/compare'
     | '/contact'
     | '/discovery'
     | '/documentation'
@@ -2084,7 +2116,9 @@ export interface FileRouteTypes {
     | '/invest'
     | '/mcp'
     | '/modules'
+    | '/partners'
     | '/pilot'
+    | '/press'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -2112,6 +2146,7 @@ export interface FileRouteTypes {
     | '/api/workspace-chat'
     | '/auth/microsoft'
     | '/blog/$slug'
+    | '/compare/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -2128,6 +2163,7 @@ export interface FileRouteTypes {
     | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
+    | '/compare/'
     | '/documentation/'
     | '/solutions/'
     | '/verify/'
@@ -2256,7 +2292,6 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   BrandRoute: typeof BrandRoute
   CompanyRoute: typeof CompanyRoute
-  CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
   DiscoveryRoute: typeof DiscoveryRoute
   DocumentationRoute: typeof DocumentationRouteWithChildren
@@ -2267,7 +2302,9 @@ export interface RootRouteChildren {
   InvestRoute: typeof InvestRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
+  PartnersRoute: typeof PartnersRoute
   PilotRoute: typeof PilotRoute
+  PressRoute: typeof PressRoute
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
   ProductOverviewRoute: typeof ProductOverviewRoute
@@ -2290,8 +2327,10 @@ export interface RootRouteChildren {
   ApiKbUploadRoute: typeof ApiKbUploadRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  CompareSlugRoute: typeof CompareSlugRoute
   SolutionsVerticalRoute: typeof SolutionsVerticalRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  CompareIndexRoute: typeof CompareIndexRoute
   SolutionsIndexRoute: typeof SolutionsIndexRoute
   VerifyIndexRoute: typeof VerifyIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -2390,13 +2429,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/compare': {
-      id: '/compare'
-      path: '/compare'
-      fullPath: '/compare'
-      preLoaderRoute: typeof CompareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -2474,11 +2506,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pilot': {
       id: '/pilot'
       path: '/pilot'
       fullPath: '/pilot'
       preLoaderRoute: typeof PilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press': {
+      id: '/press'
+      path: '/press'
+      fullPath: '/press'
+      preLoaderRoute: typeof PressRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -2676,6 +2722,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/compare/': {
+      id: '/compare/'
+      path: '/compare'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof CompareIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/$slug': {
+      id: '/compare/$slug'
+      path: '/compare/$slug'
+      fullPath: '/compare/$slug'
+      preLoaderRoute: typeof CompareSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/documentation/': {
       id: '/documentation/'
@@ -3936,7 +3996,6 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   BrandRoute: BrandRoute,
   CompanyRoute: CompanyRoute,
-  CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
   DiscoveryRoute: DiscoveryRoute,
   DocumentationRoute: DocumentationRouteWithChildren,
@@ -3947,7 +4006,9 @@ const rootRouteChildren: RootRouteChildren = {
   InvestRoute: InvestRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
+  PartnersRoute: PartnersRoute,
   PilotRoute: PilotRoute,
+  PressRoute: PressRoute,
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
   ProductOverviewRoute: ProductOverviewRoute,
@@ -3971,8 +4032,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiKbUploadRoute: ApiKbUploadRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  CompareSlugRoute: CompareSlugRoute,
   SolutionsVerticalRoute: SolutionsVerticalRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  CompareIndexRoute: CompareIndexRoute,
   SolutionsIndexRoute: SolutionsIndexRoute,
   VerifyIndexRoute: VerifyIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
