@@ -283,3 +283,24 @@ export function toneObjection(tone: Tone, i: number): string {
   if (tone === "friendly") return `Vă înțeleg foarte bine, aud asta des. ${a}`;
   return a;
 }
+
+export type EmailProvider = "default" | "gmail" | "outlook" | "yahoo" | "icloud";
+
+/** Opens a compose window in the colleague's own mailbox (no server-side sending). */
+export function composeEmailUrl(
+  provider: EmailProvider | string | null | undefined,
+  from: string | null | undefined,
+  to: string | null | undefined,
+  subject: string,
+  body: string,
+) {
+  const e = encodeURIComponent;
+  const t = e(to ?? "");
+  if (provider === "gmail")
+    return `https://mail.google.com/mail/?${from ? `authuser=${e(from)}&` : ""}view=cm&fs=1&to=${t}&su=${e(subject)}&body=${e(body)}`;
+  if (provider === "outlook")
+    return `https://outlook.live.com/mail/0/deeplink/compose?to=${t}&subject=${e(subject)}&body=${e(body)}`;
+  if (provider === "yahoo")
+    return `https://compose.mail.yahoo.com/?to=${t}&subject=${e(subject)}&body=${e(body)}`;
+  return mailtoUrl(to, subject, body);
+}

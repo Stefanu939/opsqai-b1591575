@@ -80,7 +80,8 @@ import { saveCrmLead } from "@/lib/crm.functions";
 import { listCompanies } from "@/lib/companies.functions";
 import { applyCallDebrief } from "@/lib/sales-tools.functions";
 import { useSalesDoc } from "@/components/mc/sales-docs";
-import { mailtoUrl, telUrl, whatsappUrl } from "@/lib/mc-outreach";
+import { composeEmailUrl, telUrl, whatsappUrl } from "@/lib/mc-outreach";
+import { useSenderSettings } from "@/hooks/use-sender-settings";
 import { cn } from "@/lib/utils";
 
 type Msg = {
@@ -168,6 +169,7 @@ export function KaiAssistant() {
   const endRef = useRef<HTMLDivElement>(null);
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
+  const { settings: sender } = useSenderSettings();
   const fetchConvs = useServerFn(listKaiConversations);
   const pushConvs = useServerFn(saveKaiConversations);
   // Snapshot of what the cloud currently holds: id → signature.
@@ -578,7 +580,12 @@ export function KaiAssistant() {
         },
       });
     } else if (a.type === "whatsapp") window.open(whatsappUrl(a.phone, a.text), "_blank");
-    else if (a.type === "email") window.open(mailtoUrl(a.email, a.subject, a.body), "_blank");
+    else if (a.type === "email") window.open(
+        sender.kai_may_compose
+          ? composeEmailUrl(sender.email_provider, sender.sender_email, a.email, a.subject, a.body)
+          : composeEmailUrl("default", null, a.email, a.subject, a.body),
+        "_blank",
+      );
     else if (a.type === "call") window.location.href = telUrl(a.phone);
     else if (a.type === "doc") {
       try {
