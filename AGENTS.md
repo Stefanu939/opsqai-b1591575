@@ -24,3 +24,6 @@
 - Kai keeps its existing conversation transport and browser history while composing its floating dialog with AI Elements — visual changes must not change model/provider routing.
 - ManagementShell owns MC mobile navigation and consumes the authorized support unread counter — avoids leaking Self-Hosted navigation or fabricated badges into MC.
 - MC client discovery reuses authenticated company/CRM reads and shared browser-safe matching; enrichment previews apply only to editable forms and never save automatically — preserves scope and human approval.
+- Onboarding is resumable: `companies.onboarding_status` tracks progress and CUI uniqueness is a DB index — concurrent/partial enrolments must never create duplicates.
+- Kai conversations live in `kai_conversations` (per user, RLS); localStorage is only an offline cache — memory must follow the account across devices.
+- Colleague outreach uses compose deep-links into their own mailbox (`mc_sender_settings`), never server-side sending from personal accounts — keeps the human as sender.

@@ -47,3 +47,9 @@
 ## Local AI quality (2026-10-07)
 - [x] Qwen 2.5 auto-downloaded by the installer (no manual step for customers)
 - [x] Lower temperature (0.2) + strict native-language quality rule for knowledge chat
+
+## MC integrity & continuity (2026-10-09)
+- [x] CUI unique per active company (DB index) + friendly concurrent-enrolment error
+- [x] Idempotent onboarding: resumes from onboarding_status, skips already-issued licences
+- [x] Kai conversations synced per account in the cloud (laptop ↔ phone)
+- [x] Personal sender email/WhatsApp per colleague; Kai opens compose in own mailbox (human sends)
