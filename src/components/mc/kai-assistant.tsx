@@ -10,7 +10,6 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { kaiActionKey, resolveKaiConfirmation, type KaiActionResult } from "@/lib/kai-confirmation";
 import { toast } from "sonner";
 import {
-  ArrowUp,
   Mail,
   MessageCircle,
   Phone,
@@ -19,7 +18,6 @@ import {
   Maximize2,
   Minimize2,
   Users,
-  Square,
   Plus,
   Pin,
   PinOff,
@@ -102,6 +100,7 @@ export function KaiAssistant() {
   const [expanded, setExpanded] = useState(false);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const actionLocks = useRef(new Set<string>());
+  const actionInFlight = useRef(false);
   const [input, setInput] = useState("");
   const [convs, setConvs] = useState<Conv[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -341,13 +340,17 @@ export function KaiAssistant() {
     if (spokenRef.current === spokenKey) return;
     spokenRef.current = spokenKey;
     voice.speak(last.content);
-  }, [messages, voice]);
+  }, [messages, voice, activeId]);
   useEffect(() => {
     if (!open && !carRef.current) voice.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const stop = () => {
+    if (actionInFlight.current) {
+      toast.info("Acțiunea confirmată este deja în curs. Așteaptă rezultatul înainte de o cerere nouă.");
+      return;
+    }
     reqRef.current++;
     const id = pendingFor;
     setPendingFor(null);
@@ -364,6 +367,7 @@ export function KaiAssistant() {
   };
 
   const newChat = () => {
+    if (actionInFlight.current) return;
     if (pendingFor) stop();
     voice.stop();
     spokenRef.current = "";
@@ -521,7 +525,7 @@ export function KaiAssistant() {
                 : a.company_name;
 
   const runAction = async (a: KaiAction, requestedAt?: number, conversationId = activeId) => {
-    if (!conversationId || pendingFor) return;
+    if (!conversationId || pendingFor || actionInFlight.current) return;
     const key = kaiActionKey(a);
     const lock = `${conversationId}:${requestedAt}:${key}`;
     if (actionLocks.current.has(lock)) return;
@@ -529,6 +533,7 @@ export function KaiAssistant() {
     const proposal = conversation?.messages.find((m) => m.at === requestedAt && m.actions?.some((action) => kaiActionKey(action) === key));
     if (!proposal || proposal.results?.[key]) return;
     actionLocks.current.add(lock);
+    actionInFlight.current = true;
     const update = (result: KaiActionResult) => patch(conversationId, (c) => ({ ...c, messages: c.messages.map((m) => m === proposal || (m.at === requestedAt && m.actions?.some((action) => kaiActionKey(action) === key)) ? { ...m, results: { ...m.results, [key]: result } } : m) }));
     update({ status: "running" });
     setPendingFor(conversationId);
@@ -555,6 +560,7 @@ export function KaiAssistant() {
       update({ status, message: content });
     }
     setPendingFor(null);
+    actionInFlight.current = false;
     patch(conversationId, (c) => ({ ...c, messages: [...c.messages, { role: "assistant", content, at: Date.now() }], updatedAt: Date.now() }));
     const { label, type, ...rest } = a;
     try {
@@ -632,9 +638,9 @@ export function KaiAssistant() {
         <DialogContent onOpenAutoFocus={(e) => { e.preventDefault(); composerRef.current?.focus(); }} className={cn("flex h-[min(820px,92dvh)] w-[calc(100%-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-lg border-primary/20 p-0 [&>button]:hidden", expanded && "h-[calc(100dvh-2rem)] max-w-5xl")}>
           <DialogHeader className="shrink-0 border-b border-border bg-secondary/40 p-3 text-left">
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <KaiOrb className={cn("h-9 w-9 shrink-0", pending && "animate-pulse")} />
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[100px] flex-1">
                 <DialogTitle className="truncate font-display text-base">
                   Kai <span className="font-sans text-xs font-normal text-muted-foreground">· alături de tine</span>
                 </DialogTitle>

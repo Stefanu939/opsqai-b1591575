@@ -27,6 +27,7 @@ export function resolveKaiConfirmation(text: string, actions: KaiAction[]) {
   const normalized = normalize(text);
   if (/\b(nu|anuleaza|renunt|stop|fara)\b/.test(normalized)) return { kind: "none" as const };
   if (!/^(confirm|da confirm|da confirma|confirma|aproba|aprob|da poti|poti trece|poti adauga|poti trimite|executa)\b/.test(normalized)) return { kind: "none" as const };
+  if (/\b(dar|schimba|modifica|inlocuieste|exceptie|doar)\b/.test(normalized)) return { kind: "ambiguous" as const };
   if (!actions.length) return { kind: "missing" as const };
   const bare = /^(confirm|da confirm|confirma|aproba|aprob|executa)( te rog)?$/.test(normalized);
   if (bare) return actions.length === 1 ? { kind: "matched" as const, action: actions[0] } : { kind: "ambiguous" as const };
@@ -42,6 +43,7 @@ export function resolveKaiConfirmation(text: string, actions: KaiAction[]) {
   if (targets.length) candidates = targets;
   // Extra company names or changed dates/details must be clarified, not silently applied.
   const genericWords = new Set("confirm da confirma aproba aprob executa poti trece adauga trimite seteaza salveaza deschide te rog in din pentru la pe si un o firma compania lead crm sedinta intalnirea calendar task reminder sarcina concediu concediul email echipa mesaj whatsapp suna apel document onepager securitate prezentare inroleaza licenta client pret oferta pagina rezumat debrief aceasta asta acesta propusa propus".split(" "));
-  if (!targets.length && words.some((word) => !genericWords.has(word))) return { kind: "ambiguous" as const };
+  const targetWords = new Set(targets.flatMap((a) => normalize("company_name" in a ? a.company_name : "title" in a ? a.title : a.type === "team_email" ? a.to.join(" ") : "").split(" ")));
+  if (words.some((word) => !genericWords.has(word) && !targetWords.has(word))) return { kind: "ambiguous" as const };
   return candidates.length === 1 ? { kind: "matched" as const, action: candidates[0] } : { kind: "ambiguous" as const };
 }

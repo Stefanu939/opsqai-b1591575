@@ -23,5 +23,6 @@ describe("Kai explicit approvals", () => {
     expect(resolveKaiConfirmation("Confirm task", [pirelli, task])).toEqual({ kind: "matched", action: task });
     expect(resolveKaiConfirmation("Confirm tot", [pirelli, task]).kind).toBe("ambiguous");
     expect(resolveKaiConfirmation("Confirm, dar schimbă ora la 12", [task]).kind).toBe("ambiguous");
+    expect(resolveKaiConfirmation("Confirm Pirelli România, dar schimbă emailul", [pirelli]).kind).toBe("ambiguous");
   });
 });
