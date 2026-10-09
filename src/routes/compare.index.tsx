@@ -6,7 +6,7 @@ import { SectionShell } from "@/components/oix/section-shell";
 import { pageHead } from "@/lib/seo";
 import { useCompareCopy } from "@/i18n/pages/compare";
 
-export const Route = createFileRoute("/compare")({
+export const Route = createFileRoute("/compare/")({
   head: () =>
     pageHead({
       title: "OPSQAI vs. the way you work today — honest comparison",

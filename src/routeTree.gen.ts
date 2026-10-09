@@ -57,6 +57,7 @@ import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-cha
 import { Route as AuthMicrosoftRouteImport } from './routes/auth.microsoft'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as CompareSlugRouteImport } from './routes/compare.$slug'
 import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
 import { Route as DocumentationAdministratorGuideRouteImport } from './routes/documentation.administrator-guide'
 import { Route as DocumentationArchitectureRouteImport } from './routes/documentation.architecture'
@@ -430,6 +431,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BlogRoute,
+} as any)
+const CompareSlugRoute = CompareSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => CompareRoute,
 } as any)
 const DocumentationIndexRoute = DocumentationIndexRouteImport.update({
   id: '/',
@@ -1177,7 +1183,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRoute
+  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -1216,6 +1222,7 @@ export interface FileRoutesByFullPath {
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -1357,7 +1364,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRoute
+  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/first-run': typeof FirstRunRoute
@@ -1392,6 +1399,7 @@ export interface FileRoutesByTo {
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -1534,7 +1542,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRoute
+  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -1573,6 +1581,7 @@ export interface FileRoutesById {
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -1756,6 +1765,7 @@ export interface FileRouteTypes {
     | '/api/workspace-chat'
     | '/auth/microsoft'
     | '/blog/$slug'
+    | '/compare/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -1932,6 +1942,7 @@ export interface FileRouteTypes {
     | '/api/workspace-chat'
     | '/auth/microsoft'
     | '/blog/$slug'
+    | '/compare/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -2112,6 +2123,7 @@ export interface FileRouteTypes {
     | '/api/workspace-chat'
     | '/auth/microsoft'
     | '/blog/$slug'
+    | '/compare/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -2256,7 +2268,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   BrandRoute: typeof BrandRoute
   CompanyRoute: typeof CompanyRoute
-  CompareRoute: typeof CompareRoute
+  CompareRoute: typeof CompareRouteWithChildren
   ContactRoute: typeof ContactRoute
   DiscoveryRoute: typeof DiscoveryRoute
   DocumentationRoute: typeof DocumentationRouteWithChildren
@@ -2676,6 +2688,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/compare/$slug': {
+      id: '/compare/$slug'
+      path: '/$slug'
+      fullPath: '/compare/$slug'
+      preLoaderRoute: typeof CompareSlugRouteImport
+      parentRoute: typeof CompareRoute
     }
     '/documentation/': {
       id: '/documentation/'
@@ -3903,6 +3922,17 @@ const BlogRouteChildren: BlogRouteChildren = {
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
+interface CompareRouteChildren {
+  CompareSlugRoute: typeof CompareSlugRoute
+}
+
+const CompareRouteChildren: CompareRouteChildren = {
+  CompareSlugRoute: CompareSlugRoute,
+}
+
+const CompareRouteWithChildren =
+  CompareRoute._addFileChildren(CompareRouteChildren)
+
 interface DocumentationRouteChildren {
   DocumentationAdministratorGuideRoute: typeof DocumentationAdministratorGuideRoute
   DocumentationArchitectureRoute: typeof DocumentationArchitectureRoute
@@ -3936,7 +3966,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   BrandRoute: BrandRoute,
   CompanyRoute: CompanyRoute,
-  CompareRoute: CompareRoute,
+  CompareRoute: CompareRouteWithChildren,
   ContactRoute: ContactRoute,
   DiscoveryRoute: DiscoveryRoute,
   DocumentationRoute: DocumentationRouteWithChildren,
