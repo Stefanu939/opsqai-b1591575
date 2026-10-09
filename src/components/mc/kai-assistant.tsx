@@ -165,7 +165,7 @@ export function KaiAssistant() {
   const logAction = useServerFn(logKaiAction);
   const fetchAudit = useServerFn(listKaiActions);
   const endRef = useRef<HTMLDivElement>(null);
-  const loaded = useRef(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   useEffect(() => {
     try {
@@ -181,17 +181,17 @@ export function KaiAssistant() {
     } catch {
       /* ignore */
     }
-    loaded.current = true;
+    setHistoryLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (!loaded.current) return;
+    if (!historyLoaded) return;
     try {
       localStorage.setItem(STORE, JSON.stringify(convs.slice(0, 50)));
     } catch {
       /* ignore */
     }
-  }, [convs]);
+  }, [convs, historyLoaded]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -205,10 +205,10 @@ export function KaiAssistant() {
   }, []);
 
   useEffect(() => {
-    if (!loaded.current) return;
+    if (!historyLoaded) return;
     if (activeId) localStorage.setItem(`${STORE}-active`, activeId);
     else localStorage.removeItem(`${STORE}-active`);
-  }, [activeId]);
+  }, [activeId, historyLoaded]);
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -221,7 +221,7 @@ export function KaiAssistant() {
   }, [open, activeId, pendingFor, showHistory, showAudit, renaming]);
 
   const active = convs.find((c) => c.id === activeId) ?? null;
-  const messages = active?.messages ?? [];
+  const messages = useMemo(() => active?.messages ?? [], [active]);
   const pending = pendingFor !== null && pendingFor === activeId;
 
   useEffect(() => {
