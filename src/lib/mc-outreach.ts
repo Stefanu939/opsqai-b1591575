@@ -238,7 +238,7 @@ Cu drag,
       };
     default:
       return {
-        opening: fill(CALL_OPENING, {}).length ? CALL_OPENING : "",
+        opening: CALL_OPENING,
         pitch: `OPSQAI rulează 100% instalat pe calculatoarele firmei, fără date trimise în cloud, și ajută cu ${pain}. Angajații primesc răspunsuri instant din regulamentele firmei, iar noii veniți sunt instruiți și testați automat. Vă propun ${pilot}. Cum arată programul dumneavoastră joi?`,
         wa: `Bună ziua, {name}! Sunt {sender} de la OPSQAI. Sprijinim companiile în privința ${pain}, cu o platformă AI care rulează pe serverul firmei, fără cloud. Oferim un pilot gratuit de 30 de zile. Aveți deschidere pentru un demo de 15 minute săptămâna aceasta?`,
         waFollow: WA.followup,
