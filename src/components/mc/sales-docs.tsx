@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { FileText, ShieldCheck } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
+import { onePagerHtml, openHtml, securityHtml } from "@/lib/sales-html";
 import { Button } from "@/components/ui/button";
 import { generateSalesDoc, type SalesDocKind } from "@/lib/sales-tools.functions";
 
@@ -33,28 +32,16 @@ export function useSalesDoc() {
   };
 }
 
-/** One-click One-Pager and Security sheet buttons for a client or lead. */
+/** One-click One-Pager (free pilot, no prices) and Security page for a client or lead. */
 export function SalesDocButtons({ target }: { target: SalesDocTarget }) {
-  const make = useSalesDoc();
-  const [busy, setBusy] = useState<SalesDocKind | null>(null);
-  const run = async (kind: SalesDocKind) => {
-    setBusy(kind);
-    try {
-      await make(kind, target);
-      toast.success("PDF descărcat");
-    } catch {
-      toast.error("Nu am putut genera PDF-ul.");
-    } finally {
-      setBusy(null);
-    }
-  };
+  const input = { company: target.company_name, contact: target.contact_name ?? undefined, industry: target.industry ?? undefined };
   return (
     <div className="flex flex-wrap gap-2">
-      <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run("onepager")}>
-        <FileText className="mr-1.5 h-4 w-4" />{busy === "onepager" ? "Se generează…" : "One-Pager PDF"}
+      <Button size="sm" variant="outline" onClick={() => openHtml(onePagerHtml(input))}>
+        <FileText className="mr-1.5 h-4 w-4" />One-Pager (pilot gratuit)
       </Button>
-      <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run("security")}>
-        <ShieldCheck className="mr-1.5 h-4 w-4" />{busy === "security" ? "Se generează…" : "Fișă securitate & GDPR"}
+      <Button size="sm" variant="outline" onClick={() => openHtml(securityHtml(input))}>
+        <ShieldCheck className="mr-1.5 h-4 w-4" />Pagină securitate & GDPR
       </Button>
     </div>
   );
