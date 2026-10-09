@@ -58,11 +58,12 @@ const PAGES = [
  * Navigation targets are always available; customer / license / installation
  * results are fetched lazily the first time the palette is opened.
  */
-export function QuickSearch() {
+export function QuickSearch({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const { session, loading } = useAuth();
   const ready = !loading && Boolean(session?.user?.id) && open;
 
@@ -106,6 +107,7 @@ export function QuickSearch() {
 
   const leads = useQuery({ queryKey: [session?.user?.id, "mc-quick-leads"], queryFn: () => fetchLeads(), enabled: ready, retry: false, staleTime: 30_000 });
   const chosen = leads.data?.leads.find((lead) => lead.id === selectedLead);
+  const chosenCompany = companies.data?.find((company) => company.id === selectedCompany);
 
   const go = (to: string) => {
     setOpen(false);
@@ -114,16 +116,16 @@ export function QuickSearch() {
 
   return (
     <>
-      <Button variant="outline" onClick={() => { setQuery(""); setSelectedLead(null); setOpen(true); }} className="hidden min-w-0 max-w-xl flex-1 justify-start text-muted-foreground sm:flex">
+      {!compact && <Button variant="outline" onClick={() => { setQuery(""); setSelectedLead(null); setSelectedCompany(null); setOpen(true); }} className="hidden min-w-0 max-w-xl flex-1 justify-start text-muted-foreground sm:flex">
         <Search className="h-4 w-4 shrink-0" /><span className="min-w-0 flex-1 truncate text-left">Caută firme, contacte, CUI…</span><kbd className="hidden text-xs md:inline">⌘K</kbd>
-      </Button>
-      <Button variant="outline" size="icon" aria-label="Căutare rapidă" onClick={() => { setQuery(""); setSelectedLead(null); setOpen(true); }} className="sm:hidden"><Search className="h-4 w-4" /></Button>
+      </Button>}
+      <Button variant="ghost" size="icon" aria-label="Căutare rapidă" title="Căutare rapidă · Ctrl+K" onClick={() => { setQuery(""); setSelectedLead(null); setSelectedCompany(null); setOpen(true); }} className={compact ? "shrink-0" : "sm:hidden"}><Search className="h-4 w-4" /></Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85dvh] overflow-hidden p-0 sm:max-w-2xl">
           <DialogTitle className="sr-only">Căutare rapidă OPSQAI</DialogTitle>
           <Command shouldFilter={false}>
-        <CommandInput value={query} onValueChange={(value) => { setQuery(value); setSelectedLead(null); }} placeholder="Firmă, persoană, email, telefon, CUI…" />
+        <CommandInput value={query} onValueChange={(value) => { setQuery(value); setSelectedLead(null); setSelectedCompany(null); }} placeholder="Firmă, persoană, email, telefon, CUI…" />
         <CommandList className="max-h-[55dvh]">
           {(companies.isLoading || leads.isLoading) && <p className="px-4 py-3 text-sm text-muted-foreground">Se încarcă firmele…</p>}
           {(companies.isError || leads.isError || licenses.isError || installs.isError) && <p role="alert" className="px-4 py-3 text-sm text-warning">Unele rezultate nu sunt disponibile. <Button variant="ghost" size="sm" onClick={() => { void companies.refetch(); void leads.refetch(); void licenses.refetch(); void installs.refetch(); }}>Reîncearcă</Button></p>}
@@ -140,7 +142,7 @@ export function QuickSearch() {
               >
                 <c.icon className="mr-2 h-4 w-4 text-primary" />
                 {c.label}
-                <span className="ml-auto text-xs text-muted-foreground">{c.hint}</span>
+                <span className="ml-auto hidden text-xs text-muted-foreground sm:inline">{c.hint}</span>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -164,8 +166,8 @@ export function QuickSearch() {
                   key={c.id}
                   value={`customer ${c.name} ${c.install_id ?? ""} ${c.business_type ?? ""}`}
                   onSelect={() => {
-                    setOpen(false);
-                    navigate({ to: "/management/companies/$id", params: { id: c.id } });
+                    setSelectedLead(null);
+                    setSelectedCompany(c.id);
                   }}
                 >
                   <Users className="mr-2 h-4 w-4" />
@@ -217,7 +219,7 @@ export function QuickSearch() {
           )}
           <CommandGroup heading="Prospecte CRM">
             {(leads.data?.leads ?? []).filter((lead) => matchesClient(query, [lead.company_name, lead.contact_name, lead.email, lead.phone, lead.country, lead.notes])).map((lead) => (
-              <CommandItem key={lead.id} value={`crm-${lead.id}`} onSelect={() => setSelectedLead(lead.id)}>
+              <CommandItem key={lead.id} value={`crm-${lead.id}`} onSelect={() => { setSelectedCompany(null); setSelectedLead(lead.id); }}>
                 <Users className="h-4 w-4 text-primary" />
                 <div className="min-w-0 flex-1"><div className="truncate font-medium">{lead.company_name}</div><div className="truncate text-xs text-muted-foreground">{[lead.contact_name, lead.email, cuiFromText(lead.notes) && `CUI ${cuiFromText(lead.notes)}`].filter(Boolean).join(" · ")}</div></div>
                 <span className="shrink-0 text-xs text-muted-foreground">{lead.stage}</span>
@@ -225,6 +227,14 @@ export function QuickSearch() {
             ))}
           </CommandGroup>
         </CommandList>
+        {chosenCompany && <div className="space-y-2 border-t border-border bg-muted/30 p-3">
+          <p className="truncate text-sm font-semibold">{chosenCompany.name}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => { setOpen(false); navigate({ to: "/management/companies/$id", params: { id: chosenCompany.id } }); }}>Fișa clientului</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/sales", search: { company: chosenCompany.name } }); }}>Pregătește apelul</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/pricing", search: { company: chosenCompany.name } }); }}>Ofertă</Button>
+          </div>
+        </div>}
         {chosen && <div className="space-y-2 border-t border-border bg-muted/30 p-3">
           <p className="truncate text-sm font-semibold">{chosen.company_name}</p>
           <div className="flex flex-wrap gap-2">
