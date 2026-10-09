@@ -102,8 +102,8 @@ export function LeadDialog({
         {open && <LeadEnrichment key={lead?.id ?? "new"} company={v.company_name} notes={v.notes} leadId={lead?.id} onApply={(data) => setV((previous) => ({ ...previous, company_name: data.company, phone: previous.phone || data.phone, notes: data.notes, country: previous.country || "România", language: "ro" }))} />}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label>Company</Label>
-            <Input value={v.company_name} onChange={(e) => set("company_name", e.target.value)} />
+            <Label htmlFor="crm-company-name">Firmă</Label>
+            <Input id="crm-company-name" value={v.company_name} onChange={(e) => set("company_name", e.target.value)} />
           </div>
           <div>
             <Label>Contact</Label>

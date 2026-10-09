@@ -74,7 +74,7 @@ export function QuickSearch({ compact = false }: { compact?: boolean }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key.toLowerCase() === "k" && e.shiftKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((v) => !v);
       }
@@ -117,9 +117,9 @@ export function QuickSearch({ compact = false }: { compact?: boolean }) {
   return (
     <>
       {!compact && <Button variant="outline" onClick={() => { setQuery(""); setSelectedLead(null); setSelectedCompany(null); setOpen(true); }} className="hidden min-w-0 max-w-xl flex-1 justify-start text-muted-foreground sm:flex">
-        <Search className="h-4 w-4 shrink-0" /><span className="min-w-0 flex-1 truncate text-left">Caută firme, contacte, CUI…</span><kbd className="hidden text-xs md:inline">⌘K</kbd>
+        <Search className="h-4 w-4 shrink-0" /><span className="min-w-0 flex-1 truncate text-left">Caută firme, contacte, CUI…</span><kbd className="hidden text-xs md:inline">⌘⇧K</kbd>
       </Button>}
-      <Button variant="ghost" size="icon" aria-label="Căutare rapidă" title="Căutare rapidă · Ctrl+K" onClick={() => { setQuery(""); setSelectedLead(null); setSelectedCompany(null); setOpen(true); }} className={compact ? "shrink-0" : "sm:hidden"}><Search className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" aria-label="Căutare rapidă" title="Căutare rapidă · Ctrl+Shift+K" onClick={() => { setQuery(""); setSelectedLead(null); setSelectedCompany(null); setOpen(true); }} className={compact ? "shrink-0" : "sm:hidden"}><Search className="h-4 w-4" /></Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85dvh] overflow-hidden p-0 sm:max-w-2xl">
