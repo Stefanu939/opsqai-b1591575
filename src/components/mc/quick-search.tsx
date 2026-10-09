@@ -231,7 +231,7 @@ export function QuickSearch({ compact = false }: { compact?: boolean }) {
           <p className="truncate text-sm font-semibold">{chosenCompany.name}</p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => { setOpen(false); navigate({ to: "/management/companies/$id", params: { id: chosenCompany.id } }); }}>Fișa clientului</Button>
-            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/sales", search: { company: chosenCompany.name } }); }}>Pregătește apelul</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/sales", search: { company: chosenCompany.name, contact: "", phone: "", email: "", notes: "" } }); }}>Pregătește apelul</Button>
             <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/pricing", search: { company: chosenCompany.name } }); }}>Ofertă</Button>
           </div>
         </div>}
