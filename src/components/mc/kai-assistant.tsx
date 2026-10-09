@@ -64,6 +64,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import { listKaiConversations, saveKaiConversations } from "@/lib/kai-conversations.functions";
 import { useAuth } from "@/lib/auth-context";
 import { useMyName } from "@/lib/use-my-name";
 import {
@@ -167,22 +168,78 @@ export function KaiAssistant() {
   const endRef = useRef<HTMLDivElement>(null);
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
+  const fetchConvs = useServerFn(listKaiConversations);
+  const pushConvs = useServerFn(saveKaiConversations);
+  // Snapshot of what the cloud currently holds: id → signature.
+  const syncedRef = useRef<Map<string, string> | null>(null);
+  const sig = (c: Conv) => `${c.updatedAt}|${c.pinned ? 1 : 0}|${c.title}|${c.messages.length}`;
+
   useEffect(() => {
+    let local: Conv[] = [];
     try {
       const raw = localStorage.getItem(STORE);
-      if (raw) {
-        const saved = JSON.parse(raw) as Conv[];
-        if (Array.isArray(saved)) {
-          setConvs(saved);
-          const selected = localStorage.getItem(`${STORE}-active`);
-          setActiveId(saved.some((c) => c.id === selected) ? selected : (saved[0]?.id ?? null));
-        }
-      }
+      const saved = raw ? (JSON.parse(raw) as Conv[]) : [];
+      if (Array.isArray(saved)) local = saved;
     } catch {
       /* ignore */
     }
-    setHistoryLoaded(true);
-  }, []);
+    if (local.length) setConvs(local);
+    const selected = localStorage.getItem(`${STORE}-active`);
+    setActiveId(local.some((c) => c.id === selected) ? selected : (local[0]?.id ?? null));
+    if (loading || !session || !user?.id) {
+      setHistoryLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    fetchConvs({})
+      .then((remote) => {
+        if (cancelled) return;
+        const cloud = remote as unknown as Conv[];
+        syncedRef.current = new Map(cloud.map((c) => [c.id, sig(c)]));
+        const byId = new Map<string, Conv>();
+        for (const c of [...cloud, ...local]) {
+          const prev = byId.get(c.id);
+          if (!prev || c.updatedAt > prev.updatedAt) byId.set(c.id, c);
+        }
+        const merged = [...byId.values()].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 50);
+        setConvs(merged);
+        setActiveId((cur) =>
+          cur && merged.some((c) => c.id === cur) ? cur : (selected && merged.some((c) => c.id === selected) ? selected : (merged[0]?.id ?? null)),
+        );
+      })
+      .catch(() => {
+        syncedRef.current = null; // offline: keep local cache only
+      })
+      .finally(() => !cancelled && setHistoryLoaded(true));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, session?.user?.id]);
+
+  // Re-pull when the tab regains focus so the phone sees laptop updates.
+  useEffect(() => {
+    const onFocus = () => {
+      if (!syncedRef.current || pendingFor) return;
+      fetchConvs({})
+        .then((remote) => {
+          const cloud = remote as unknown as Conv[];
+          setConvs((all) => {
+            const byId = new Map(all.map((c) => [c.id, c]));
+            for (const c of cloud) {
+              const prev = byId.get(c.id);
+              if (!prev || c.updatedAt > prev.updatedAt) byId.set(c.id, c);
+            }
+            syncedRef.current = new Map(cloud.map((c) => [c.id, sig(c)]));
+            return [...byId.values()].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 50);
+          });
+        })
+        .catch(() => undefined);
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingFor]);
 
   useEffect(() => {
     if (!historyLoaded) return;
@@ -191,6 +248,23 @@ export function KaiAssistant() {
     } catch {
       /* ignore */
     }
+    const synced = syncedRef.current;
+    if (!synced) return;
+    const t = setTimeout(() => {
+      const list = convs.slice(0, 50);
+      const upsert = list.filter((c) => synced.get(c.id) !== sig(c));
+      const ids = new Set(list.map((c) => c.id));
+      const remove = [...synced.keys()].filter((id) => !ids.has(id));
+      if (!upsert.length && !remove.length) return;
+      pushConvs({ data: { upsert, remove } })
+        .then(() => {
+          for (const c of upsert) synced.set(c.id, sig(c));
+          for (const id of remove) synced.delete(id);
+        })
+        .catch(() => undefined);
+    }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convs, historyLoaded]);
 
   useEffect(() => {
