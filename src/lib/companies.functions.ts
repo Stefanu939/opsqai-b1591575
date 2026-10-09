@@ -78,6 +78,9 @@ export const createCompany = createServerFn({ method: "POST" })
       business_type: z.string().min(1).max(64),
       /** Explicitly enabled OPSQAI Products (never derived from the profile). */
       enabled_products: z.array(z.string().min(1).max(64)).max(32).optional(),
+      /** Romanian CUI — unique across active companies (DB index). */
+      cui: z.string().max(20).optional().nullable(),
+      install_id: z.string().min(3).max(64).optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -93,9 +96,36 @@ export const createCompany = createServerFn({ method: "POST" })
     );
 
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
+    const { normalizeCui, isValidCui } = await import("@/lib/cui");
+    const cui = data.cui ? normalizeCui(data.cui) : null;
+    if (cui && !isValidCui(cui)) throw new Error("CUI invalid — cifra de control nu se potrivește.");
+
+    // Idempotent resume: an onboarding that stopped half-way for this CUI.
+    if (cui) {
+      const { data: existing } = await supabaseAdmin
+        .from("companies")
+        .select("id, name, onboarding_status, install_id, owner_user_id")
+        .eq("cui", cui)
+        .is("terminated_at", null)
+        .maybeSingle();
+      if (existing) {
+        if (existing.onboarding_status === "completed") {
+          throw new Error(`Firma cu CUI ${cui} este deja înrolată („${existing.name}”).`);
+        }
+        if (existing.onboarding_status !== "company_created") {
+          return { ok: true, company_id: existing.id, install_id: existing.install_id, resumed: true };
+        }
+        // company_created → admin user still missing: fall through to user creation below.
+        return await finishAdmin(existing.id, existing.install_id, true);
+      }
+    }
+
     const { data: company, error } = await supabaseAdmin
       .from("companies")
       .insert({
+        cui,
+        install_id: data.install_id ?? null,
+        onboarding_status: "company_created",
         name: data.name,
         subscription_status: data.subscription_status ?? "active",
         subscription_plan: data.subscription_plan ?? "free",
@@ -108,6 +138,13 @@ export const createCompany = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
+    if (error?.code === "23505") {
+      throw new Error(
+        cui
+          ? `Un coleg tocmai înrolează firma cu CUI ${cui}. Reîncarcă pagina și verifică lista de clienți.`
+          : "Identificatorul instalării există deja. Încearcă din nou.",
+      );
+    }
     if (error || !company) throw new Error(error?.message || "Company create failed");
 
     if (products.length) {
@@ -119,6 +156,10 @@ export const createCompany = createServerFn({ method: "POST" })
     }
 
 
+    return await finishAdmin(company.id, data.install_id ?? null, false);
+
+    async function finishAdmin(companyId: string, installId: string | null, resumed: boolean) {
+    const company = { id: companyId };
     const { data: created, error: uerr } = await supabaseAdmin.auth.admin.createUser({
       email: data.admin_email,
       password: data.admin_password,
@@ -146,8 +187,13 @@ export const createCompany = createServerFn({ method: "POST" })
       .from("profiles")
       .update({ company_id: company.id })
       .eq("id", created.user.id);
+    await supabaseAdmin
+      .from("companies")
+      .update({ onboarding_status: "admin_created", onboarding_error: null })
+      .eq("id", company.id);
 
-    return { ok: true, company_id: company.id, admin_user_id: created.user.id };
+    return { ok: true, company_id: company.id, install_id: installId, resumed, admin_user_id: created.user.id };
+    }
   });
 
 export const updateCompany = createServerFn({ method: "POST" })

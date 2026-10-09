@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProfileSettings } from "@/components/app/profile-settings";
+import { SenderSettingsCard } from "@/components/mc/sender-settings-card";
 
 export const Route = createFileRoute("/_authenticated/management/profile")({
   head: () => ({
@@ -18,5 +19,12 @@ export const Route = createFileRoute("/_authenticated/management/profile")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => <ProfileSettings title="Profile settings" />,
+  component: () => (
+    <>
+      <ProfileSettings title="Profile settings" />
+      <div className="mx-auto w-full max-w-3xl px-4 pb-6 md:px-6">
+        <SenderSettingsCard />
+      </div>
+    </>
+  ),
 });

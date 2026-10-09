@@ -967,6 +967,7 @@ export type Database = {
           business_type: string | null
           cancelled_at: string | null
           created_at: string
+          cui: string | null
           display_name: string | null
           enabled_products: string[]
           grace_period_days: number
@@ -981,6 +982,8 @@ export type Database = {
           min_confidence: number
           name: string
           next_invoice_due_at: string | null
+          onboarding_error: string | null
+          onboarding_status: string
           owner_user_id: string | null
           renewal_date: string | null
           subscription_plan: string
@@ -1000,6 +1003,7 @@ export type Database = {
           business_type?: string | null
           cancelled_at?: string | null
           created_at?: string
+          cui?: string | null
           display_name?: string | null
           enabled_products?: string[]
           grace_period_days?: number
@@ -1014,6 +1018,8 @@ export type Database = {
           min_confidence?: number
           name: string
           next_invoice_due_at?: string | null
+          onboarding_error?: string | null
+          onboarding_status?: string
           owner_user_id?: string | null
           renewal_date?: string | null
           subscription_plan?: string
@@ -1033,6 +1039,7 @@ export type Database = {
           business_type?: string | null
           cancelled_at?: string | null
           created_at?: string
+          cui?: string | null
           display_name?: string | null
           enabled_products?: string[]
           grace_period_days?: number
@@ -1047,6 +1054,8 @@ export type Database = {
           min_confidence?: number
           name?: string
           next_invoice_due_at?: string | null
+          onboarding_error?: string | null
+          onboarding_status?: string
           owner_user_id?: string | null
           renewal_date?: string | null
           subscription_plan?: string
@@ -2582,6 +2591,33 @@ export type Database = {
         }
         Relationships: []
       }
+      kai_conversations: {
+        Row: {
+          id: string
+          messages: Json
+          pinned: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id: string
+          messages?: Json
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          messages?: Json
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       knowledge_document_images: {
         Row: {
           approved: boolean
@@ -3161,6 +3197,33 @@ export type Database = {
           technical_contact_email?: string | null
           tier?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      mc_sender_settings: {
+        Row: {
+          email_provider: string
+          kai_may_compose: boolean
+          sender_email: string | null
+          updated_at: string
+          user_id: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          email_provider?: string
+          kai_may_compose?: boolean
+          sender_email?: string | null
+          updated_at?: string
+          user_id: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          email_provider?: string
+          kai_may_compose?: boolean
+          sender_email?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
