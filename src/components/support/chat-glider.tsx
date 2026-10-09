@@ -120,7 +120,7 @@ export function ChatGlider() {
         aria-label={unread > 0 ? `Open chat — ${unread} unread` : "Open chat"}
         title="Chat"
         className={cn(
-          "fixed right-5 bottom-6 z-40 flex items-center justify-center rounded-md",
+          "fixed right-5 bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 flex items-center justify-center rounded-md",
           "bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/40",
           "h-12 w-12 transition-transform duration-200 ease-out hover:scale-105",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
