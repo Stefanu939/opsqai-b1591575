@@ -196,7 +196,7 @@ export function KaiAssistant() {
     fetchConvs({})
       .then((remote) => {
         if (cancelled) return;
-        const cloud = remote as unknown as Conv[];
+        const cloud = remote.map((r) => ({ ...r, messages: JSON.parse(r.messages) as Msg[] })) as Conv[];
         syncedRef.current = new Map(cloud.map((c) => [c.id, sig(c)]));
         const byId = new Map<string, Conv>();
         for (const c of [...cloud, ...local]) {
@@ -225,7 +225,7 @@ export function KaiAssistant() {
       if (!syncedRef.current || pendingFor) return;
       fetchConvs({})
         .then((remote) => {
-          const cloud = remote as unknown as Conv[];
+          const cloud = remote.map((r) => ({ ...r, messages: JSON.parse(r.messages) as Msg[] })) as Conv[];
           setConvs((all) => {
             const byId = new Map(all.map((c) => [c.id, c]));
             for (const c of cloud) {
@@ -258,7 +258,7 @@ export function KaiAssistant() {
       const ids = new Set(list.map((c) => c.id));
       const remove = [...synced.keys()].filter((id) => !ids.has(id));
       if (!upsert.length && !remove.length) return;
-      pushConvs({ data: { upsert, remove } })
+      pushConvs({ data: { upsert: upsert as never, remove } })
         .then(() => {
           for (const c of upsert) synced.set(c.id, sig(c));
           for (const id of remove) synced.delete(id);

@@ -29,7 +29,7 @@ export const listKaiConversations = createServerFn({ method: "POST" })
       title: r.title,
       pinned: r.pinned,
       updatedAt: new Date(r.updated_at).getTime(),
-      messages: r.messages as unknown[],
+      messages: JSON.stringify(r.messages ?? []),
     }));
   });
 
