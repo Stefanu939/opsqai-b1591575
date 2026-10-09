@@ -27,7 +27,9 @@ import { Route as InvestRouteImport } from './routes/invest'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ModulesRouteImport } from './routes/modules'
+import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PilotRouteImport } from './routes/pilot'
+import { Route as PressRouteImport } from './routes/press'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as ProductOverviewRouteImport } from './routes/product-overview'
@@ -280,9 +282,19 @@ const ModulesRoute = ModulesRouteImport.update({
   path: '/modules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PilotRoute = PilotRouteImport.update({
   id: '/pilot',
   path: '/pilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressRoute = PressRouteImport.update({
+  id: '/press',
+  path: '/press',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -1193,7 +1205,9 @@ export interface FileRoutesByFullPath {
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/partners': typeof PartnersRoute
   '/pilot': typeof PilotRoute
+  '/press': typeof PressRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1373,7 +1387,9 @@ export interface FileRoutesByTo {
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/partners': typeof PartnersRoute
   '/pilot': typeof PilotRoute
+  '/press': typeof PressRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1552,7 +1568,9 @@ export interface FileRoutesById {
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/partners': typeof PartnersRoute
   '/pilot': typeof PilotRoute
+  '/press': typeof PressRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1736,7 +1754,9 @@ export interface FileRouteTypes {
     | '/invest'
     | '/mcp'
     | '/modules'
+    | '/partners'
     | '/pilot'
+    | '/press'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -1916,7 +1936,9 @@ export interface FileRouteTypes {
     | '/invest'
     | '/mcp'
     | '/modules'
+    | '/partners'
     | '/pilot'
+    | '/press'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -2094,7 +2116,9 @@ export interface FileRouteTypes {
     | '/invest'
     | '/mcp'
     | '/modules'
+    | '/partners'
     | '/pilot'
+    | '/press'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -2278,7 +2302,9 @@ export interface RootRouteChildren {
   InvestRoute: typeof InvestRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
+  PartnersRoute: typeof PartnersRoute
   PilotRoute: typeof PilotRoute
+  PressRoute: typeof PressRoute
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
   ProductOverviewRoute: typeof ProductOverviewRoute
@@ -2480,11 +2506,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pilot': {
       id: '/pilot'
       path: '/pilot'
       fullPath: '/pilot'
       preLoaderRoute: typeof PilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press': {
+      id: '/press'
+      path: '/press'
+      fullPath: '/press'
+      preLoaderRoute: typeof PressRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -3966,7 +4006,9 @@ const rootRouteChildren: RootRouteChildren = {
   InvestRoute: InvestRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
+  PartnersRoute: PartnersRoute,
   PilotRoute: PilotRoute,
+  PressRoute: PressRoute,
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
   ProductOverviewRoute: ProductOverviewRoute,
