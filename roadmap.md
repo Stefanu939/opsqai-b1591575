@@ -1,5 +1,11 @@
 # Roadmap
 
+## MC client discovery (2026-10-09)
+- [ ] Universal search across customers and CRM with contextual quick actions
+- [ ] ANAF enrichment preview in CRM, duplicate detection and explicit application
+- [ ] Customer list search, industry filters, sorting and polished grid/table controls
+- [ ] Focused verification of search, enrichment and navigation
+
 ## Kai companion update (2026-10-09)
 - [x] Friendly floating Kai conversation window with action status cards
 - [x] Spoken/text confirmation executes the exact pending action once
