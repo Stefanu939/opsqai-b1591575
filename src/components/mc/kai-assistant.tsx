@@ -122,7 +122,7 @@ export function KaiOrb({ className }: { className?: string }) {
     >
       <svg
         viewBox="0 0 48 48"
-        className="h-3/4 w-3/4"
+        className="!h-3/4 !w-3/4"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
@@ -1362,7 +1362,7 @@ function CarMode(p: {
     .slice(0, 220);
   return (
     <div
-      className="fixed inset-0 z-[100] flex select-none flex-col bg-background text-foreground"
+      className="oq-product fixed inset-0 z-[100] flex select-none flex-col bg-background font-sans text-foreground"
       role="dialog"
       aria-label="Mod Mașină"
     >
