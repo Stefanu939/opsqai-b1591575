@@ -20,3 +20,6 @@
 - Kai's spoken replies use the authenticated /api/kai-voice route (neural TTS stream, staff-only, cloud-only) with the device voice as fallback — one place to change voice/model.
 - Pin `@lovable.dev/vite-tanstack-config` to 2.25.2 (exact) and keep the `opsqai-worker-import-meta-url-fallback` plugin in vite.config.ts: 2.25.3/2.26.0 emit `createRequire(import.meta.url)` without fallback, which crashes every published page, and the pin has been silently reverted before.
 - Windows builds reach MC via GitHub Actions → /api/public/v1/releases/ci (OPSQAI_CI_TOKEN) as channel "canary"; only an admin "Promote to stable" exposes them to customers — no manual download/re-upload, human approval kept.
+- Kai confirmations resolve against existing action snapshots, share the click execution path, and persist per-proposal outcomes — prevents ambiguous approvals and repeat execution on re-entry.
+- Kai keeps its existing conversation transport and browser history while composing its floating dialog with AI Elements — visual changes must not change model/provider routing.
+- ManagementShell owns MC mobile navigation and consumes the authorized support unread counter — avoids leaking Self-Hosted navigation or fabricated badges into MC.

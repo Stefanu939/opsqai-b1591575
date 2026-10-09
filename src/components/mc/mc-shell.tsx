@@ -1,5 +1,8 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getSupportUnreadCount } from "@/lib/support.functions";
 import {
   LayoutDashboard,
   Megaphone,
@@ -76,7 +79,8 @@ const SECTIONS: Section[] = [
 
 export function ManagementShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const unreadSupport = useServerFn(getSupportUnreadCount);
+  const support = useQuery({ queryKey: ["mc-support-unread", user?.id], queryFn: () => unreadSupport(), enabled: Boolean(user), refetchInterval: 30_000 });
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -172,7 +176,8 @@ export function ManagementShell({ children }: { children: ReactNode }) {
           <Button
             variant="ghost"
             size="icon"
-             className="md:hidden"
+              className="md:hidden"
+              aria-label="Deschide meniul"
             onClick={() => setMobileOpen((v) => !v)}
           >
             {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -206,8 +211,27 @@ export function ManagementShell({ children }: { children: ReactNode }) {
             />
           </div>
         </header>
-        <main className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto">{children}</main>
+         <main className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
+      <nav aria-label="Navigare mobilă Management Center" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)] md:hidden">
+        {[
+          { to: "/management", label: "Acasă", icon: LayoutDashboard, exact: true },
+          { to: "/management/crm", label: "CRM", icon: Handshake },
+          { to: "/management/sales", label: "Vânzări", icon: Megaphone },
+          { to: "/management/support", label: "Suport", icon: Inbox },
+        ].map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item);
+          const count = item.to === "/management/support" ? support.data?.count ?? 0 : 0;
+          return <Button key={item.to} variant="ghost" asChild className={cn("h-16 flex-col gap-1 rounded-none px-1 text-[10px]", active ? "bg-sidebar-accent text-primary" : "text-muted-foreground")}>
+            <Link to={item.to} onClick={() => setMobileOpen(false)} aria-current={active ? "page" : undefined}>
+              <span className="relative"><Icon className="h-5 w-5" />{count > 0 && <span className="absolute -right-3 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[9px] text-destructive-foreground">{count > 9 ? "9+" : count}</span>}</span>
+              <span>{item.label}</span>
+            </Link>
+          </Button>;
+        })}
+        <Button variant="ghost" aria-label="Mai multe pagini" aria-expanded={mobileOpen} className="h-16 flex-col gap-1 rounded-none px-1 text-[10px] text-muted-foreground" onClick={() => setMobileOpen((value) => !value)}><Menu className="h-5 w-5" /><span>Mai multe</span></Button>
+      </nav>
     </div>
   );
 }
