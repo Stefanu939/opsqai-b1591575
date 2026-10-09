@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
+import { matchesClient } from "@/lib/mc-client-search";
 import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.functions";
 import { createCompany, updateCompany, deleteCompany } from "@/lib/companies.functions";
 import { ModulePage } from "@/components/app/module-page";
@@ -84,9 +85,16 @@ type NewCustomerInput = {
 
 export const Route = createFileRoute("/_authenticated/management/customers")({
   validateSearch: z.object({
-    filter: z.enum(["all", "expiring", "suspended", "enterprise"]).optional(),
+    filter: z.string().optional(),
   }),
-  head: () => ({ meta: [{ title: "Customers — Management Center" }] }),
+  head: () => ({ meta: [
+    { title: "Clienți — OPSQAI Management Center" },
+    { name: "description", content: "Portofoliul de clienți OPSQAI: căutare, domenii, licențe și contracte." },
+    { property: "og:title", content: "Clienți — OPSQAI Management Center" },
+    { property: "og:description", content: "Portofoliul de clienți, licențe și contracte OPSQAI." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: CustomersPage,
 });
 
@@ -169,13 +177,15 @@ function CustomersPage() {
   });
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [industryFilter, setIndustryFilter] = useState("all");
+  const [sort, setSort] = useState("name");
   const [view, setView] = useState<"grid" | "table">("grid");
   const searchParams = Route.useSearch();
   const [pill, setPill] = useState<"all" | "expiring" | "suspended" | "enterprise">(
-    searchParams.filter ?? "all",
+    searchParams.filter === "expiring" || searchParams.filter === "suspended" || searchParams.filter === "enterprise" ? searchParams.filter : "all",
   );
   useEffect(() => {
-    if (searchParams.filter) setPill(searchParams.filter);
+    setPill(searchParams.filter === "expiring" || searchParams.filter === "suspended" || searchParams.filter === "enterprise" ? searchParams.filter : "all");
   }, [searchParams.filter]);
   const [credentials, setCredentials] = useState<Credentials | null>(null);
 
@@ -224,9 +234,10 @@ function CustomersPage() {
   });
 
   const rows = useMemo(() => {
-    const query = q.trim().toLowerCase();
+    const query = q.trim();
     return (data as Row[]).filter((r) => {
-      if (query && !r.name.toLowerCase().includes(query)) return false;
+      if (!matchesClient(query, [r.name, r.install_id, r.business_type, r.subscription_plan, r.subscription_status, ...(r.enabled_products ?? [])])) return false;
+      if (industryFilter !== "all" && r.business_type !== industryFilter) return false;
       if (owner) {
         if (owner.unassigned && r.owner_user_id) return false;
         if (!owner.unassigned && owner.userId !== "__all__" && r.owner_user_id !== owner.userId)
@@ -236,8 +247,8 @@ function CustomersPage() {
       if (statusFilter === "active" && !r.active) return false;
       if (statusFilter === "suspended" && r.active) return false;
       return true;
-    });
-  }, [data, q, owner, planFilter, statusFilter]);
+    }).sort((a, b) => sort === "newest" ? (b.created_at ?? "").localeCompare(a.created_at ?? "") : sort === "expiry" ? (a.license?.expires_at ?? "9999").localeCompare(b.license?.expires_at ?? "9999") : a.name.localeCompare(b.name, "ro"));
+  }, [data, q, owner, planFilter, statusFilter, industryFilter, sort]);
 
   const columns: Column<Row>[] = [
     {
@@ -296,7 +307,7 @@ function CustomersPage() {
               expired
                 ? "text-xs font-medium text-destructive"
                 : soon
-                  ? "text-xs font-medium text-amber-500"
+                  ? "text-xs font-medium text-warning"
                   : "text-xs text-muted-foreground"
             }
           >
@@ -466,8 +477,8 @@ function CustomersPage() {
   return (
     <ModulePage
       eyebrow="Management Center"
-      title="Customers"
-      description="Every OPSQAI customer — subscription, license expiry, contract lifecycle."
+      title="Clienți"
+      description="Portofoliu, contracte și licențe."
       actions={
         <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline">
@@ -491,13 +502,13 @@ function CustomersPage() {
 
       <OwnerCards selection={owner} onSelect={setOwner} />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
-        <div className="relative min-w-[220px] flex-1">
+      <div className="flex flex-wrap items-center gap-3 border-y border-border py-3">
+        <div className="relative min-w-0 basis-full sm:basis-auto flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search customers…"
+            placeholder="Firmă, instalare, domeniu, modul…"
             className="h-9 pl-8"
           />
         </div>
@@ -506,7 +517,7 @@ function CustomersPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All plans</SelectItem>
+            <SelectItem value="all">Toate planurile</SelectItem>
             <SelectItem value="free">Free</SelectItem>
             <SelectItem value="starter">Starter</SelectItem>
             <SelectItem value="pro">Pro</SelectItem>
@@ -518,16 +529,25 @@ function CustomersPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="all">Toate stările</SelectItem>
+            <SelectItem value="active">Activi</SelectItem>
+            <SelectItem value="suspended">Suspendați</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={industryFilter} onValueChange={setIndustryFilter}>
+          <SelectTrigger aria-label="Domeniul clienților" className="h-9 w-[170px]"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="all">Toate domeniile</SelectItem>{[...new Set(all.map((r) => r.business_type).filter((v): v is string => Boolean(v)))].map((key) => <SelectItem key={key} value={key}>{getCompanyProfile(key).label}</SelectItem>)}</SelectContent>
+        </Select>
+        <Select value={sort} onValueChange={setSort}>
+          <SelectTrigger aria-label="Ordinea clienților" className="h-9 w-[170px]"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="name">Nume A–Z</SelectItem><SelectItem value="newest">Cei mai noi</SelectItem><SelectItem value="expiry">Expirare licență</SelectItem></SelectContent>
+        </Select>
+        {(q || industryFilter !== "all" || planFilter !== "all" || statusFilter !== "all" || pill !== "all") && <Button variant="ghost" size="icon" aria-label="Resetează filtrele" title="Resetează filtrele" onClick={() => { setQ(""); setIndustryFilter("all"); setPlanFilter("all"); setStatusFilter("all"); setPill("all"); }}><X className="h-4 w-4" /></Button>}
         <div className="flex rounded-md border border-border p-0.5">
-          <Button size="sm" variant={view === "grid" ? "secondary" : "ghost"} className="h-8" onClick={() => setView("grid")} aria-label="Cartonașe">
+          <Button size="sm" variant={view === "grid" ? "secondary" : "ghost"} className="h-8" onClick={() => setView("grid")} aria-label="Cartonașe" title="Cartonașe" aria-pressed={view === "grid"}>
             <LayoutGrid className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant={view === "table" ? "secondary" : "ghost"} className="h-8" onClick={() => setView("table")} aria-label="Tabel">
+          <Button size="sm" variant={view === "table" ? "secondary" : "ghost"} className="h-8" onClick={() => setView("table")} aria-label="Tabel" title="Tabel" aria-pressed={view === "table"}>
             <List className="h-4 w-4" />
           </Button>
         </div>
@@ -545,9 +565,11 @@ function CustomersPage() {
             ["enterprise", "Enterprise"],
           ] as const
         ).map(([k, label]) => (
-          <button
+          <Button
             key={k}
-            type="button"
+            variant="ghost"
+            size="sm"
+            aria-pressed={pill === k}
             onClick={() => setPill(k)}
             className={cn(
               "rounded-full border px-3 py-1 text-xs transition-colors",
@@ -555,7 +577,7 @@ function CustomersPage() {
             )}
           >
             {label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -687,15 +709,15 @@ function CustomerCard({ row: r, onOpen }: { row: Row; onOpen: () => void }) {
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      className="group flex cursor-pointer flex-col rounded-xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
+      className="group flex cursor-pointer flex-col rounded-lg border border-border bg-card transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <div className="flex items-start gap-3 p-4">
+      <div className="flex flex-wrap items-start gap-3 p-4">
         <span className={cn("relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-bold", style.cls)}>
           {initials(r.name)}
           <Icon className="absolute -bottom-1 -right-1 h-5 w-5 rounded-md bg-card p-0.5" />
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-foreground">{r.name}</p>
+        <div className="min-w-0 flex-1 basis-[140px]">
+          <p className="break-words font-semibold text-foreground">{r.name}</p>
           <p className="truncate text-xs text-muted-foreground">
             {r.business_type ? getCompanyProfile(r.business_type).label : "Profil nesetat"}
           </p>
@@ -724,7 +746,7 @@ function CustomerCard({ row: r, onOpen }: { row: Row; onOpen: () => void }) {
         </p>
       </div>
 
-      <div className="mt-auto flex items-center gap-1 border-t border-border px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
+      <div className="mt-auto flex flex-wrap items-center gap-1 border-t border-border px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
         <Button asChild size="sm" variant="ghost" className="h-8 px-2">
           <a href={whatsappUrl(null, greeting)} target="_blank" rel="noreferrer" aria-label="WhatsApp">
             <MessageCircle className="h-4 w-4" />
@@ -739,7 +761,7 @@ function CustomerCard({ row: r, onOpen }: { row: Row; onOpen: () => void }) {
           size="sm"
           variant="ghost"
           className="h-8 px-2"
-          aria-label="Copiază date"
+          aria-label="Copiază date" title="Copiază date"
           onClick={() => {
             void navigator.clipboard.writeText(
               `${r.name}\nProfil: ${r.business_type ?? "—"}\nLocuri: ${r.user_count}/${seats}\nInstall ID: ${r.install_id ?? "—"}\nLicență până la: ${fmtDate(r.license?.expires_at)}`,
@@ -749,7 +771,7 @@ function CustomerCard({ row: r, onOpen }: { row: Row; onOpen: () => void }) {
         >
           <Copy className="h-4 w-4" />
         </Button>
-        <Button asChild size="sm" variant="ghost" className="h-8 px-2" aria-label="Ofertă PDF">
+        <Button asChild size="sm" variant="ghost" className="h-8 px-2" aria-label="Ofertă PDF" title="Ofertă PDF">
           <Link to="/management/pricing" search={{ company: r.name }}>
             <FileText className="h-4 w-4" />
           </Link>

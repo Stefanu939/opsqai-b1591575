@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Brain, Copy, FileText, Mail, MessageCircle, Phone, ShieldCheck, ShieldQuestion } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeClient, type ClientAnalysis } from "@/lib/sales-tools.functions";
@@ -27,6 +27,7 @@ import {
 } from "@/lib/mc-outreach";
 
 export const Route = createFileRoute("/_authenticated/management/sales")({
+  validateSearch: (s: Record<string, unknown>) => ({ company: typeof s.company === "string" ? s.company : "", contact: typeof s.contact === "string" ? s.contact : "", phone: typeof s.phone === "string" ? s.phone : "", email: typeof s.email === "string" ? s.email : "", notes: typeof s.notes === "string" ? s.notes : "" }),
   head: () => ({
     meta: [
       { title: "Sales Cockpit — OPSQAI Management Center" },
@@ -46,10 +47,11 @@ function copy(text: string) {
 }
 
 function SalesCockpit() {
-  const [name, setName] = useState("");
-  const [company, setCompany] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const pre = Route.useSearch();
+  const [name, setName] = useState(pre.contact);
+  const [company, setCompany] = useState(pre.company);
+  const [phone, setPhone] = useState(pre.phone);
+  const [email, setEmail] = useState(pre.email);
   const [sender, setSender] = useState("Ștefan");
   const [time, setTime] = useState("");
   const [industry, setIndustry] = useState<Industry>("transport");
@@ -58,10 +60,11 @@ function SalesCockpit() {
 
   const [tone, setTone] = useState<Tone>("generic");
   const [role, setRole] = useState("");
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(pre.notes);
   const [analysis, setAnalysis] = useState<ClientAnalysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const analyze = useServerFn(analyzeClient);
+  useEffect(() => { setName(pre.contact); setCompany(pre.company); setPhone(pre.phone); setEmail(pre.email); setNotes(pre.notes); setAnalysis(null); setWaEdit(null); }, [pre.company, pre.contact, pre.phone, pre.email, pre.notes]);
 
   const vars = { name, company, sender, time };
   const sc = toneScripts(tone, industry, vars);
