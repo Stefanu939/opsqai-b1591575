@@ -19,7 +19,6 @@ import {
   Handshake,
   Calculator,
   Gauge,
-
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { AccountMenu } from "@/components/app/account-menu";
@@ -80,7 +79,12 @@ const SECTIONS: Section[] = [
 export function ManagementShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const unreadSupport = useServerFn(getSupportUnreadCount);
-  const support = useQuery({ queryKey: ["mc-support-unread", user?.id], queryFn: () => unreadSupport(), enabled: Boolean(user), refetchInterval: 30_000 });
+  const support = useQuery({
+    queryKey: ["mc-support-unread", user?.id],
+    queryFn: () => unreadSupport(),
+    enabled: Boolean(user),
+    refetchInterval: 30_000,
+  });
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -117,18 +121,18 @@ export function ManagementShell({ children }: { children: ReactNode }) {
                     to={item.to}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                       "oq-pill flex items-center gap-3 px-2.5 py-2 text-sm",
+                      "oq-pill flex items-center gap-3 px-2.5 py-2 text-sm",
                       active
-                         ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
+                        ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
                     <span
                       aria-hidden
                       className={cn(
-                         "grid h-8 w-8 shrink-0 place-items-center rounded-md border",
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-md border",
                         active
-                           ? "border-primary/25 bg-primary/10 text-primary"
+                          ? "border-primary/25 bg-primary/10 text-primary"
                           : "border-border bg-secondary/70",
                       )}
                     >
@@ -143,9 +147,9 @@ export function ManagementShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
-       <div className="rounded-md border border-border bg-secondary/60 p-3">
+      <div className="rounded-md border border-border bg-secondary/60 p-3">
         <div className="flex items-center gap-2.5">
-           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
             <ShieldCheck className="h-4 w-4" />
           </span>
           <div className="min-w-0">
@@ -158,7 +162,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
   );
 
   return (
-     <div className="oq-product oq-management-shell oq-soft flex min-h-dvh w-full gap-0">
+    <div className="oq-product oq-management-shell oq-soft flex min-h-dvh w-full gap-0">
       <div className="hidden md:block md:sticky md:top-0 md:h-dvh">{Sidebar}</div>
 
       {mobileOpen && (
@@ -167,17 +171,17 @@ export function ManagementShell({ children }: { children: ReactNode }) {
             className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-           <div className="relative z-50">{Sidebar}</div>
+          <div className="relative z-50">{Sidebar}</div>
         </div>
       )}
 
-       <div className="flex min-h-dvh min-w-0 flex-1 flex-col md:h-dvh md:min-h-0">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col md:h-dvh md:min-h-0">
         <header className="oq-soft-card flex h-14 items-center gap-3 px-3 md:h-16 md:px-4">
           <Button
             variant="ghost"
             size="icon"
-              className="md:hidden"
-              aria-label="Deschide meniul"
+            className="md:hidden"
+            aria-label="Deschide meniul"
             onClick={() => setMobileOpen((v) => !v)}
           >
             {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -203,17 +207,38 @@ export function ManagementShell({ children }: { children: ReactNode }) {
               roleLabel="Platform staff"
               supportHref="/portal/support"
               helpLinks={[
-                { label: "Customers", description: "Company profiles and enabled products", href: "/management/customers" },
-                { label: "Licenses", description: "Issue, reissue and track licenses", href: "/management/licenses" },
-                { label: "Installations", description: "Self-Hosted fleet and heartbeats", href: "/management/installations" },
-                { label: "Documentation", description: "Product and architecture docs", href: "/documentation" },
+                {
+                  label: "Customers",
+                  description: "Company profiles and enabled products",
+                  href: "/management/customers",
+                },
+                {
+                  label: "Licenses",
+                  description: "Issue, reissue and track licenses",
+                  href: "/management/licenses",
+                },
+                {
+                  label: "Installations",
+                  description: "Self-Hosted fleet and heartbeats",
+                  href: "/management/installations",
+                },
+                {
+                  label: "Documentation",
+                  description: "Product and architecture docs",
+                  href: "/documentation",
+                },
               ]}
             />
           </div>
         </header>
-         <main className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
+        <main className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
+          {children}
+        </main>
       </div>
-      <nav aria-label="Navigare mobilă Management Center" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)] md:hidden">
+      <nav
+        aria-label="Navigare mobilă Management Center"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)] md:hidden"
+      >
         {[
           { to: "/management", label: "Acasă", icon: LayoutDashboard, exact: true },
           { to: "/management/crm", label: "CRM", icon: Handshake },
@@ -222,15 +247,45 @@ export function ManagementShell({ children }: { children: ReactNode }) {
         ].map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
-          const count = item.to === "/management/support" ? support.data?.count ?? 0 : 0;
-          return <Button key={item.to} variant="ghost" asChild className={cn("h-16 flex-col gap-1 rounded-none px-1 text-[10px]", active ? "bg-sidebar-accent text-primary" : "text-muted-foreground")}>
-            <Link to={item.to} onClick={() => setMobileOpen(false)} aria-current={active ? "page" : undefined}>
-              <span className="relative"><Icon className="h-5 w-5" />{count > 0 && <span className="absolute -right-3 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[9px] text-destructive-foreground">{count > 9 ? "9+" : count}</span>}</span>
-              <span>{item.label}</span>
-            </Link>
-          </Button>;
+          const count = item.to === "/management/support" ? (support.data?.count ?? 0) : 0;
+          return (
+            <Button
+              key={item.to}
+              variant="ghost"
+              asChild
+              className={cn(
+                "h-16 flex-col gap-1 rounded-none px-1 text-[10px]",
+                active ? "bg-sidebar-accent text-primary" : "text-muted-foreground",
+              )}
+            >
+              <Link
+                to={item.to}
+                onClick={() => setMobileOpen(false)}
+                aria-current={active ? "page" : undefined}
+              >
+                <span className="relative">
+                  <Icon className="h-5 w-5" />
+                  {count > 0 && (
+                    <span className="absolute -right-3 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[9px] text-destructive-foreground">
+                      {count > 9 ? "9+" : count}
+                    </span>
+                  )}
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            </Button>
+          );
         })}
-        <Button variant="ghost" aria-label="Mai multe pagini" aria-expanded={mobileOpen} className="h-16 flex-col gap-1 rounded-none px-1 text-[10px] text-muted-foreground" onClick={() => setMobileOpen((value) => !value)}><Menu className="h-5 w-5" /><span>Mai multe</span></Button>
+        <Button
+          variant="ghost"
+          aria-label="Mai multe pagini"
+          aria-expanded={mobileOpen}
+          className="h-16 flex-col gap-1 rounded-none px-1 text-[10px] text-muted-foreground"
+          onClick={() => setMobileOpen((value) => !value)}
+        >
+          <Menu className="h-5 w-5" />
+          <span>Mai multe</span>
+        </Button>
       </nav>
     </div>
   );
