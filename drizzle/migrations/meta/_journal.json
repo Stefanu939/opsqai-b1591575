@@ -50,6 +50,13 @@
       "when": 1791161447614,
       "tag": "0006_kai_action_log",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791584156529,
+      "tag": "0007_mc_integrity_kai_sync_sender",
+      "breakpoints": true
     }
   ]
 }
