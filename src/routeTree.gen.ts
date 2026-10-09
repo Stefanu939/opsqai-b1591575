@@ -16,7 +16,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as CompanyRouteImport } from './routes/company'
-import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DiscoveryRouteImport } from './routes/discovery'
 import { Route as DocumentationRouteImport } from './routes/documentation'
@@ -57,6 +56,7 @@ import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-cha
 import { Route as AuthMicrosoftRouteImport } from './routes/auth.microsoft'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as CompareIndexRouteImport } from './routes/compare.index'
 import { Route as CompareSlugRouteImport } from './routes/compare.$slug'
 import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
 import { Route as DocumentationAdministratorGuideRouteImport } from './routes/documentation.administrator-guide'
@@ -223,11 +223,6 @@ const BrandRoute = BrandRouteImport.update({
 const CompanyRoute = CompanyRouteImport.update({
   id: '/company',
   path: '/company',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CompareRoute = CompareRouteImport.update({
-  id: '/compare',
-  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -432,10 +427,15 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
+const CompareIndexRoute = CompareIndexRouteImport.update({
+  id: '/compare/',
+  path: '/compare/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompareSlugRoute = CompareSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => CompareRoute,
+  id: '/compare/$slug',
+  path: '/compare/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentationIndexRoute = DocumentationIndexRouteImport.update({
   id: '/',
@@ -1183,7 +1183,6 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -1239,6 +1238,7 @@ export interface FileRoutesByFullPath {
   '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/solutions/': typeof SolutionsIndexRoute
   '/verify/': typeof VerifyIndexRoute
@@ -1364,7 +1364,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/first-run': typeof FirstRunRoute
@@ -1416,6 +1415,7 @@ export interface FileRoutesByTo {
   '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog': typeof BlogIndexRoute
+  '/compare': typeof CompareIndexRoute
   '/documentation': typeof DocumentationIndexRoute
   '/solutions': typeof SolutionsIndexRoute
   '/verify': typeof VerifyIndexRoute
@@ -1542,7 +1542,6 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
-  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -1598,6 +1597,7 @@ export interface FileRoutesById {
   '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/solutions/': typeof SolutionsIndexRoute
   '/verify/': typeof VerifyIndexRoute
@@ -1726,7 +1726,6 @@ export interface FileRouteTypes {
     | '/blog'
     | '/brand'
     | '/company'
-    | '/compare'
     | '/contact'
     | '/discovery'
     | '/documentation'
@@ -1782,6 +1781,7 @@ export interface FileRouteTypes {
     | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
+    | '/compare/'
     | '/documentation/'
     | '/solutions/'
     | '/verify/'
@@ -1907,7 +1907,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/brand'
     | '/company'
-    | '/compare'
     | '/contact'
     | '/discovery'
     | '/first-run'
@@ -1959,6 +1958,7 @@ export interface FileRouteTypes {
     | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog'
+    | '/compare'
     | '/documentation'
     | '/solutions'
     | '/verify'
@@ -2084,7 +2084,6 @@ export interface FileRouteTypes {
     | '/blog'
     | '/brand'
     | '/company'
-    | '/compare'
     | '/contact'
     | '/discovery'
     | '/documentation'
@@ -2140,6 +2139,7 @@ export interface FileRouteTypes {
     | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
+    | '/compare/'
     | '/documentation/'
     | '/solutions/'
     | '/verify/'
@@ -2268,7 +2268,6 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   BrandRoute: typeof BrandRoute
   CompanyRoute: typeof CompanyRoute
-  CompareRoute: typeof CompareRouteWithChildren
   ContactRoute: typeof ContactRoute
   DiscoveryRoute: typeof DiscoveryRoute
   DocumentationRoute: typeof DocumentationRouteWithChildren
@@ -2302,8 +2301,10 @@ export interface RootRouteChildren {
   ApiKbUploadRoute: typeof ApiKbUploadRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  CompareSlugRoute: typeof CompareSlugRoute
   SolutionsVerticalRoute: typeof SolutionsVerticalRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  CompareIndexRoute: typeof CompareIndexRoute
   SolutionsIndexRoute: typeof SolutionsIndexRoute
   VerifyIndexRoute: typeof VerifyIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -2400,13 +2401,6 @@ declare module '@tanstack/react-router' {
       path: '/company'
       fullPath: '/company'
       preLoaderRoute: typeof CompanyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/compare': {
-      id: '/compare'
-      path: '/compare'
-      fullPath: '/compare'
-      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -2689,12 +2683,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/compare/': {
+      id: '/compare/'
+      path: '/compare'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof CompareIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compare/$slug': {
       id: '/compare/$slug'
-      path: '/$slug'
+      path: '/compare/$slug'
       fullPath: '/compare/$slug'
       preLoaderRoute: typeof CompareSlugRouteImport
-      parentRoute: typeof CompareRoute
+      parentRoute: typeof rootRouteImport
     }
     '/documentation/': {
       id: '/documentation/'
@@ -3922,17 +3923,6 @@ const BlogRouteChildren: BlogRouteChildren = {
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
-interface CompareRouteChildren {
-  CompareSlugRoute: typeof CompareSlugRoute
-}
-
-const CompareRouteChildren: CompareRouteChildren = {
-  CompareSlugRoute: CompareSlugRoute,
-}
-
-const CompareRouteWithChildren =
-  CompareRoute._addFileChildren(CompareRouteChildren)
-
 interface DocumentationRouteChildren {
   DocumentationAdministratorGuideRoute: typeof DocumentationAdministratorGuideRoute
   DocumentationArchitectureRoute: typeof DocumentationArchitectureRoute
@@ -3966,7 +3956,6 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   BrandRoute: BrandRoute,
   CompanyRoute: CompanyRoute,
-  CompareRoute: CompareRouteWithChildren,
   ContactRoute: ContactRoute,
   DiscoveryRoute: DiscoveryRoute,
   DocumentationRoute: DocumentationRouteWithChildren,
@@ -4001,8 +3990,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiKbUploadRoute: ApiKbUploadRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  CompareSlugRoute: CompareSlugRoute,
   SolutionsVerticalRoute: SolutionsVerticalRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  CompareIndexRoute: CompareIndexRoute,
   SolutionsIndexRoute: SolutionsIndexRoute,
   VerifyIndexRoute: VerifyIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,

@@ -3,60 +3,59 @@ import { MottoBand } from "./motto-band";
 import { useMarketing } from "@/i18n/marketing";
 import { LogoMark } from "@/components/brand/logo";
 import { useInvestNavLabel } from "@/i18n/pages/invest";
+import { useT } from "@/i18n";
+import { footerExtra } from "./footer-links";
+import { COMPETITOR_NAMES, COMPETITOR_SLUGS } from "@/i18n/pages/competitors";
 
 export function FooterOix() {
   const m = useMarketing();
-  const investLabel = useInvestNavLabel();
+  const { lang } = useT();
+  const x = footerExtra[lang === "de" ? "de" : lang === "ro" ? "ro" : "en"];
+  void useInvestNavLabel;
 
   const columns: Array<{ heading: string; items: Array<{ label: string; to: string }> }> = [
     {
-      heading: m.footer.platform,
+      heading: m.footer.resources,
       items: [
-        { label: m.nav.product, to: "/product" },
-        { label: m.nav.solutions, to: "/solutions" },
-        { label: m.nav.overview, to: "/product-overview" },
-        { label: m.nav.modules, to: "/modules" },
-        { label: m.nav.compare, to: "/compare" },
-        { label: m.nav.study, to: "/study" },
-        { label: m.nav.selfHosted, to: "/self-hosted" },
-        { label: m.nav.security, to: "/security" },
+        { label: m.nav.blog, to: "/blog" },
+        { label: x.partner, to: "/partners" },
+        { label: x.ambassador, to: "/partners#ambassador" },
+        { label: x.licenses, to: "/pricing" },
+        { label: x.docs, to: "/documentation" },
       ],
     },
     {
       heading: m.footer.company,
       items: [
         { label: m.footer.about, to: "/company" },
-        { label: investLabel, to: "/invest" },
-        { label: m.nav.blog, to: "/blog" },
+        { label: x.press, to: "/press" },
+        { label: x.careers, to: "/press#careers" },
         { label: m.nav.contact, to: "/contact" },
         { label: m.footer.support, to: "/support" },
       ],
     },
     {
-      heading: m.footer.resources,
+      heading: m.footer.legal,
       items: [
-        { label: m.nav.documentation, to: "/documentation" },
-        { label: m.nav.pricing, to: "/pricing" },
-        { label: m.nav.resourcesNav, to: "/resources" },
+        { label: m.footer.terms, to: "/legal/terms" },
+        { label: m.footer.privacy, to: "/legal/privacy" },
+        { label: m.footer.imprint, to: "/legal/impressum" },
+        { label: x.dpa, to: "/legal/dpa" },
       ],
     },
     {
-      heading: m.footer.legal,
-      items: [
-        { label: m.footer.privacy, to: "/legal/privacy" },
-        { label: m.footer.terms, to: "/legal/terms" },
-        { label: m.footer.imprint, to: "/legal/impressum" },
-      ],
+      heading: x.comparison,
+      items: COMPETITOR_SLUGS.map((s) => ({ label: `vs ${COMPETITOR_NAMES[s]}`, to: `/compare/${s}` })),
     },
   ];
 
   return (
     <footer className="oix-hairline-top mt-24 bg-[var(--oix-footer)] text-[var(--oix-footer-ink)]">
       <div className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 md:py-20">
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-4 md:gap-16">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4 md:gap-16">
           {columns.map((col) => (
             <div key={col.heading}>
-              <div className="oix-eyebrow mb-6 text-[10px]">{col.heading}</div>
+              <div className="mb-5 text-base font-semibold text-[var(--oix-footer-ink)]">{col.heading}</div>
               <ul className="space-y-3">
                 {col.items.map((item) => (
                   <li key={item.to}>
