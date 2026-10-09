@@ -1,11 +1,11 @@
 # Roadmap
 
 ## Kai companion update (2026-10-09)
-- [ ] Friendly floating Kai conversation window with action status cards
-- [ ] Spoken/text confirmation executes the exact pending action once
-- [ ] Car Mode resumes the same conversation after closing/reopening
-- [ ] MC mobile icon-and-label navigation with real notification badges
-- [ ] Verify focused tests and desktop/mobile presentation
+- [x] Friendly floating Kai conversation window with action status cards
+- [x] Spoken/text confirmation executes the exact pending action once
+- [x] Car Mode resumes the same conversation after closing/reopening
+- [x] MC mobile icon-and-label navigation with real notification badges
+- [x] Verify focused tests and desktop/mobile presentation (browser action, reload and mode re-entry; real microphone/audio still requires user's device)
 
 - [x] Academy: auto-complete + redirect to diploma
 - [x] Multi-PC: main computer vs workstation, station identity, "Calculatoare conectate"
