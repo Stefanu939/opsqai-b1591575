@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { AccountMenu } from "@/components/app/account-menu";
 import { KaiAssistant } from "@/components/mc/kai-assistant";
+import { QuickSearch } from "@/components/mc/quick-search";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
@@ -188,6 +189,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
           </Button>
           <KaiAssistant />
           <div className="ml-auto flex items-center gap-1.5">
+            <QuickSearch compact />
             {/* Ticketing lives in the Customer Portal bubble; staff answer here. */}
             <Button
               asChild

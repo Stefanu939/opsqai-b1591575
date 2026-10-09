@@ -16,13 +16,18 @@ import {
   Megaphone,
 } from "lucide-react";
 import {
-  CommandDialog,
+  Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { listCrmLeads } from "@/lib/crm.functions";
+import { matchesClient } from "@/lib/mc-client-search";
+import { cuiFromText } from "@/lib/cui";
 import { useAuth } from "@/lib/auth-context";
 import { listCompanies } from "@/lib/companies.functions";
 import { listLicenses } from "@/lib/licenses.functions";
@@ -53,19 +58,23 @@ const PAGES = [
  * Navigation targets are always available; customer / license / installation
  * results are fetched lazily the first time the palette is opened.
  */
-export function QuickSearch() {
+export function QuickSearch({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [selectedLead, setSelectedLead] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const { session, loading } = useAuth();
   const ready = !loading && Boolean(session?.user?.id) && open;
 
+  const fetchLeads = useServerFn(listCrmLeads);
   const fetchCompanies = useServerFn(listCompanies);
   const fetchLicenses = useServerFn(listLicenses);
   const fetchInstalls = useServerFn(listInstallations);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key.toLowerCase() === "k" && e.shiftKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((v) => !v);
       }
@@ -75,26 +84,30 @@ export function QuickSearch() {
   }, []);
 
   const companies = useQuery({
-    queryKey: ["mc-quick-companies"],
+    queryKey: [session?.user?.id, "mc-quick-companies"],
     queryFn: () => fetchCompanies(),
     enabled: ready,
     retry: false,
     staleTime: 60_000,
   });
   const licenses = useQuery({
-    queryKey: ["mc-quick-licenses"],
+    queryKey: [session?.user?.id, "mc-quick-licenses"],
     queryFn: () => fetchLicenses(),
     enabled: ready,
     retry: false,
     staleTime: 60_000,
   });
   const installs = useQuery({
-    queryKey: ["mc-quick-installs"],
+    queryKey: [session?.user?.id, "mc-quick-installs"],
     queryFn: () => fetchInstalls(),
     enabled: ready,
     retry: false,
     staleTime: 60_000,
   });
+
+  const leads = useQuery({ queryKey: [session?.user?.id, "mc-quick-leads"], queryFn: () => fetchLeads(), enabled: ready, retry: false, staleTime: 30_000 });
+  const chosen = leads.data?.leads.find((lead) => lead.id === selectedLead);
+  const chosenCompany = companies.data?.find((company) => company.id === selectedCompany);
 
   const go = (to: string) => {
     setOpen(false);
@@ -103,34 +116,22 @@ export function QuickSearch() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="hidden min-w-0 max-w-xl flex-1 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground sm:flex"
-      >
-        <Search className="h-4 w-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate">
-          Search customers, licenses, installations…
-        </span>
-        <kbd className="hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium md:inline">
-          ⌘K
-        </kbd>
-      </button>
-      <button
-        type="button"
-        aria-label="Quick search"
-        onClick={() => setOpen(true)}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-secondary/60 text-muted-foreground sm:hidden"
-      >
-        <Search className="h-4 w-4" />
-      </button>
+      {!compact && <Button variant="outline" onClick={() => { setQuery(""); setSelectedLead(null); setSelectedCompany(null); setOpen(true); }} className="hidden min-w-0 max-w-xl flex-1 justify-start text-muted-foreground sm:flex">
+        <Search className="h-4 w-4 shrink-0" /><span className="min-w-0 flex-1 truncate text-left">Caută firme, contacte, CUI…</span><kbd className="hidden text-xs md:inline">⌘⇧K</kbd>
+      </Button>}
+      <Button variant="ghost" size="icon" aria-label="Căutare rapidă" title="Căutare rapidă · Ctrl+Shift+K" onClick={() => { setQuery(""); setSelectedLead(null); setSelectedCompany(null); setOpen(true); }} className={compact ? "shrink-0" : "sm:hidden"}><Search className="h-4 w-4" /></Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Search pages, customers, licenses, installations…" />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[85dvh] overflow-hidden p-0 sm:max-w-2xl">
+          <DialogTitle className="sr-only">Căutare rapidă OPSQAI</DialogTitle>
+          <Command shouldFilter={false}>
+        <CommandInput value={query} onValueChange={(value) => { setQuery(value); setSelectedLead(null); setSelectedCompany(null); }} placeholder="Firmă, persoană, email, telefon, CUI…" />
+        <CommandList className="max-h-[55dvh]">
+          {(companies.isLoading || leads.isLoading) && <p className="px-4 py-3 text-sm text-muted-foreground">Se încarcă firmele…</p>}
+          {(companies.isError || leads.isError || licenses.isError || installs.isError) && <p role="alert" className="px-4 py-3 text-sm text-warning">Unele rezultate nu sunt disponibile. <Button variant="ghost" size="sm" onClick={() => { void companies.refetch(); void leads.refetch(); void licenses.refetch(); void installs.refetch(); }}>Reîncearcă</Button></p>}
+          <CommandEmpty>Niciun rezultat.</CommandEmpty>
           <CommandGroup heading="Comenzi rapide">
-            {COMMANDS.map((c) => (
+            {COMMANDS.filter((c) => matchesClient(query, [c.label, c.hint])).map((c) => (
               <CommandItem
                 key={c.label}
                 value={`comanda ${c.label} ${c.hint}`}
@@ -141,13 +142,13 @@ export function QuickSearch() {
               >
                 <c.icon className="mr-2 h-4 w-4 text-primary" />
                 {c.label}
-                <span className="ml-auto text-xs text-muted-foreground">{c.hint}</span>
+                <span className="ml-auto hidden text-xs text-muted-foreground sm:inline">{c.hint}</span>
               </CommandItem>
             ))}
           </CommandGroup>
 
-          <CommandGroup heading="Pages">
-            {PAGES.map((p) => {
+          <CommandGroup heading="Pagini">
+            {PAGES.filter((p) => matchesClient(query, [p.label, p.to])).map((p) => {
               const Icon = p.icon;
               return (
                 <CommandItem key={p.to} value={`page ${p.label}`} onSelect={() => go(p.to)}>
@@ -159,14 +160,14 @@ export function QuickSearch() {
           </CommandGroup>
 
           {(companies.data ?? []).length > 0 && (
-            <CommandGroup heading="Customers">
-              {(companies.data ?? []).slice(0, 40).map((c) => (
+            <CommandGroup heading="Clienți">
+              {(companies.data ?? []).filter((c) => matchesClient(query, [c.name, c.install_id, c.business_type, c.subscription_status])).map((c) => (
                 <CommandItem
                   key={c.id}
                   value={`customer ${c.name} ${c.install_id ?? ""} ${c.business_type ?? ""}`}
                   onSelect={() => {
-                    setOpen(false);
-                    navigate({ to: "/management/companies/$id", params: { id: c.id } });
+                    setSelectedLead(null);
+                    setSelectedCompany(c.id);
                   }}
                 >
                   <Users className="mr-2 h-4 w-4" />
@@ -180,8 +181,8 @@ export function QuickSearch() {
           )}
 
           {(licenses.data ?? []).length > 0 && (
-            <CommandGroup heading="Licenses">
-              {(licenses.data ?? []).slice(0, 40).map((l) => (
+            <CommandGroup heading="Licențe">
+              {(licenses.data ?? []).filter((l) => matchesClient(query, [l.company_name, l.install_id, l.contact_email])).map((l) => (
                 <CommandItem
                   key={l.id}
                   value={`license ${l.company_name} ${l.install_id} ${l.contact_email ?? ""}`}
@@ -198,8 +199,8 @@ export function QuickSearch() {
           )}
 
           {(installs.data ?? []).length > 0 && (
-            <CommandGroup heading="Installations">
-              {(installs.data ?? []).slice(0, 40).map((i) => (
+            <CommandGroup heading="Instalări">
+              {(installs.data ?? []).filter((i) => matchesClient(query, [i.install_id, i.license?.company_name, i.app_version])).map((i) => (
                 <CommandItem
                   key={i.install_id}
                   value={`installation ${i.install_id} ${i.license?.company_name ?? ""} ${i.app_version ?? ""}`}
@@ -216,8 +217,36 @@ export function QuickSearch() {
               ))}
             </CommandGroup>
           )}
+          <CommandGroup heading="Prospecte CRM">
+            {(leads.data?.leads ?? []).filter((lead) => matchesClient(query, [lead.company_name, lead.contact_name, lead.email, lead.phone, lead.country, lead.notes])).map((lead) => (
+              <CommandItem key={lead.id} value={`crm-${lead.id}`} onSelect={() => { setSelectedCompany(null); setSelectedLead(lead.id); }}>
+                <Users className="h-4 w-4 text-primary" />
+                <div className="min-w-0 flex-1"><div className="truncate font-medium">{lead.company_name}</div><div className="truncate text-xs text-muted-foreground">{[lead.contact_name, lead.email, cuiFromText(lead.notes) && `CUI ${cuiFromText(lead.notes)}`].filter(Boolean).join(" · ")}</div></div>
+                <span className="shrink-0 text-xs text-muted-foreground">{lead.stage}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
         </CommandList>
-      </CommandDialog>
+        {chosenCompany && <div className="space-y-2 border-t border-border bg-muted/30 p-3">
+          <p className="truncate text-sm font-semibold">{chosenCompany.name}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => { setOpen(false); navigate({ to: "/management/companies/$id", params: { id: chosenCompany.id } }); }}>Fișa clientului</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/sales", search: { company: chosenCompany.name, contact: "", phone: "", email: "", notes: "" } }); }}>Pregătește apelul</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/pricing", search: { company: chosenCompany.name } }); }}>Ofertă</Button>
+          </div>
+        </div>}
+        {chosen && <div className="space-y-2 border-t border-border bg-muted/30 p-3">
+          <p className="truncate text-sm font-semibold">{chosen.company_name}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => { setOpen(false); navigate({ to: "/management/crm/$leadId", params: { leadId: chosen.id } }); }}>Fișa CRM</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/sales", search: { company: chosen.company_name, contact: chosen.contact_name ?? "", email: chosen.email ?? "", phone: chosen.phone ?? "", notes: chosen.notes ?? "" } }); }}>Pregătește apelul</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/pricing", search: { lead: chosen.id, company: chosen.company_name } }); }}>Ofertă</Button>
+            <Button size="sm" variant="outline" onClick={() => { setOpen(false); navigate({ to: "/management/onboarding", search: { lead: chosen.id, company: chosen.company_name } }); }}>Client în 3 pași</Button>
+          </div>
+        </div>}
+        </Command>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

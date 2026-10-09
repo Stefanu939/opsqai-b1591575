@@ -17,6 +17,7 @@ import {
 import { PipelineBoard } from "@/components/mc/crm/pipeline-board";
 import { LeadDialog, type LeadFormValues } from "@/components/mc/crm/lead-dialog";
 import { listCrmLeads, moveCrmLeadStage, saveCrmLead, type CrmLead } from "@/lib/crm.functions";
+import { matchesClient } from "@/lib/mc-client-search";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/management/crm/")({
@@ -76,11 +77,7 @@ function CrmPipelinePage() {
     if (ownerFilter === "mine" && l.owner_user_id !== me) return false;
     if (ownerFilter === "unassigned" && l.owner_user_id) return false;
     if (sourceFilter !== "all" && l.source !== sourceFilter) return false;
-    if (!q.trim()) return true;
-    const t = q.toLowerCase();
-    return [l.company_name, l.contact_name, l.email, l.country]
-      .filter(Boolean)
-      .some((v) => String(v).toLowerCase().includes(t));
+    return matchesClient(q, [l.company_name, l.contact_name, l.email, l.phone, l.country, l.notes]);
   });
 
   const moveMut = useMutation({
@@ -148,7 +145,7 @@ function CrmPipelinePage() {
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search company, contact, email…"
+              placeholder="Firmă, contact, email, telefon, CUI…"
               className="pl-8"
             />
           </div>

@@ -23,3 +23,4 @@
 - Kai confirmations resolve against existing action snapshots, share the click execution path, and persist per-proposal outcomes — prevents ambiguous approvals and repeat execution on re-entry.
 - Kai keeps its existing conversation transport and browser history while composing its floating dialog with AI Elements — visual changes must not change model/provider routing.
 - ManagementShell owns MC mobile navigation and consumes the authorized support unread counter — avoids leaking Self-Hosted navigation or fabricated badges into MC.
+- MC client discovery reuses authenticated company/CRM reads and shared browser-safe matching; enrichment previews apply only to editable forms and never save automatically — preserves scope and human approval.
