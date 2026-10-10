@@ -27,7 +27,15 @@ jobs:
       # Only accept licenses here; the retired 'tools' package breaks
       # android-actions/setup-android, so we no longer call it.
       - name: Accept Android SDK licenses
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+        run: |
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "build-tools;34.0.0" "platforms;android-34" > /dev/null
+          # Bubblewrap validates the SDK by looking for the legacy 'tools' folder.
+          if [ ! -e "$ANDROID_HOME/tools" ]; then
+            sudo ln -s "$ANDROID_HOME/cmdline-tools/latest" "$ANDROID_HOME/tools"
+          fi
+          ls "$ANDROID_HOME"
 
       - name: Prepare Bubblewrap
         working-directory: android
