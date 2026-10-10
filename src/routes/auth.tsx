@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -247,7 +247,7 @@ function AuthPage() {
           ) : (
             <div className="space-y-2 mb-5">
               <Label className="text-sm">{t("audienceLabel")}</Label>
-              <Select value={audience} onValueChange={(v) => setAudience(parseAudience(v))}>
+              <Select value={audience} onValueChange={(v) => { userPickedRef.current = true; pickedPortalRef.current = v === "portal"; setAudience(parseAudience(v)); }}>
                 <SelectTrigger className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md">
                   <SelectValue />
                 </SelectTrigger>
