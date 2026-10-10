@@ -285,6 +285,36 @@ function AuthPage() {
             </p>
           </div>
 
+          {offerBio ? (
+            <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-5 text-center space-y-3">
+              <Fingerprint className="mx-auto h-10 w-10 text-primary" />
+              <p className="font-medium">Activați conectarea cu amprenta?</p>
+              <p className="text-sm text-muted-foreground">Data viitoare intrați doar cu degetul, fără parolă.</p>
+              <Button disabled={busy} className="w-full h-12 md:h-10 rounded-xl md:rounded-md" onClick={() => onEnroll(offerBio)}>
+                <Fingerprint className="mr-2 h-4 w-4" />Activează amprenta
+              </Button>
+              <Button variant="ghost" disabled={busy} className="w-full" onClick={() => { declinePasskey(); holdNavRef.current = false; void goTo(offerBio); }}>
+                Nu acum
+              </Button>
+            </div>
+          ) : current && !isSelfHosted ? (
+            <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-3">
+              <p className="text-sm text-muted-foreground">Sunteți conectat ca</p>
+              <p className="font-medium break-all">{current.email}</p>
+              <Button disabled={busy} className="w-full h-12 md:h-10 rounded-xl md:rounded-md" onClick={() => goTo(current.id)}>
+                Continuă
+              </Button>
+              {bioAvail && !hasPk && (
+                <Button variant="outline" disabled={busy} className="w-full h-12 md:h-10 rounded-xl md:rounded-md" onClick={() => onEnroll(null)}>
+                  <Fingerprint className="mr-2 h-4 w-4" />Activează amprenta pe acest dispozitiv
+                </Button>
+              )}
+              <Button variant="ghost" disabled={busy} className="w-full" onClick={onSwitchAccount}>
+                Schimbă contul
+              </Button>
+            </div>
+          ) : null}
+
           {isSelfHosted ? (
             <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
