@@ -296,6 +296,13 @@ export function composeEmailUrl(
 ) {
   const e = encodeURIComponent;
   const t = e(to ?? "");
+  // On phones the Gmail web compose link lands on the basic inbox, not a draft.
+  // Open the installed mail app instead, with the draft already filled in.
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  if (provider === "gmail" && /iPhone|iPad|iPod/i.test(ua))
+    return `googlegmail://co?to=${t}&subject=${e(subject)}&body=${e(body)}`;
+  if (/Android|iPhone|iPad|iPod/i.test(ua))
+    return mailtoUrl(to, subject, body);
   if (provider === "gmail")
     return `https://mail.google.com/mail/?${from ? `authuser=${e(from)}&` : ""}view=cm&fs=1&to=${t}&su=${e(subject)}&body=${e(body)}`;
   if (provider === "outlook")
