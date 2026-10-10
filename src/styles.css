@@ -1167,16 +1167,14 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   font-family: var(--font-mono);
 }
 
-/* App-like behaviour on phones / inside the Android app: no pinch zoom,
-   no pull-to-refresh bounce, no tap flash. */
+/* App-like behaviour on phones / inside the Android app: no double-tap zoom,
+   no tap flash. NOTE: do not set overscroll-behavior on body here — inside the
+   Android TWA it can break touch scrolling except over the bottom nav area. */
 html {
   /* "manipulation" keeps normal pan/scroll but disables double-tap zoom. */
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
 }
-@media (display-mode: standalone), (pointer: coarse) {
-  body {
-    overscroll-behavior-y: none;
-    -webkit-tap-highlight-color: transparent;
-  }
+body {
+  -webkit-tap-highlight-color: transparent;
 }
