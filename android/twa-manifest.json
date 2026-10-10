@@ -15,15 +15,24 @@
   "iconUrl": "https://opsqai.de/icons/icon-512.png",
   "maskableIconUrl": "https://opsqai.de/icons/icon-512-maskable.png",
   "splashScreenFadeOutDuration": 300,
-  "signingKey": { "path": "./opsqai-android.jks", "alias": "opsqai" },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./opsqai-android.jks",
+    "alias": "opsqai"
+  },
+  "appVersionName": "1.0.1",
+  "appVersionCode": 10001,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://opsqai.de/manifest.webmanifest",
   "fallbackType": "customtabs",
-  "features": {},
-  "alphaDependencies": { "enabled": false },
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
@@ -33,5 +42,5 @@
   "fingerprints": [],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
-  "appVersion": "1.0.0"
+  "appVersion": "1.0.1"
 }
