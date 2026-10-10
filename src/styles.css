@@ -1170,11 +1170,12 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
 /* App-like behaviour on phones / inside the Android app: no pinch zoom,
    no pull-to-refresh bounce, no tap flash. */
 html {
-  touch-action: pan-x pan-y;
+  /* "manipulation" keeps normal pan/scroll but disables double-tap zoom. */
+  touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
 }
 @media (display-mode: standalone), (pointer: coarse) {
-  html, body {
+  body {
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
   }
