@@ -1,3 +1,5 @@
+import { Fingerprint } from "lucide-react";
+import { getSavedCredential, savedCredentialsSupported, storeCredential } from "@/lib/saved-credentials";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
@@ -173,6 +175,7 @@ function AuthPage() {
     setBusy(true);
     try {
       await getBrowserAuthProvider().signInWithPassword({ email, password });
+      void storeCredential(email, password);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("errorOccurred"));
     } finally {
@@ -180,6 +183,25 @@ function AuthPage() {
     }
   };
 
+  const [canBio, setCanBio] = useState(false);
+  useEffect(() => setCanBio(savedCredentialsSupported()), []);
+  const onBiometric = async () => {
+    const c = await getSavedCredential();
+    if (!c) {
+      toast.info("Conectați-vă o dată cu parola și salvați-o pe acest dispozitiv.");
+      return;
+    }
+    setEmail(c.email);
+    setPassword(c.password);
+    setBusy(true);
+    try {
+      await getBrowserAuthProvider().signInWithPassword(c);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("errorOccurred"));
+    } finally {
+      setBusy(false);
+    }
+  };
   const forgotLabel = lang === "de" ? "Passwort vergessen?" : "Forgot password?";
 
   const submitLabel = useMemo(() => {
@@ -341,6 +363,18 @@ function AuthPage() {
               >
                 {submitLabel}
               </Button>
+              {canBio && effectiveAudience !== "company" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={onBiometric}
+                  className="w-full h-12 md:h-10 rounded-xl md:rounded-md"
+                >
+                  <Fingerprint className="mr-2 h-4 w-4" />
+                  Conectare cu amprenta
+                </Button>
+              )}
               {isSelfHosted && <MicrosoftSignIn lang={lang} />}
             </form>
           )}
