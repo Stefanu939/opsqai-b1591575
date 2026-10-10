@@ -175,6 +175,31 @@ export function KaiAssistant() {
   // Snapshot of what the cloud currently holds: id → signature.
   const syncedRef = useRef<Map<string, string> | null>(null);
   const sig = (c: Conv) => `${c.updatedAt}|${c.pinned ? 1 : 0}|${c.title}|${c.messages.length}`;
+  // Ids this device knows were stored in the cloud. A local copy whose id is
+  // here but missing from the cloud was deleted on another device — drop it
+  // instead of re-uploading. Never-synced (offline-created) chats still upload.
+  const KNOWN = `${STORE}-cloud-ids`;
+  const readKnown = () => {
+    try {
+      const v = JSON.parse(localStorage.getItem(KNOWN) ?? "[]");
+      return new Set<string>(Array.isArray(v) ? v : []);
+    } catch {
+      return new Set<string>();
+    }
+  };
+  const writeKnown = (ids: Iterable<string>) => {
+    try {
+      localStorage.setItem(KNOWN, JSON.stringify([...ids]));
+    } catch {
+      /* ignore */
+    }
+  };
+  const dropDeleted = (local: Conv[], cloud: Conv[]) => {
+    const known = readKnown();
+    const cloudIds = new Set(cloud.map((c) => c.id));
+    writeKnown(cloudIds);
+    return local.filter((c) => cloudIds.has(c.id) || !known.has(c.id));
+  };
 
   useEffect(() => {
     let local: Conv[] = [];
@@ -199,7 +224,7 @@ export function KaiAssistant() {
         const cloud = remote.map((r) => ({ ...r, messages: JSON.parse(r.messages) as Msg[] })) as Conv[];
         syncedRef.current = new Map(cloud.map((c) => [c.id, sig(c)]));
         const byId = new Map<string, Conv>();
-        for (const c of [...cloud, ...local]) {
+        for (const c of [...cloud, ...dropDeleted(local, cloud)]) {
           const prev = byId.get(c.id);
           if (!prev || c.updatedAt > prev.updatedAt) byId.set(c.id, c);
         }
@@ -227,7 +252,7 @@ export function KaiAssistant() {
         .then((remote) => {
           const cloud = remote.map((r) => ({ ...r, messages: JSON.parse(r.messages) as Msg[] })) as Conv[];
           setConvs((all) => {
-            const byId = new Map(all.map((c) => [c.id, c]));
+            const byId = new Map(dropDeleted(all, cloud).map((c) => [c.id, c]));
             for (const c of cloud) {
               const prev = byId.get(c.id);
               if (!prev || c.updatedAt > prev.updatedAt) byId.set(c.id, c);
@@ -262,6 +287,7 @@ export function KaiAssistant() {
         .then(() => {
           for (const c of upsert) synced.set(c.id, sig(c));
           for (const id of remove) synced.delete(id);
+          writeKnown(synced.keys());
         })
         .catch(() => undefined);
     }, 1200);
