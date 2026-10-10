@@ -185,6 +185,7 @@ import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/
 import { Route as AuthenticatedAppProductsProductWorkspaceRouteImport } from './routes/_authenticated/app.products.$product.$workspace'
 import { Route as AuthenticatedAppProductsHrWorkspaceRouteImport } from './routes/_authenticated/app.products.hr.$workspace'
 import { Route as AuthenticatedAppProductsTransportWorkspaceRouteImport } from './routes/_authenticated/app.products.transport.$workspace'
+import { Route as ApiPublicV1AndroidCiRouteImport } from './routes/api/public/v1/android/ci'
 import { Route as ApiPublicV1HrReviewRouteImport } from './routes/api/public/v1/hr/review'
 import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
@@ -1147,6 +1148,11 @@ const AuthenticatedAppProductsTransportWorkspaceRoute =
     path: '/products/transport/$workspace',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const ApiPublicV1AndroidCiRoute = ApiPublicV1AndroidCiRouteImport.update({
+  id: '/api/public/v1/android/ci',
+  path: '/api/public/v1/android/ci',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1HrReviewRoute = ApiPublicV1HrReviewRouteImport.update({
   id: '/api/public/v1/hr/review',
   path: '/api/public/v1/hr/review',
@@ -1363,6 +1369,7 @@ export interface FileRoutesByFullPath {
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/android/ci': typeof ApiPublicV1AndroidCiRoute
   '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
@@ -1540,6 +1547,7 @@ export interface FileRoutesByTo {
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/android/ci': typeof ApiPublicV1AndroidCiRoute
   '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
@@ -1726,6 +1734,7 @@ export interface FileRoutesById {
   '/_authenticated/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/_authenticated/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/_authenticated/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/android/ci': typeof ApiPublicV1AndroidCiRoute
   '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
@@ -1912,6 +1921,7 @@ export interface FileRouteTypes {
     | '/app/products/$product/$workspace'
     | '/app/products/hr/$workspace'
     | '/app/products/transport/$workspace'
+    | '/api/public/v1/android/ci'
     | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
@@ -2089,6 +2099,7 @@ export interface FileRouteTypes {
     | '/app/products/$product/$workspace'
     | '/app/products/hr/$workspace'
     | '/app/products/transport/$workspace'
+    | '/api/public/v1/android/ci'
     | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
@@ -2274,6 +2285,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/products/$product/$workspace'
     | '/_authenticated/app/products/hr/$workspace'
     | '/_authenticated/app/products/transport/$workspace'
+    | '/api/public/v1/android/ci'
     | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
@@ -2369,6 +2381,7 @@ export interface RootRouteChildren {
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  ApiPublicV1AndroidCiRoute: typeof ApiPublicV1AndroidCiRoute
   ApiPublicV1HrReviewRoute: typeof ApiPublicV1HrReviewRoute
   ApiPublicV1LicenseHeartbeatRoute: typeof ApiPublicV1LicenseHeartbeatRoute
   ApiPublicV1LicenseReleasesRoute: typeof ApiPublicV1LicenseReleasesRoute
@@ -3612,6 +3625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppProductsTransportWorkspaceRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/v1/android/ci': {
+      id: '/api/public/v1/android/ci'
+      path: '/api/public/v1/android/ci'
+      fullPath: '/api/public/v1/android/ci'
+      preLoaderRoute: typeof ApiPublicV1AndroidCiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/hr/review': {
       id: '/api/public/v1/hr/review'
       path: '/api/public/v1/hr/review'
@@ -4074,6 +4094,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  ApiPublicV1AndroidCiRoute: ApiPublicV1AndroidCiRoute,
   ApiPublicV1HrReviewRoute: ApiPublicV1HrReviewRoute,
   ApiPublicV1LicenseHeartbeatRoute: ApiPublicV1LicenseHeartbeatRoute,
   ApiPublicV1LicenseReleasesRoute: ApiPublicV1LicenseReleasesRoute,
