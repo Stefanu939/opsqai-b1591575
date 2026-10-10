@@ -57,6 +57,13 @@
       "when": 1791584156529,
       "tag": "0007_mc_integrity_kai_sync_sender",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791637700802,
+      "tag": "0008_install_health_once_per_outage",
+      "breakpoints": true
     }
   ]
 }
