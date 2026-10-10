@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "de.opsqai.app",
+      "sha256_cert_fingerprints": [
+        "0E:3E:F2:85:E8:6F:3D:43:AE:12:59:32:75:44:9D:1D:C0:C9:13:FC:9C:47:85:B2:1D:2E:57:C1:DD:BE:B5:78"
+      ]
+    }
+  }
+]

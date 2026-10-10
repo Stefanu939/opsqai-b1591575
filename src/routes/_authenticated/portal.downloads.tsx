@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyInstallStatus, getMyDownloadLog } from "@/lib/install-history.functions";
-
+import { AndroidAppCard } from "@/components/app/android-app-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,9 @@ function PortalDownloads() {
       title="Download history"
       description="A record of every installation package and activation key downloaded for your installations. Downloads themselves happen on the Installation page."
     >
+      <div className="mb-6">
+        <AndroidAppCard />
+      </div>
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading your history…</p>
       ) : installs.length === 0 ? (

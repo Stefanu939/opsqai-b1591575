@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProfileSettings } from "@/components/app/profile-settings";
 import { SenderSettingsCard } from "@/components/mc/sender-settings-card";
+import { AndroidAppCard } from "@/components/app/android-app-card";
 
 export const Route = createFileRoute("/_authenticated/management/profile")({
   head: () => ({
@@ -22,8 +23,9 @@ export const Route = createFileRoute("/_authenticated/management/profile")({
   component: () => (
     <>
       <ProfileSettings title="Profile settings" />
-      <div className="mx-auto w-full max-w-3xl px-4 pb-6 md:px-6">
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-6 md:px-6">
         <SenderSettingsCard />
+        <AndroidAppCard />
       </div>
     </>
   ),

@@ -1,0 +1,66 @@
+name: Build Android app (TWA)
+
+# Builds the signed OPSQAI Android app (APK + AAB for Play Store later) and
+# hands the APK to Management Center, where staff and customers download it.
+# Required repo secrets: ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD,
+# OPSQAI_CI_TOKEN, OPSQAI_MC_URL.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 1.0.0)"
+        required: true
+        default: "1.0.0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: android-actions/setup-android@v3
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+
+      - name: Prepare Bubblewrap
+        working-directory: android
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          npm i -g @bubblewrap/cli@1
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > opsqai-android.jks
+          CODE=$(echo "$VERSION" | awk -F. '{print $1*10000+$2*100+$3}')
+          node -e "const f='twa-manifest.json';const m=require('./'+f);m.appVersionName=m.appVersion=process.env.VERSION;m.appVersionCode=$CODE;require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+          yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json
+
+      - name: Build signed APK + AAB
+        working-directory: android
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: bubblewrap build --skipPwaValidation --manifest=./twa-manifest.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opsqai-android-${{ inputs.version }}
+          path: |
+            android/app-release-signed.apk
+            android/app-release-bundle.aab
+
+      - name: Publish APK to Management Center
+        env:
+          TOKEN: ${{ secrets.OPSQAI_CI_TOKEN }}
+          MC: ${{ secrets.OPSQAI_MC_URL }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          MC="${MC:-https://opsqai.de}"
+          START=$(curl -fsS -X POST "$MC/api/public/v1/android/ci" -H "Authorization: Bearer $TOKEN" -H "content-type: application/json" -d "{\"action\":\"start\",\"version\":\"$VERSION\"}")
+          URL=$(echo "$START" | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).upload_url))")
+          curl -fsS -X PUT "$URL" -H "content-type: application/vnd.android.package-archive" --data-binary @android/app-release-signed.apk
+          SHA=$(sha256sum android/app-release-signed.apk | cut -d' ' -f1)
+          curl -fsS -X POST "$MC/api/public/v1/android/ci" -H "Authorization: Bearer $TOKEN" -H "content-type: application/json" -d "{\"action\":\"finish\",\"version\":\"$VERSION\",\"sha256\":\"$SHA\"}"
