@@ -1,5 +1,6 @@
 import { Fingerprint } from "lucide-react";
-import { getSavedCredential, savedCredentialsSupported, storeCredential } from "@/lib/saved-credentials";
+import { storeCredential } from "@/lib/saved-credentials";
+import { declinePasskey, deviceHasPasskey, enrollPasskey, passkeyDeclined, passkeysAvailable, signInWithPasskey } from "@/lib/passkeys-client";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
@@ -93,18 +94,8 @@ export const Route = createFileRoute("/auth")({
     } catch (err) {
       if (err && typeof err === "object" && "to" in (err as Record<string, unknown>)) throw err;
     }
-    const session = await getBrowserAuthProvider().getSession();
-    if (session) {
-      const explicit =
-        search.next && search.next.startsWith("/") && !search.next.startsWith("//")
-          ? search.next
-          : null;
-      const { target } = await resolvePostLoginTarget(
-        session.user.id,
-        parseAudience(search.audience),
-      );
-      throw redirect({ href: explicit ?? target });
-    }
+    // Signed-in visitors see a status card instead of a silent redirect.
+    void search;
   },
 
   component: AuthPage,
@@ -143,26 +134,43 @@ function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audience, isSelfHosted]);
 
+  const holdNavRef = useRef(false);
+  const goTo = async (userId: string) => {
+    const auth = getBrowserAuthProvider();
+    const explicit =
+      nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
+    const { target, deny } = await resolvePostLoginTarget(userId, effectiveAudience, pickedPortalRef.current);
+    if (deny) {
+      toast.error(t(deny as "mcAccessDenied"));
+      await auth.signOut();
+      return;
+    }
+    const dest = explicit ?? target;
+    if (dest.startsWith("/app")) navigate({ to: "/app" });
+    else window.location.href = dest;
+  };
+
+  const [current, setCurrent] = useState<{ id: string; email: string } | null>(null);
+  const [offerBio, setOfferBio] = useState<string | null>(null);
+  const [bioAvail, setBioAvail] = useState(false);
+  const [hasPk, setHasPk] = useState(false);
+  useEffect(() => {
+    void passkeysAvailable().then(setBioAvail);
+    setHasPk(deviceHasPasskey());
+    void getBrowserAuthProvider().getSession().then((s) => {
+      if (s) setCurrent({ id: s.user.id, email: s.user.email ?? "" });
+    });
+  }, []);
+
   useEffect(() => {
     const auth = getBrowserAuthProvider();
     const unsubscribe = auth.onSessionChange(async (event, s) => {
       if (!s || (event !== "SIGNED_IN" && event !== "USER_UPDATED")) return;
-      const explicit =
-        nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
-      const { target, deny } = await resolvePostLoginTarget(s.user.id, effectiveAudience, pickedPortalRef.current);
-      if (deny) {
-        toast.error(t(deny as "mcAccessDenied"));
-        await auth.signOut();
-        return;
-      }
-      const dest = explicit ?? target;
-      if (dest.startsWith("/app")) {
-        navigate({ to: "/app" });
-      } else {
-        window.location.href = dest;
-      }
+      if (holdNavRef.current) return;
+      await goTo(s.user.id);
     });
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, nextParam, effectiveAudience, t]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -173,34 +181,55 @@ function AuthPage() {
       return;
     }
     setBusy(true);
+    const offer = !isSelfHosted && bioAvail && !deviceHasPasskey() && !passkeyDeclined();
+    holdNavRef.current = offer;
     try {
       await getBrowserAuthProvider().signInWithPassword({ email, password });
       void storeCredential(email, password);
+      if (offer) {
+        const s = await getBrowserAuthProvider().getSession();
+        if (s) setOfferBio(s.user.id);
+        else holdNavRef.current = false;
+      }
     } catch (err) {
+      holdNavRef.current = false;
       toast.error(err instanceof Error ? err.message : t("errorOccurred"));
     } finally {
       setBusy(false);
     }
   };
 
-  const [canBio, setCanBio] = useState(false);
-  useEffect(() => setCanBio(savedCredentialsSupported()), []);
   const onBiometric = async () => {
-    const c = await getSavedCredential();
-    if (!c) {
-      toast.info("Conectați-vă o dată cu parola și salvați-o pe acest dispozitiv.");
-      return;
-    }
-    setEmail(c.email);
-    setPassword(c.password);
     setBusy(true);
     try {
-      await getBrowserAuthProvider().signInWithPassword(c);
+      await signInWithPasskey();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("errorOccurred"));
+      const msg = err instanceof Error ? err.message : "";
+      if (!/NotAllowed|cancel|abort/i.test(msg)) toast.error(msg || t("errorOccurred"));
     } finally {
       setBusy(false);
     }
+  };
+  const onEnroll = async (userId: string | null) => {
+    setBusy(true);
+    try {
+      await enrollPasskey();
+      setHasPk(true);
+      toast.success("Amprenta a fost activată pe acest dispozitiv.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (!/NotAllowed|cancel|abort/i.test(msg)) toast.error(msg || t("errorOccurred"));
+    } finally {
+      setBusy(false);
+    }
+    if (userId) {
+      holdNavRef.current = false;
+      await goTo(userId);
+    }
+  };
+  const onSwitchAccount = async () => {
+    await getBrowserAuthProvider().signOut();
+    setCurrent(null);
   };
   const forgotLabel = lang === "de" ? "Passwort vergessen?" : "Forgot password?";
 
@@ -255,6 +284,36 @@ function AuthPage() {
               Operational Knowledge Intelligence
             </p>
           </div>
+
+          {offerBio ? (
+            <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-5 text-center space-y-3">
+              <Fingerprint className="mx-auto h-10 w-10 text-primary" />
+              <p className="font-medium">Activați conectarea cu amprenta?</p>
+              <p className="text-sm text-muted-foreground">Data viitoare intrați doar cu degetul, fără parolă.</p>
+              <Button disabled={busy} className="w-full h-12 md:h-10 rounded-xl md:rounded-md" onClick={() => onEnroll(offerBio)}>
+                <Fingerprint className="mr-2 h-4 w-4" />Activează amprenta
+              </Button>
+              <Button variant="ghost" disabled={busy} className="w-full" onClick={() => { declinePasskey(); holdNavRef.current = false; void goTo(offerBio); }}>
+                Nu acum
+              </Button>
+            </div>
+          ) : current && !isSelfHosted ? (
+            <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-3">
+              <p className="text-sm text-muted-foreground">Sunteți conectat ca</p>
+              <p className="font-medium break-all">{current.email}</p>
+              <Button disabled={busy} className="w-full h-12 md:h-10 rounded-xl md:rounded-md" onClick={() => goTo(current.id)}>
+                Continuă
+              </Button>
+              {bioAvail && !hasPk && (
+                <Button variant="outline" disabled={busy} className="w-full h-12 md:h-10 rounded-xl md:rounded-md" onClick={() => onEnroll(null)}>
+                  <Fingerprint className="mr-2 h-4 w-4" />Activează amprenta pe acest dispozitiv
+                </Button>
+              )}
+              <Button variant="ghost" disabled={busy} className="w-full" onClick={onSwitchAccount}>
+                Schimbă contul
+              </Button>
+            </div>
+          ) : null}
 
           {isSelfHosted ? (
             <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-4">
@@ -363,7 +422,7 @@ function AuthPage() {
               >
                 {submitLabel}
               </Button>
-              {canBio && effectiveAudience !== "company" && (
+              {bioAvail && hasPk && !isSelfHosted && effectiveAudience !== "company" && (
                 <Button
                   type="button"
                   variant="outline"
