@@ -31,6 +31,7 @@ function parseAudience(raw: unknown): Audience {
 async function resolvePostLoginTarget(
   userId: string,
   audience: Audience,
+  pickedPortal = false,
 ): Promise<{ target: string; deny?: string }> {
   if (getClientDeploymentMode() === "selfhost") return { target: "/app" };
   const { supabase } = await import("@/integrations/supabase/client");
@@ -48,6 +49,7 @@ async function resolvePostLoginTarget(
   // Portal (and any accidental "company" pick — company users have no cloud
   // account and never reach a successful sign-in here anyway). Platform staff
   // can still enter the customer portal if they explicitly picked it.
+  if (isPlatform && !pickedPortal) return { target: "/management" };
   return { target: "/portal" };
 }
 
@@ -115,6 +117,11 @@ function AuthPage() {
   const [audience, setAudience] = useState<Audience>(
     isSelfHosted ? "company" : parseAudience(search.audience),
   );
+  const pickedPortalRef = useRef(false);
+  useEffect(() => {
+    pickedPortalRef.current = audience === "portal" && userPickedRef.current;
+  }, [audience]);
+  const userPickedRef = useRef(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -140,7 +147,7 @@ function AuthPage() {
       if (!s || (event !== "SIGNED_IN" && event !== "USER_UPDATED")) return;
       const explicit =
         nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
-      const { target, deny } = await resolvePostLoginTarget(s.user.id, effectiveAudience);
+      const { target, deny } = await resolvePostLoginTarget(s.user.id, effectiveAudience, pickedPortalRef.current);
       if (deny) {
         toast.error(t(deny as "mcAccessDenied"));
         await auth.signOut();

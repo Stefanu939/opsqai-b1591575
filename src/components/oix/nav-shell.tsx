@@ -141,7 +141,7 @@ export function NavShell() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="oix-shell border-[var(--oix-gold-line)] bg-[var(--oix-bg-deep)] p-0 text-[var(--oix-cream)]">
+            <SheetContent side="right" className="oix-shell flex h-[100dvh] flex-col overflow-y-auto overscroll-contain border-[var(--oix-gold-line)] bg-[var(--oix-bg-deep)] p-0 text-[var(--oix-cream)]">
               <SheetHeader className="border-b border-[var(--oix-gold-line)] px-6 py-5 text-left">
                 <SheetTitle className="font-[family-name:var(--font-body-oix)] text-[var(--oix-cream)]">OPSQAI</SheetTitle>
               </SheetHeader>
