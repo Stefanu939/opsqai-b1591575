@@ -301,9 +301,7 @@ export function composeEmailUrl(
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   if (provider === "gmail" && /iPhone|iPad|iPod/i.test(ua))
     return `googlegmail://co?to=${t}&subject=${e(subject)}&body=${e(body)}`;
-  if (provider === "gmail" && /Android/i.test(ua))
-    return `intent://co?to=${t}&subject=${e(subject)}&body=${e(body)}#Intent;scheme=mailto;package=com.google.android.gm;S.browser_fallback_url=${e(mailtoUrl(to, subject, body))};end`;
-  if (/Android|iPhone|iPad|iPod/i.test(ua) && provider !== "gmail")
+  if (/Android|iPhone|iPad|iPod/i.test(ua))
     return mailtoUrl(to, subject, body);
   if (provider === "gmail")
     return `https://mail.google.com/mail/?${from ? `authuser=${e(from)}&` : ""}view=cm&fs=1&to=${t}&su=${e(subject)}&body=${e(body)}`;
