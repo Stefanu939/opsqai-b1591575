@@ -27,6 +27,7 @@ import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatDistanceToNow } from "date-fns";
 import { UpcomingCard } from "@/components/calendar/upcoming-card";
 import { AlertLanes } from "@/components/mc/alert-lanes";
+import { AndroidAppCard } from "@/components/app/android-app-card";
 
 
 export const Route = createFileRoute("/_authenticated/management/")({
@@ -164,6 +165,9 @@ function OverviewPage() {
             </Button>
           </div>
         </div>
+      </div>
+      <div className="mb-4">
+        <AndroidAppCard />
       </div>
       <div className="mb-4">
         <AlertLanes />

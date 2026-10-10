@@ -35,6 +35,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { UpcomingCard } from "@/components/calendar/upcoming-card";
+import { AndroidAppCard } from "@/components/app/android-app-card";
 
 export const Route = createFileRoute("/_authenticated/portal/")({
   component: PortalHome,
@@ -159,6 +160,9 @@ function PortalHome() {
               </p>
             </div>
           </div>
+
+          <AndroidAppCard />
+
 
           {/* Installation status */}
           <div className="oq-soft-card flex flex-wrap items-center gap-4 p-4 md:p-5">
