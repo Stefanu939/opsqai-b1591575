@@ -8,6 +8,7 @@ import {
   postSupportMessage,
   markSupportRead,
   updateSupportConversation,
+  toggleSupportBriefStep,
 } from "@/lib/support.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { Input } from "@/components/ui/input";
@@ -337,8 +338,10 @@ function SupportPage() {
                   return (
                     <KaiBriefCard
                       key={m.id}
+                      messageId={m.id}
                       brief={kb.brief}
                       account={kb.account}
+                      stepsDone={Array.isArray(kb.steps_done) ? kb.steps_done : []}
                       fallback={m.body}
                       onUse={(t) => {
                         setInternal(false);
