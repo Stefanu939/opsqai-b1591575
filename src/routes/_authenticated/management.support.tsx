@@ -536,7 +536,7 @@ function KaiBriefCard({
               <input
                 type="checkbox"
                 checked={!!done[i]}
-                onChange={() => setDone((p) => ({ ...p, [i]: !p[i] }))}
+                onChange={() => toggleStep(i)}
                 className="mt-0.5"
               />
               <span className={done[i] ? "line-through text-muted-foreground" : ""}>{s}</span>
