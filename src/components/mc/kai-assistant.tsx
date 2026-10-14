@@ -24,6 +24,7 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { kaiActionKey, resolveKaiConfirmation, type KaiActionResult } from "@/lib/kai-confirmation";
 import { toast } from "sonner";
+import { KaiRichMessage } from "@/components/kai/kai-rich-message";
 import {
   Mail,
   MessageCircle,
@@ -1201,7 +1202,7 @@ export function KaiAssistant() {
                       )}
                     >
                       {m.role === "assistant" ? (
-                        <MessageResponse>{m.content}</MessageResponse>
+                        <KaiRichMessage content={m.content} />
                       ) : (
                         <span className="whitespace-pre-wrap">{m.content}</span>
                       )}

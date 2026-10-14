@@ -4,6 +4,7 @@
 // ticket client-side with the full transcript.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { KAI_RICH_FORMAT } from "@/lib/kai-rich-format";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { generateAiText } from "@/lib/ai-provider.server";
 
@@ -47,7 +48,7 @@ export const askPortalKai = createServerFn({ method: "POST" })
     try {
       const text = await generateAiText({
         role: "chat",
-        system: `${SYSTEM}\n\nACCOUNT CONTEXT (real data for this customer only):\n${account.text}`,
+        system: `${SYSTEM}\n${KAI_RICH_FORMAT}\n\nACCOUNT CONTEXT (real data for this customer only):\n${account.text}`,
         messages: data.messages.slice(-20),
       });
       return { ok: true as const, text: text.trim() };
