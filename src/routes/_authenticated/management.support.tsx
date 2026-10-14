@@ -441,3 +441,110 @@ function SupportPage() {
     </ModulePage>
   );
 }
+
+type KaiBriefData = {
+  need: string;
+  discussed: string;
+  opportunity: string;
+  next_steps: string[];
+  category: string;
+  priority: string;
+  sentiment: string;
+  business_type: string;
+} | null;
+
+const CATEGORY_LABEL: Record<string, string> = {
+  technical: "Tehnic",
+  licence: "Licență",
+  sales: "Vânzări",
+  custom_module: "Modul Custom",
+  account: "Cont",
+  other: "Altele",
+};
+
+function KaiBriefCard({
+  brief,
+  account,
+  fallback,
+  onUse,
+}: {
+  brief: KaiBriefData;
+  account?: string;
+  fallback: string;
+  onUse: (text: string) => void;
+}) {
+  const [showAccount, setShowAccount] = useState(false);
+  const [done, setDone] = useState<Record<number, boolean>>({});
+  if (!brief) {
+    return (
+      <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-xs whitespace-pre-wrap">
+        {fallback}
+      </div>
+    );
+  }
+  const copy = () => {
+    const t = `Nevoie: ${brief.need}\nDiscutat: ${brief.discussed}\nOportunitate: ${brief.opportunity}\nPași: ${brief.next_steps.join("; ")}`;
+    void navigator.clipboard?.writeText(t);
+    toast.success("Fișa a fost copiată");
+  };
+  return (
+    <div className="rounded-xl border border-primary/40 bg-primary/5 p-4 space-y-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-semibold">Fișă Kai · doar intern</span>
+        <Badge variant="secondary">{CATEGORY_LABEL[brief.category] ?? brief.category}</Badge>
+        <Badge variant="outline">Prioritate: {brief.priority}</Badge>
+        {brief.sentiment === "frustrated" && <Badge variant="destructive">Client nemulțumit</Badge>}
+        {brief.business_type && <Badge variant="outline">{brief.business_type}</Badge>}
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {[
+          ["Nevoia clientului", brief.need],
+          ["Ce s-a discutat", brief.discussed],
+          ["Ce putem implementa", brief.opportunity],
+        ].map(([h, v]) => (
+          <div key={h} className="rounded-md border border-border bg-card p-2.5">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{h}</div>
+            <div className="text-xs leading-relaxed">{v}</div>
+          </div>
+        ))}
+      </div>
+      {brief.next_steps.length > 0 && (
+        <div className="space-y-1">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Pași următori</div>
+          {brief.next_steps.map((s, i) => (
+            <label key={i} className="flex items-start gap-2 text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!done[i]}
+                onChange={() => setDone((p) => ({ ...p, [i]: !p[i] }))}
+                className="mt-0.5"
+              />
+              <span className={done[i] ? "line-through text-muted-foreground" : ""}>{s}</span>
+            </label>
+          ))}
+        </div>
+      )}
+      {showAccount && account && (
+        <pre className="rounded-md bg-muted p-2 text-[11px] whitespace-pre-wrap">{account}</pre>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={copy}>Copiază fișa</Button>
+        {account && (
+          <Button size="sm" variant="outline" onClick={() => setShowAccount((v) => !v)}>
+            {showAccount ? "Ascunde contul" : "Licențe & instalare"}
+          </Button>
+        )}
+        <Button
+          size="sm"
+          onClick={() =>
+            onUse(
+              `Bună ziua,\n\nAm preluat solicitarea dumneavoastră: ${brief.need}\n\n`,
+            )
+          }
+        >
+          Începe răspunsul
+        </Button>
+      </div>
+    </div>
+  );
+}
