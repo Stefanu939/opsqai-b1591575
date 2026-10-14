@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KaiFace } from "@/components/kai/kai-face";
-import { askPortalKai } from "@/lib/portal-kai.functions";
+import { askPortalKai, escalatePortalKai } from "@/lib/portal-kai.functions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -198,6 +198,7 @@ export function SupportWidget() {
   const uploadUrlFn = useServerFn(createSupportAttachmentUrl);
   const unreadFn = useServerFn(getSupportUnreadCount);
   const kaiFn = useServerFn(askPortalKai);
+  const escalateFn = useServerFn(escalatePortalKai);
   const onPortal = routeState.startsWith("/portal");
 
   useEffect(() => {
@@ -239,17 +240,10 @@ export function SupportWidget() {
     setLoading(true);
     setError(null);
     try {
-      const first = kaiMsgs.find((m) => m.role === "user")?.content ?? "Cerere asistență";
-      const transcript = kaiMsgs
-        .map((m) => `${m.role === "user" ? "Client" : "Kai"}: ${m.content}`)
-        .join("\n\n");
-      const conv = await createFn({
+      const conv = await escalateFn({
         data: {
-          subject: `Kai → specialist: ${first.slice(0, 120)}`,
-          priority: "normal",
-          body: `Conversația cu Kai înainte de escaladare:\n\n${transcript}`.slice(0, 9900),
-          attachments: [],
-          context: { ...gatherContext(routeState, auth, auth.activeCompanyId), source: "kai" },
+          messages: kaiMsgs.slice(-60),
+          context: { ...gatherContext(routeState, auth, auth.activeCompanyId) },
         },
       });
       setKaiMsgs([]);

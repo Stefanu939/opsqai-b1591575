@@ -80,7 +80,7 @@ export const getSupportConversation = createServerFn({ method: "POST" })
       getCloudSupabase(context, "support")
         .from("support_messages")
         .select(
-          "id, conversation_id, sender_id, sender_kind, body, internal_note, attachments, created_at",
+          "id, conversation_id, sender_id, sender_kind, body, internal_note, attachments, context, created_at",
         )
         .eq("conversation_id", data.id)
         .order("created_at", { ascending: true }),
