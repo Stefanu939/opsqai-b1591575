@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { EmojiPicker } from "@/components/app/chat/emoji-picker";
 import { useAuth } from "@/lib/auth-context";
+import { KaiRichMessage } from "@/components/kai/kai-rich-message";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import {
   listSupportConversations,
@@ -649,13 +650,17 @@ export function SupportWidget() {
                     >
                       {m.role === "assistant" && <KaiFace size={24} className="shrink-0 mt-0.5" />}
                       <div
-                        className={`max-w-[82%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+                        className={`max-w-[88%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
                           m.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-foreground"
                         }`}
                       >
-                        {m.content}
+                        {m.role === "assistant" ? (
+                          <KaiRichMessage content={m.content} />
+                        ) : (
+                          <span className="whitespace-pre-wrap">{m.content}</span>
+                        )}
                       </div>
                     </div>
                   ))}

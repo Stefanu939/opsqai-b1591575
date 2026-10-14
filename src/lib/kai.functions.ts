@@ -9,6 +9,7 @@ import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
+import { KAI_RICH_FORMAT } from "@/lib/kai-rich-format";
 import { cuiFromText, isValidCui, nameMatches } from "@/lib/cui";
 
 export type KaiAction =
@@ -234,6 +235,8 @@ Reguli:
 - Pentru CUI-urile cu date ANAF spui dacă firma pare potrivită (angajați, cifră de afaceri, CAEN) și propui un mesaj de prima abordare.
 - Expeditorul mesajelor se numește ${data.senderName || "Ștefan"}.
 Pagina curentă: ${data.page ?? "—"}.
+${KAI_RICH_FORMAT}
+(Blocurile roi/modules merg în interiorul câmpului "reply", cu \\n escapat.)
 
 Răspunde STRICT cu JSON valid, fără alt text:
 {"reply":"text în markdown simplu (liste scurte, **bold**)","actions":[...]}
