@@ -8,6 +8,7 @@ import {
   postSupportMessage,
   markSupportRead,
   updateSupportConversation,
+  toggleSupportBriefStep,
 } from "@/lib/support.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { Input } from "@/components/ui/input";
@@ -337,8 +338,10 @@ function SupportPage() {
                   return (
                     <KaiBriefCard
                       key={m.id}
+                      messageId={m.id}
                       brief={kb.brief}
                       account={kb.account}
+                      stepsDone={Array.isArray(kb.steps_done) ? kb.steps_done : []}
                       fallback={m.body}
                       onUse={(t) => {
                         setInternal(false);
@@ -463,18 +466,35 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 function KaiBriefCard({
+  messageId,
   brief,
   account,
+  stepsDone,
   fallback,
   onUse,
 }: {
+  messageId: string;
   brief: KaiBriefData;
   account?: string;
+  stepsDone: number[];
   fallback: string;
   onUse: (text: string) => void;
 }) {
+  const toggleFn = useServerFn(toggleSupportBriefStep);
   const [showAccount, setShowAccount] = useState(false);
-  const [done, setDone] = useState<Record<number, boolean>>({});
+  const [done, setDone] = useState<Record<number, boolean>>(() =>
+    Object.fromEntries(stepsDone.map((i) => [i, true])),
+  );
+  const toggleStep = (i: number) => {
+    const next = !done[i];
+    setDone((p) => ({ ...p, [i]: next }));
+    toggleFn({ data: { message_id: messageId, step_index: i, done: next } }).catch(
+      (e: Error) => {
+        setDone((p) => ({ ...p, [i]: !next }));
+        toast.error(e.message);
+      },
+    );
+  };
   if (!brief) {
     return (
       <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-xs whitespace-pre-wrap">
@@ -516,7 +536,7 @@ function KaiBriefCard({
               <input
                 type="checkbox"
                 checked={!!done[i]}
-                onChange={() => setDone((p) => ({ ...p, [i]: !p[i] }))}
+                onChange={() => toggleStep(i)}
                 className="mt-0.5"
               />
               <span className={done[i] ? "line-through text-muted-foreground" : ""}>{s}</span>

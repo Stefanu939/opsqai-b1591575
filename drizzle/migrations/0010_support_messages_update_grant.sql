@@ -1,0 +1,1 @@
+GRANT UPDATE ON public.support_messages TO authenticated;
