@@ -466,18 +466,35 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 function KaiBriefCard({
+  messageId,
   brief,
   account,
+  stepsDone,
   fallback,
   onUse,
 }: {
+  messageId: string;
   brief: KaiBriefData;
   account?: string;
+  stepsDone: number[];
   fallback: string;
   onUse: (text: string) => void;
 }) {
+  const toggleFn = useServerFn(toggleSupportBriefStep);
   const [showAccount, setShowAccount] = useState(false);
-  const [done, setDone] = useState<Record<number, boolean>>({});
+  const [done, setDone] = useState<Record<number, boolean>>(() =>
+    Object.fromEntries(stepsDone.map((i) => [i, true])),
+  );
+  const toggleStep = (i: number) => {
+    const next = !done[i];
+    setDone((p) => ({ ...p, [i]: next }));
+    toggleFn({ data: { message_id: messageId, step_index: i, done: next } }).catch(
+      (e: Error) => {
+        setDone((p) => ({ ...p, [i]: !next }));
+        toast.error(e.message);
+      },
+    );
+  };
   if (!brief) {
     return (
       <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-xs whitespace-pre-wrap">
