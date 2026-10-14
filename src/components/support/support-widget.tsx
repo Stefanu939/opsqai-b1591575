@@ -19,6 +19,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { KaiFace } from "@/components/kai/kai-face";
+import { askPortalKai } from "@/lib/portal-kai.functions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -127,7 +129,13 @@ export function SupportWidget() {
   const hidden = !cloudEnabled || !canUse || onInbox || !auth.user;
 
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<"list" | "new" | "thread">("list");
+  const [view, setView] = useState<"list" | "new" | "thread" | "kai">(
+    isPlatform ? "list" : "kai",
+  );
+  const [kaiMsgs, setKaiMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [kaiDraft, setKaiDraft] = useState("");
+  const [kaiBusy, setKaiBusy] = useState(false);
+  const [welcome, setWelcome] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -189,6 +197,69 @@ export function SupportWidget() {
   const readFn = useServerFn(markSupportRead);
   const uploadUrlFn = useServerFn(createSupportAttachmentUrl);
   const unreadFn = useServerFn(getSupportUnreadCount);
+  const kaiFn = useServerFn(askPortalKai);
+  const onPortal = routeState.startsWith("/portal");
+
+  useEffect(() => {
+    if (!onPortal || isPlatform || open) return;
+    if (sessionStorage.getItem("kai-welcome-seen")) return;
+    const t = setTimeout(() => setWelcome(true), 1500);
+    return () => clearTimeout(t);
+  }, [onPortal, isPlatform, open]);
+  const dismissWelcome = () => {
+    setWelcome(false);
+    sessionStorage.setItem("kai-welcome-seen", "1");
+  };
+
+  const sendKai = async () => {
+    const q = kaiDraft.trim();
+    if (!q || kaiBusy) return;
+    const next = [...kaiMsgs, { role: "user" as const, content: q }];
+    setKaiMsgs(next);
+    setKaiDraft("");
+    setKaiBusy(true);
+    try {
+      const r = await kaiFn({ data: { messages: next } });
+      setKaiMsgs([...next, { role: "assistant", content: r.text }]);
+    } catch (e) {
+      setKaiMsgs([
+        ...next,
+        { role: "assistant", content: e instanceof Error ? e.message : "Kai nu este disponibil." },
+      ]);
+    } finally {
+      setKaiBusy(false);
+    }
+  };
+
+  const escalateKai = async () => {
+    if (!kaiMsgs.length) {
+      setView("new");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const first = kaiMsgs.find((m) => m.role === "user")?.content ?? "Cerere asistență";
+      const transcript = kaiMsgs
+        .map((m) => `${m.role === "user" ? "Client" : "Kai"}: ${m.content}`)
+        .join("\n\n");
+      const conv = await createFn({
+        data: {
+          subject: `Kai → specialist: ${first.slice(0, 120)}`,
+          priority: "normal",
+          body: `Conversația cu Kai înainte de escaladare:\n\n${transcript}`.slice(0, 9900),
+          attachments: [],
+          context: { ...gatherContext(routeState, auth, auth.activeCompanyId), source: "kai" },
+        },
+      });
+      setKaiMsgs([]);
+      await loadThread((conv as { id: string }).id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Escaladarea a eșuat");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const refreshUnread = async () => {
     if (!canUse || !auth.user) return;
@@ -407,9 +478,41 @@ export function SupportWidget() {
 
   return (
     <>
+      {!open && welcome && (
+        <div
+          style={{ bottom: `calc(${bottomOffset} + 4.25rem)` }}
+          className="fixed right-4 md:right-5 z-40 w-64 rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-xl animate-fade-in"
+        >
+          <button
+            aria-label="Închide"
+            onClick={dismissWelcome}
+            className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+          <button
+            className="flex items-start gap-2.5 text-left"
+            onClick={() => {
+              dismissWelcome();
+              setView("kai");
+              setOpen(true);
+            }}
+          >
+            <KaiFace size={34} />
+            <span className="text-xs leading-relaxed pr-3">
+              <span className="font-semibold block">Salut, sunt Kai 👋</span>
+              Te pot ajuta cu contul, instalarea sau cu ce poate face OPSQAI pentru firma ta.
+            </span>
+          </button>
+          <span className="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-b border-r border-border bg-card" />
+        </div>
+      )}
       {!open && (
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            dismissWelcome();
+            setOpen(true);
+          }}
           aria-label="Open support"
           style={{ bottom: bottomOffset }}
           className={[
@@ -473,7 +576,9 @@ export function SupportWidget() {
                     ? "New support request"
                     : view === "thread"
                       ? "Conversation"
-                      : "Support"}
+                      : view === "kai"
+                        ? "Kai · OPSQAI"
+                        : "Support"}
                 </div>
                 <div className="text-[11px] text-muted-foreground truncate">
                   {isPlatform
@@ -481,6 +586,11 @@ export function SupportWidget() {
                     : "We usually reply within a few hours"}
                 </div>
               </div>
+              {view === "list" && !isPlatform && (
+                <Button size="sm" variant="ghost" onClick={() => setView("kai")}>
+                  <KaiFace size={18} className="mr-1" /> Kai
+                </Button>
+              )}
               {view === "list" && !isPlatform && (
                 <Button
                   size="sm"
@@ -508,6 +618,81 @@ export function SupportWidget() {
               <div className="px-4 py-2 text-[11px] bg-red-500/10 text-red-600 dark:text-red-400 flex items-center gap-1.5">
                 <AlertTriangle className="h-3 w-3" />
                 {error}
+              </div>
+            )}
+
+            {view === "kai" && (
+              <div className="flex flex-1 min-h-0 flex-col">
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  {kaiMsgs.length === 0 && (
+                    <div className="flex flex-col items-center text-center gap-2 py-6 text-xs text-muted-foreground">
+                      <KaiFace size={64} />
+                      <p className="max-w-[260px]">
+                        Întreabă-mă orice despre contul tău, instalare, module sau cât poți câștiga cu
+                        OPSQAI.
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-1.5 mt-1">
+                        {[
+                          "Cu ce mă poate ajuta OPSQAI?",
+                          "Cât economisesc cu 10 angajați?",
+                          "Cum funcționează modulul Custom?",
+                        ].map((q) => (
+                          <button
+                            key={q}
+                            onClick={() => setKaiDraft(q)}
+                            className="rounded-full border border-border px-2.5 py-1 hover:bg-secondary"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {kaiMsgs.map((m, i) => (
+                    <div
+                      key={i}
+                      className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      {m.role === "assistant" && <KaiFace size={24} className="shrink-0 mt-0.5" />}
+                      <div
+                        className={`max-w-[82%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+                          m.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-foreground"
+                        }`}
+                      >
+                        {m.content}
+                      </div>
+                    </div>
+                  ))}
+                  {kaiBusy && (
+                    <div className="flex gap-2 items-center text-xs text-muted-foreground">
+                      <KaiFace size={24} state="thinking" /> Kai se gândește…
+                    </div>
+                  )}
+                </div>
+                <div className="border-t border-border p-2 space-y-2">
+                  <div className="flex gap-1.5">
+                    <Input
+                      value={kaiDraft}
+                      onChange={(e) => setKaiDraft(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && sendKai()}
+                      placeholder="Scrie un mesaj pentru Kai…"
+                      className="h-9 text-sm"
+                    />
+                    <Button size="icon" className="h-9 w-9" onClick={sendKai} disabled={kaiBusy}>
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <button className="text-muted-foreground hover:text-foreground" onClick={() => setView("list")}>
+                      Tichetele mele
+                    </button>
+                    <button className="text-primary font-medium" onClick={escalateKai} disabled={loading}>
+                      Vorbește cu un specialist OPSQAI
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
