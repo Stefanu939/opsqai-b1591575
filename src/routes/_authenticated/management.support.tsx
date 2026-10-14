@@ -332,6 +332,21 @@ function SupportPage() {
             ) : (
               messages.map((m) => {
                 const mine = m.sender_kind === "platform";
+                const kb = (m as { context?: any }).context;
+                if (m.internal_note && kb?.kind === "kai_brief") {
+                  return (
+                    <KaiBriefCard
+                      key={m.id}
+                      brief={kb.brief}
+                      account={kb.account}
+                      fallback={m.body}
+                      onUse={(t) => {
+                        setInternal(false);
+                        setReply(t);
+                      }}
+                    />
+                  );
+                }
                 if (m.internal_note) {
                   return (
                     <div key={m.id} className="flex justify-center">
