@@ -71,6 +71,13 @@
       "when": 1791661364546,
       "tag": "0009_passkeys",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792020445126,
+      "tag": "0010_support_messages_update_grant",
+      "breakpoints": true
     }
   ]
 }
