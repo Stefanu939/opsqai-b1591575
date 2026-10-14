@@ -171,6 +171,44 @@ export const postSupportMessage = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const toggleSupportBriefStep = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        message_id: uuidString(),
+        step_index: z.number().int().min(0).max(49),
+        done: z.boolean(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePermission(context, "support.manage");
+    const sb = getCloudSupabase(context, "support");
+    const { data: msg, error: rErr } = await sb
+      .from("support_messages")
+      .select("id, context")
+      .eq("id", data.message_id)
+      .single();
+    if (rErr || !msg) throw new Error(rErr?.message ?? "Message not found");
+    const ctx = ((msg as { context?: Record<string, unknown> }).context ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const stepsDone = new Set<number>(
+      Array.isArray(ctx.steps_done) ? (ctx.steps_done as number[]) : [],
+    );
+    if (data.done) stepsDone.add(data.step_index);
+    else stepsDone.delete(data.step_index);
+    const next = { ...ctx, steps_done: [...stepsDone].sort((a, b) => a - b) };
+    const { error } = await sb
+      .from("support_messages")
+      .update({ context: next } as never)
+      .eq("id", data.message_id);
+    if (error) throw new Error(error.message);
+    return { ok: true, steps_done: next.steps_done };
+  });
+
 export const markSupportRead = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
