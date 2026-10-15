@@ -40,15 +40,20 @@ export const askPortalKai = createServerFn({ method: "POST" })
           .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(4000) }))
           .min(1)
           .max(40),
+        mode: z.enum(["portal", "prospect"]).default("portal"),
       })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
     const account = await loadAccountContext(context);
+    const prospect =
+      data.mode === "prospect"
+        ? `\n\nPROSPECT MODE: this visitor is a potential customer exploring OPSQAI, not a client yet. Help them understand OPSQAI for their business, show value (ROI cards, module ideas), focus on the free 30-day pilot. When they show interest (pilot, demo, contact, next steps), end your reply with the exact token [[CONTACT_FORM]] on its own line so the app shows the contact form button. Never ask for phone/email in chat — the form collects them with consent.`
+        : "";
     try {
       const text = await generateAiText({
         role: "chat",
-        system: `${SYSTEM}\n${KAI_RICH_FORMAT}\n\nACCOUNT CONTEXT (real data for this customer only):\n${account.text}`,
+        system: `${SYSTEM}${prospect}\n${KAI_RICH_FORMAT}\n\nACCOUNT CONTEXT (real data for this customer only):\n${account.text}`,
         messages: data.messages.slice(-20),
       });
       return { ok: true as const, text: text.trim() };

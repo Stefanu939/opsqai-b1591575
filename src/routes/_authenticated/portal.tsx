@@ -7,6 +7,8 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getProspectStatus } from "@/lib/prospect.functions";
 import {
   Headphones,
   Download,
@@ -83,6 +85,16 @@ function PortalLayout() {
     return true;
   });
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Prospect Mode accounts (no company yet) only get Kai.
+  const prospect = useQuery({
+    queryKey: ["prospect-status"],
+    queryFn: () => getProspectStatus(),
+    enabled: !isPlatformAdmin,
+    staleTime: 60_000,
+  });
+  useEffect(() => {
+    if (prospect.data?.isProspect && !prospect.data.hasCompany) window.location.replace("/prospect");
+  }, [prospect.data]);
   useEffect(() => {
     if (!isPlatformAdmin) return;
     const allowed = visible.some((item) =>

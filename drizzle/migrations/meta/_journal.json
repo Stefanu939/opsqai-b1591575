@@ -78,6 +78,13 @@
       "when": 1792020445126,
       "tag": "0010_support_messages_update_grant",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792024062145,
+      "tag": "0011_prospect_mode",
+      "breakpoints": true
     }
   ]
 }
