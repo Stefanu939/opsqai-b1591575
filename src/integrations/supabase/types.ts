@@ -3772,6 +3772,72 @@ export type Database = {
           },
         ]
       }
+      prospect_accounts: {
+        Row: {
+          created_at: string
+          data_consent: boolean
+          email: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_consent?: boolean
+          email?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_consent?: boolean
+          email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prospect_leads: {
+        Row: {
+          company_name: string
+          consent_contact: boolean
+          created_at: string
+          crm_lead_id: string | null
+          email: string
+          employees: string | null
+          full_name: string
+          id: string
+          message: string | null
+          phone: string | null
+          transcript: Json
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          consent_contact: boolean
+          created_at?: string
+          crm_lead_id?: string | null
+          email: string
+          employees?: string | null
+          full_name: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+          transcript?: Json
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          consent_contact?: boolean
+          created_at?: string
+          crm_lead_id?: string | null
+          email?: string
+          employees?: string | null
+          full_name?: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+          transcript?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           permission: string
