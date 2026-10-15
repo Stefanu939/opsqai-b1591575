@@ -46,7 +46,8 @@ function PortalNewsDetail() {
         setCover(data.cover_image_url);
       }
     })();
-  }, [data, sign]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(data)]);
 
   if (isLoading) {
     return <div className="p-6 md:p-10 text-sm text-muted-foreground">Loading…</div>;

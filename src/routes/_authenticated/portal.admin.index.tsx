@@ -94,7 +94,8 @@ function AdminNews() {
       }
       setSignedCovers(pairs);
     })();
-  }, [data, sign]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(data)]);
 
   const upsertMut = useMutation({
     mutationFn: (payload: FormState) =>
