@@ -33,6 +33,7 @@ import { Route as PressRouteImport } from './routes/press'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as ProductOverviewRouteImport } from './routes/product-overview'
+import { Route as ProspectRouteImport } from './routes/prospect'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SecurityRouteImport } from './routes/security'
@@ -311,6 +312,11 @@ const ProductRoute = ProductRouteImport.update({
 const ProductOverviewRoute = ProductOverviewRouteImport.update({
   id: '/product-overview',
   path: '/product-overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProspectRoute = ProspectRouteImport.update({
+  id: '/prospect',
+  path: '/prospect',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -1217,6 +1223,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
+  '/prospect': typeof ProspectRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
@@ -1400,6 +1407,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
+  '/prospect': typeof ProspectRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
@@ -1582,6 +1590,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
+  '/prospect': typeof ProspectRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
@@ -1769,6 +1778,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/product'
     | '/product-overview'
+    | '/prospect'
     | '/reset-password'
     | '/resources'
     | '/security'
@@ -1952,6 +1962,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/product'
     | '/product-overview'
+    | '/prospect'
     | '/reset-password'
     | '/resources'
     | '/security'
@@ -2133,6 +2144,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/product'
     | '/product-overview'
+    | '/prospect'
     | '/reset-password'
     | '/resources'
     | '/security'
@@ -2320,6 +2332,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
   ProductOverviewRoute: typeof ProductOverviewRoute
+  ProspectRoute: typeof ProspectRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   SecurityRoute: typeof SecurityRoute
@@ -2559,6 +2572,13 @@ declare module '@tanstack/react-router' {
       path: '/product-overview'
       fullPath: '/product-overview'
       preLoaderRoute: typeof ProductOverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prospect': {
+      id: '/prospect'
+      path: '/prospect'
+      fullPath: '/prospect'
+      preLoaderRoute: typeof ProspectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -4032,6 +4052,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
   ProductOverviewRoute: ProductOverviewRoute,
+  ProspectRoute: ProspectRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   SecurityRoute: SecurityRoute,
