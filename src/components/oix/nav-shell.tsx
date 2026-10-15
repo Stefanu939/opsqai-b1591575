@@ -123,6 +123,10 @@ export function NavShell() {
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
+          <OixButton variant="ghost" to="/prospect" className="hidden px-4 py-2 lg:inline-flex">
+            ✨ Discută cu KAI
+          </OixButton>
+
           <OixButton
             variant="ghost"
             to="/auth"
@@ -166,6 +170,7 @@ export function NavShell() {
                 </div>
 
                 <OixButton variant="gold" to="/contact" withArrow className="w-full">{m.cta.proposal}</OixButton>
+                <OixButton variant="ghost" to="/prospect" className="w-full">✨ Discută cu KAI</OixButton>
                 <OixButton variant="ghost" to="/auth" className="w-full">{m.cta.signIn}</OixButton>
               </div>
             </SheetContent>

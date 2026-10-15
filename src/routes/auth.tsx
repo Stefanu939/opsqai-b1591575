@@ -328,7 +328,7 @@ function AuthPage() {
           ) : (
             <div className="space-y-2 mb-5">
               <Label className="text-sm">{t("audienceLabel")}</Label>
-              <Select value={audience} onValueChange={(v) => { userPickedRef.current = true; pickedPortalRef.current = v === "portal"; setAudience(parseAudience(v)); }}>
+              <Select value={audience} onValueChange={(v) => { if (v === "prospect") { window.location.assign("/prospect"); return; } userPickedRef.current = true; pickedPortalRef.current = v === "portal"; setAudience(parseAudience(v)); }}>
                 <SelectTrigger className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md">
                   <SelectValue />
                 </SelectTrigger>
@@ -349,6 +349,12 @@ function AuthPage() {
                     <div className="flex items-center gap-2">
                       <HardDrive className="h-4 w-4 text-primary" />
                       <span>{t("audienceCompanyUser")}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="prospect">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      <span>Discută cu KAI (fără licență)</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
