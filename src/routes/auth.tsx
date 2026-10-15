@@ -19,7 +19,7 @@ import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand/logo";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
-import { Building2, ShieldCheck, HardDrive } from "lucide-react";
+import { Building2, ShieldCheck, HardDrive, Sparkles } from "lucide-react";
 
 type Audience = "portal" | "mc" | "company";
 
