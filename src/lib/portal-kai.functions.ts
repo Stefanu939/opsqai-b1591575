@@ -33,7 +33,7 @@ RULES:
 
 export const askPortalKai = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         messages: z
@@ -145,7 +145,7 @@ export type KaiBrief = z.infer<typeof BriefSchema>;
 /** Escalate a Kai conversation: ticket with transcript + internal staff brief (hidden from customer). */
 export const escalatePortalKai = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((x: unknown) =>
+  .validator((x: unknown) =>
     z
       .object({
         messages: z

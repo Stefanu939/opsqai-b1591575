@@ -35,7 +35,7 @@ export const getProspectStatus = createServerFn({ method: "POST" })
 
 export const registerProspect = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ dataConsent: z.boolean() }).parse(d))
+  .validator((d: unknown) => z.object({ dataConsent: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     const c = context as Ctx;
     const { error } = await c.supabase
@@ -60,7 +60,7 @@ const LeadSchema = z.object({
 
 export const submitProspectLead = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => LeadSchema.parse(d))
+  .validator((d: unknown) => LeadSchema.parse(d))
   .handler(async ({ data, context }) => {
     const c = context as Ctx;
     const email = emailOf(c);
