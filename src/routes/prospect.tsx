@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -198,7 +198,11 @@ function ProspectChat() {
     setBusy(true);
     try {
       const r = await kaiFn({ data: { messages: next.slice(-20), mode: "prospect" } });
-      setMsgs([...next, { role: "assistant", content: r.ok ? r.text : "Kai nu este disponibil acum. Încearcă din nou." }]);
+      const reply = r && r.ok && typeof r.text === "string" ? r.text : "Kai nu este disponibil acum. Încearcă din nou.";
+      setMsgs([...next, { role: "assistant", content: reply }]);
+    } catch (err) {
+      console.error("[prospect] send failed", err);
+      setMsgs([...next, { role: "assistant", content: "Kai nu este disponibil acum. Încearcă din nou." }]);
     } finally {
       setBusy(false);
     }
@@ -226,7 +230,9 @@ function ProspectChat() {
             </div>
           ) : (
             <div key={i} className="max-w-[92%] rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm">
-              <KaiRichMessage content={content} />
+              <SafeRender fallback={<p className="whitespace-pre-wrap">{content}</p>}>
+                <KaiRichMessage content={content} />
+              </SafeRender>
               {hasForm && i === lastIdx && !submitted && (
                 <Button size="sm" className="mt-3" onClick={() => setFormOpen(true)}>
                   <UserPlus className="mr-1 h-4 w-4" /> Completează datele de contact
@@ -335,4 +341,17 @@ function ContactDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+class SafeRender extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(err: unknown) {
+    console.error("[prospect] render failed", err);
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
 }
