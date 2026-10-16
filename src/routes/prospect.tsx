@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Send, Sparkles, UserPlus, CheckCircle2, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -164,10 +163,7 @@ function ProspectSignIn() {
 
 function ProspectChat() {
   const qc = useQueryClient();
-  const statusFn = useServerFn(getProspectStatus);
-  const registerFn = useServerFn(registerProspect);
-  const kaiFn = useServerFn(askPortalKai);
-  const status = useQuery({ queryKey: ["prospect-status"], queryFn: () => statusFn() });
+  const status = useQuery({ queryKey: ["prospect-status"], queryFn: () => getProspectStatus() });
   const [msgs, setMsgs] = useState<Msg[]>([
     {
       role: "assistant",
@@ -183,10 +179,10 @@ function ProspectChat() {
   useEffect(() => {
     if (!status.data || status.data.isProspect || status.data.hasCompany) return;
     const consent = localStorage.getItem(CONSENT_KEY) === "1";
-    void registerFn({ data: { dataConsent: consent } }).then(() =>
+    void registerProspect({ data: { dataConsent: consent } }).then(() =>
       qc.invalidateQueries({ queryKey: ["prospect-status"] }),
     );
-  }, [status.data, registerFn, qc]);
+  }, [status.data, qc]);
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [msgs, busy]);
 
   const send = async () => {
@@ -197,7 +193,7 @@ function ProspectChat() {
     setInput("");
     setBusy(true);
     try {
-      const r = await kaiFn({ data: { messages: next.slice(-20), mode: "prospect" } });
+      const r = await askPortalKai({ data: { messages: next.slice(-20), mode: "prospect" } });
       const reply = r && r.ok && typeof r.text === "string" ? r.text : "Kai nu este disponibil acum. Încearcă din nou.";
       setMsgs([...next, { role: "assistant", content: reply }]);
     } catch (err) {
@@ -277,7 +273,6 @@ function ContactDialog({
   transcript: Msg[];
   onDone: () => void;
 }) {
-  const submitFn = useServerFn(submitProspectLead);
   const [v, setV] = useState({ full_name: "", company_name: "", phone: "", employees: "", message: "" });
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -287,7 +282,7 @@ function ContactDialog({
     if (!consent) return;
     setBusy(true);
     try {
-      await submitFn({ data: { ...v, consent_contact: true, transcript } });
+      await submitProspectLead({ data: { ...v, consent_contact: true, transcript } });
       toast.success("Mulțumim! Un specialist din echipa OPSQAI te va contacta.");
       onOpenChange(false);
       onDone();
