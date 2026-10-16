@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -341,4 +341,17 @@ function ContactDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+class SafeRender extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(err: unknown) {
+    console.error("[prospect] render failed", err);
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
 }
