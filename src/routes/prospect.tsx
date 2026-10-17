@@ -257,7 +257,7 @@ function ProspectChat() {
         {busy && <div className="text-sm text-muted-foreground">Kai scrie…</div>}
         {chatError && (
           <div role="alert" className="border-l-2 border-destructive py-2 pl-3 text-sm text-muted-foreground">
-            {chatError}
+            <p>{chatError}</p>
             {!submitted && (
               <Button variant="link" size="sm" className="mt-1 px-0" onClick={() => setFormOpen(true)}>
                 <UserPlus className="mr-1 h-4 w-4" /> Solicită contact
@@ -321,7 +321,7 @@ function ContactDialog({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Solicită pilotul gratuit de 30 de zile</DialogTitle>
           <DialogDescription>Completează datele și un specialist din echipa OPSQAI te contactează.</DialogDescription>
