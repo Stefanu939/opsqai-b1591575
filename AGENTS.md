@@ -22,6 +22,8 @@
 - Windows builds reach MC via GitHub Actions → /api/public/v1/releases/ci (OPSQAI_CI_TOKEN) as channel "canary"; only an admin "Promote to stable" exposes them to customers — no manual download/re-upload, human approval kept.
 - Kai confirmations resolve against existing action snapshots, share the click execution path, and persist per-proposal outcomes — prevents ambiguous approvals and repeat execution on re-entry.
 - Kai keeps its existing conversation transport and browser history while composing its floating dialog with AI Elements — visual changes must not change model/provider routing.
+- Prospect Kai isolates rich-message render failures per reply and keeps request errors outside the transcript; chat controls and contact consent remain usable when AI fails.
+- Shared Kai rich blocks validate parsed JSON before rendering cards; model output is untrusted and must never crash conversation screens.
 - ManagementShell owns MC mobile navigation and consumes the authorized support unread counter — avoids leaking Self-Hosted navigation or fabricated badges into MC.
 - MC client discovery reuses authenticated company/CRM reads and shared browser-safe matching; enrichment previews apply only to editable forms and never save automatically — preserves scope and human approval.
 - Onboarding is resumable: `companies.onboarding_status` tracks progress and CUI uniqueness is a DB index — concurrent/partial enrolments must never create duplicates.

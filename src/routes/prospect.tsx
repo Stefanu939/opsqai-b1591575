@@ -55,18 +55,7 @@ function ProspectPage() {
         )}
       </header>
       {user ? (
-        <SafeRender
-          fallback={
-            <div className="mx-auto max-w-md p-6 text-center text-sm text-muted-foreground">
-              Kai a întâmpinat o problemă.{" "}
-              <button type="button" className="text-primary underline" onClick={() => window.location.reload()}>
-                Reîncarcă pagina
-              </button>
-            </div>
-          }
-        >
-          <ProspectChat />
-        </SafeRender>
+        <ProspectChat />
       ) : (
         <ProspectSignIn />
       )}
@@ -189,32 +178,45 @@ function ProspectChat() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const sendingRef = useRef(false);
+  const registeredRef = useRef(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!status.data || status.data.isProspect || status.data.hasCompany) return;
-    const consent = localStorage.getItem(CONSENT_KEY) === "1";
+    if (!status.data || status.data.isProspect || status.data.hasCompany || registeredRef.current) return;
+    registeredRef.current = true;
+    let consent = false;
+    try { consent = localStorage.getItem(CONSENT_KEY) === "1"; } catch { /* optional storage */ }
     void registerProspect({ data: { dataConsent: consent } }).then(() =>
       qc.invalidateQueries({ queryKey: ["prospect-status"] }),
-    );
+    ).catch(() => { /* Chat and contact form remain available if registration fails. */ });
   }, [status.data, qc]);
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [msgs, busy]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, busy, chatError]);
 
   const send = async () => {
     const text = input.trim();
-    if (!text || busy) return;
+    if (!text || sendingRef.current) return;
+    sendingRef.current = true;
+    setChatError(null);
     const next = [...msgs, { role: "user" as const, content: text }];
     setMsgs(next);
     setInput("");
     setBusy(true);
     try {
       const r = await askPortalKai({ data: { messages: next.slice(-20), mode: "prospect" } });
-      const reply = r && r.ok && typeof r.text === "string" ? r.text : "Kai nu este disponibil acum. Încearcă din nou.";
-      setMsgs([...next, { role: "assistant", content: reply }]);
+      if (!r.ok || typeof r.text !== "string" || !r.text.trim()) {
+        setChatError("Kai nu poate răspunde momentan. Conversația rămâne aici; poți solicita contactul echipei OPSQAI.");
+        return;
+      }
+      setMsgs([...next, { role: "assistant", content: r.text }]);
     } catch (err) {
       console.error("[prospect] send failed", err);
-      setMsgs([...next, { role: "assistant", content: "Kai nu este disponibil acum. Încearcă din nou." }]);
+      setChatError("Nu am putut primi răspunsul lui Kai. Conversația rămâne aici; poți solicita contactul echipei OPSQAI.");
     } finally {
+      sendingRef.current = false;
       setBusy(false);
     }
   };
@@ -231,7 +233,7 @@ function ProspectChat() {
           {submitted ? "Cerere trimisă" : "Solicită pilot gratuit"}
         </Button>
       </div>
-      <div className="flex-1 space-y-4 overflow-y-auto pb-4">
+      <div className="min-w-0 flex-1 space-y-4 overflow-y-auto pb-4">
         {msgs.map((m, i) => {
           const hasForm = m.content.includes(FORM_TOKEN);
           const content = m.content.replace(FORM_TOKEN, "").trim();
@@ -240,7 +242,7 @@ function ProspectChat() {
               {content}
             </div>
           ) : (
-            <div key={i} className="max-w-[92%] rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm">
+            <div key={i} className="max-w-[92%] break-words rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm">
               <SafeRender fallback={<p className="whitespace-pre-wrap">{content}</p>}>
                 <KaiRichMessage content={content} />
               </SafeRender>
@@ -253,6 +255,16 @@ function ProspectChat() {
           );
         })}
         {busy && <div className="text-sm text-muted-foreground">Kai scrie…</div>}
+        {chatError && (
+          <div role="alert" className="border-l-2 border-destructive py-2 pl-3 text-sm text-muted-foreground">
+            <p>{chatError}</p>
+            {!submitted && (
+              <Button variant="link" size="sm" className="mt-1 px-0" onClick={() => setFormOpen(true)}>
+                <UserPlus className="mr-1 h-4 w-4" /> Solicită contact
+              </Button>
+            )}
+          </div>
+        )}
         <div ref={endRef} />
       </div>
       <form
@@ -262,7 +274,7 @@ function ProspectChat() {
           void send();
         }}
       >
-        <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Scrie un mesaj pentru Kai…" />
+        <Input value={input} maxLength={4000} aria-label="Mesaj pentru Kai" onChange={(e) => setInput(e.target.value)} placeholder="Scrie un mesaj pentru Kai…" />
         <Button type="submit" size="icon" disabled={busy || !input.trim()} aria-label="Trimite">
           <Send className="h-4 w-4" />
         </Button>
@@ -309,7 +321,7 @@ function ContactDialog({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Solicită pilotul gratuit de 30 de zile</DialogTitle>
           <DialogDescription>Completează datele și un specialist din echipa OPSQAI te contactează.</DialogDescription>

@@ -1,5 +1,11 @@
 # Roadmap
 
+## Prospect Kai stability (2026-10-17)
+- [x] Keep chat controls and contact form outside reply-render boundaries; display request failures separately
+- [x] Validate rich reply data before rendering; guard repeated submissions and registration errors
+- [x] Verify focused tests (19 passed) and authenticated mobile failure/contact flow (simulated network failure; no provider or contact submission)
+- [ ] Verify a real AI reply — blocked by confirmed workspace AI credit exhaustion; no further probes until restored
+
 ## MC client discovery (2026-10-09)
 - [x] Universal search across customers and CRM with contextual quick actions (Ctrl+Shift+K; Kai keeps Ctrl+K)
 - [x] ANAF enrichment preview in CRM, duplicate detection and explicit application
