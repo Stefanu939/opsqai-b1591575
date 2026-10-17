@@ -31,6 +31,23 @@ export type KaiPart =
   | { kind: "roi"; data: RoiBlock }
   | { kind: "modules"; data: ModulesBlock };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const optionalText = (value: unknown) => value === undefined || typeof value === "string";
+
+function validRichBlock(kind: string, value: unknown): boolean {
+  if (!isRecord(value) || !optionalText(value.title) || !optionalText(value.note)) return false;
+  if (kind === "roi") {
+    return optionalText(value.basis) && optionalText(value.result) &&
+      (value.rows === undefined || (Array.isArray(value.rows) && value.rows.every(
+        (row) => Array.isArray(row) && row.length === 2 && row.every((cell) => typeof cell === "string"),
+      )));
+  }
+  return value.items === undefined || (Array.isArray(value.items) && value.items.every(
+    (item) => isRecord(item) && typeof item.name === "string" && optionalText(item.desc) && optionalText(item.icon),
+  ));
+}
+
 export function parseKaiRich(content: string): KaiPart[] {
   const parts: KaiPart[] = [];
   const re = /```(roi|modules)\s*\n([\s\S]*?)(```|$)/g;
@@ -41,7 +58,9 @@ export function parseKaiRich(content: string): KaiPart[] {
     last = m.index + m[0].length;
     try {
       const data = JSON.parse(m[2]);
-      parts.push(m[1] === "roi" ? { kind: "roi", data } : { kind: "modules", data });
+      if (validRichBlock(m[1], data)) {
+        parts.push(m[1] === "roi" ? { kind: "roi", data } : { kind: "modules", data });
+      }
     } catch {
       // incomplete (streaming) or malformed — hide raw JSON
     }
