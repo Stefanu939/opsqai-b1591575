@@ -54,7 +54,22 @@ function ProspectPage() {
           </Button>
         )}
       </header>
-      {user ? <ProspectChat /> : <ProspectSignIn />}
+      {user ? (
+        <SafeRender
+          fallback={
+            <div className="mx-auto max-w-md p-6 text-center text-sm text-muted-foreground">
+              Kai a întâmpinat o problemă.{" "}
+              <button type="button" className="text-primary underline" onClick={() => window.location.reload()}>
+                Reîncarcă pagina
+              </button>
+            </div>
+          }
+        >
+          <ProspectChat />
+        </SafeRender>
+      ) : (
+        <ProspectSignIn />
+      )}
     </div>
   );
 }
