@@ -1,5 +1,10 @@
 # Roadmap
 
+## Cloud access separation (2026-10-18)
+- [ ] Resolve Portal eligibility before rendering; visitors without customer enrolment go directly to Kai
+- [ ] Keep explicit Kai sessions on Kai; separate MC and Portal login destinations
+- [ ] Run access-rule tests and verify signed-in navigation
+
 ## Prospect Kai stability (2026-10-17)
 - [x] Keep chat controls and contact form outside reply-render boundaries; display request failures separately
 - [x] Validate rich reply data before rendering; guard repeated submissions and registration errors
