@@ -3,20 +3,20 @@ import { cloudDestination, isEnrolledCustomerCompany, safeCloudNext } from "../c
 
 describe("Cloud surface separation", () => {
   it("sends unenrolled Portal visitors directly to Kai", () => {
-    expect(cloudDestination("portal", { isStaff: false, isCustomer: false })).toBe("/prospect");
+    expect(cloudDestination("portal", { isStaff: false, isCustomer: false })).toBe("/kai");
   });
   it("keeps enrolled customers in Portal", () => {
     expect(cloudDestination("portal", { isStaff: false, isCustomer: true })).toBe("/portal");
   });
   it("keeps explicit Kai sign-in on Kai even for staff or customers", () => {
-    expect(cloudDestination("prospect", { isStaff: true, isCustomer: true })).toBe("/prospect");
+    expect(cloudDestination("prospect", { isStaff: true, isCustomer: true })).toBe("/kai");
   });
   it("allows only staff to land in MC", () => {
     expect(cloudDestination("mc", { isStaff: true, isCustomer: false })).toBe("/management");
-    expect(cloudDestination("mc", { isStaff: false, isCustomer: false })).toBe("/prospect");
+    expect(cloudDestination("mc", { isStaff: false, isCustomer: false })).toBe("/kai");
   });
   it("does not let a return URL escape Kai or the selected surface", () => {
-    expect(safeCloudNext("/portal/downloads", "/prospect")).toBe("/prospect");
+    expect(safeCloudNext("/portal/downloads", "/kai")).toBe("/kai");
     expect(safeCloudNext("/management", "/portal")).toBe("/portal");
     expect(safeCloudNext("//evil.example", "/portal")).toBe("/portal");
     expect(safeCloudNext("/portal/downloads", "/portal")).toBe("/portal/downloads");

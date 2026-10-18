@@ -181,7 +181,7 @@ function RootComponent() {
         // from their Authorization header, then remove all private cache.
         await queryClient.cancelQueries();
         queryClient.clear();
-        await router.navigate({ to: router.state.location.pathname === "/prospect" ? "/prospect" : "/auth", replace: true });
+        await router.navigate({ to: router.state.location.pathname === "/kai" ? "/kai" : "/auth", replace: true });
         await router.invalidate();
         return;
       }

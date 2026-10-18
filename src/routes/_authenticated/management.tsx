@@ -12,9 +12,9 @@ export const Route = createFileRoute("/_authenticated/management")({
     if (getClientDeploymentMode() === "selfhost") {
       throw redirect({ to: "/app" });
     }
-    if (isKaiAudience()) throw redirect({ to: "/prospect" });
+    if (isKaiAudience()) throw redirect({ to: "/kai" });
     const access = await getCloudAccess();
-    if (!access.isStaff) throw redirect({ to: access.isCustomer ? "/portal" : "/prospect" });
+    if (!access.isStaff) throw redirect({ to: access.isCustomer ? "/portal" : "/kai" });
   },
   component: ManagementLayout,
   errorComponent: ({ error }) => <RouteErrorState error={error} homeTo="/management" />,

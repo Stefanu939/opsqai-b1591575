@@ -42,9 +42,9 @@ export const Route = createFileRoute("/_authenticated/portal")({
     if (getClientDeploymentMode() === "selfhost") {
       throw redirect({ to: "/app" });
     }
-    if (isKaiAudience()) throw redirect({ to: "/prospect" });
+    if (isKaiAudience()) throw redirect({ to: "/kai" });
     const access = await getCloudAccess();
-    if (!access.isStaff && !access.isCustomer) throw redirect({ to: "/prospect" });
+    if (!access.isStaff && !access.isCustomer) throw redirect({ to: "/kai" });
   },
   component: PortalLayout,
   errorComponent: ({ error }) => <RouteErrorState error={error} homeTo="/portal" />,
