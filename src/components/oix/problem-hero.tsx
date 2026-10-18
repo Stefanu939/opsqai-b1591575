@@ -4,6 +4,8 @@ import { EditorialHeadline } from "./editorial-headline";
 import { OixButton } from "./buttons";
 import { useDiscoveryCopy } from "@/i18n/pages/discovery";
 import { useProspectCopy } from "@/i18n/pages/prospect";
+import { Link } from "@tanstack/react-router";
+import { KaiFace } from "@/components/kai/kai-face";
 
 const STEP_ICONS = [MessageSquareQuote, SearchCheck, PenTool, LayoutGrid];
 
@@ -21,7 +23,10 @@ export function ProblemHero() {
     <SectionShell className="pt-24 md:pt-32">
       <div className="max-w-4xl">
         <p className="oix-eyebrow">{kai.heroEyebrow}</p>
-        <h1 className="mt-5 font-display text-6xl font-semibold leading-none text-foreground sm:text-7xl md:text-8xl">{kai.heroTitle}</h1>
+        <div className="mt-5 flex items-center gap-4">
+          <h1 className="font-display text-6xl font-semibold leading-none text-foreground sm:text-7xl md:text-8xl">{kai.heroTitle}</h1>
+          <Link to="/kai" aria-label={kai.chatCta}><KaiFace size={88} float className="md:h-[112px] md:w-[112px]" /></Link>
+        </div>
         <h2 className="mt-5 font-display text-2xl font-medium text-foreground sm:text-3xl">{kai.heroSubtitle}</h2>
 
         <p className="mt-8 max-w-3xl text-base leading-relaxed text-muted-foreground md:text-lg">
