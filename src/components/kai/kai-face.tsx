@@ -26,7 +26,7 @@ export function KaiFace({
       className={`kai-face kai-${state} ${float ? "kai-float" : ""} ${className}`}
     >
       <defs>
-        <radialGradient id={`kb-${id}`} cx="0.38" cy="0.32" r="0.75">
+        <radialGradient id={`kb-${id}`} gradientUnits="userSpaceOnUse" cx="24" cy="20" r="40">
           <stop offset="0" stopColor="var(--primary-foreground)" stopOpacity="0.55" />
           <stop offset="0.35" stopColor="var(--primary)" />
           <stop offset="1" stopColor="var(--accent, var(--primary))" />
