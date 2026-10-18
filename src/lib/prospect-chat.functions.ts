@@ -44,13 +44,15 @@ async function loadOwned(db: any, sessionId: string, token: string) {
 }
 
 export const getProspectSession = createServerFn({ method: "POST" })
-  .validator((d: unknown) => Ident.parse(d))
+  .inputValidator((d: unknown) => Ident.parse(d))
   .handler(async ({ data }) => {
     const db = await admin();
-    const s = await loadOwned(db, data.sessionId, data.token).catch(() => null);
+    let foreign = false;
+    const s = await loadOwned(db, data.sessionId, data.token).catch(() => { foreign = true; return null; });
     const user = await caller(db);
-    if (!s || (s.user_id && s.user_id !== user?.id)) return { messages: [] as ProspectMsg[], count: 0 };
-    return { messages: (s.messages ?? []) as ProspectMsg[], count: s.user_message_count as number };
+    if (s?.user_id && s.user_id !== user?.id) foreign = true;
+    if (!s || foreign) return { messages: [] as ProspectMsg[], count: 0, foreign };
+    return { messages: (s.messages ?? []) as ProspectMsg[], count: s.user_message_count as number, foreign: false };
   });
 
 export const askProspectKai = createServerFn({ method: "POST" })

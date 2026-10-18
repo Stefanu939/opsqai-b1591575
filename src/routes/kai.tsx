@@ -13,6 +13,7 @@ import { askProspectKai, getProspectSession, markProspectConverted } from "@/lib
 import { PROSPECT_ANON_MESSAGES, PROSPECT_SESSION_MESSAGES, prospectGate, prospectRemaining } from "@/lib/prospect-limits";
 import { getProspectStatus, registerProspect, submitProspectLead } from "@/lib/prospect.functions";
 import { KaiRichMessage } from "@/components/kai/kai-rich-message";
+import { KaiFace } from "@/components/kai/kai-face";
 import { LogoMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,6 +189,10 @@ function sessionIdent() {
   try { localStorage.setItem(SESSION_KEY, JSON.stringify(v)); } catch { /* memory only */ }
   return v;
 }
+function resetSessionIdent() {
+  try { localStorage.removeItem(SESSION_KEY); } catch { /* noop */ }
+  return sessionIdent();
+}
 
 
 
@@ -211,17 +216,21 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
   const endRef = useRef<HTMLDivElement>(null);
 
   // Restore the session (also after Google / email sign-in redirects).
+  // Never leave the chat locked: a session owned by another account or a
+  // slow network falls back to a fresh conversation.
   useEffect(() => {
     let active = true;
     setRestored(false);
     const id = sessionIdent();
     setIdent(id);
+    const unlock = setTimeout(() => { if (active) setRestored(true); }, 4000);
     void getProspectSession({ data: id }).then((r) => {
       if (!active) return;
+      if (r.foreign) { setIdent(resetSessionIdent()); setMsgs([]); setCount(0); return; }
       if (r.messages.length) setMsgs(r.messages.map((m) => ({ role: m.role, content: m.content })));
       setCount(r.count);
-    }).catch(() => { /* fresh session */ }).finally(() => { if (active) setRestored(true); });
-    return () => { active = false; };
+    }).catch(() => { /* fresh session */ }).finally(() => { clearTimeout(unlock); if (active) setRestored(true); });
+    return () => { active = false; clearTimeout(unlock); };
   }, [signedIn]);
 
   useEffect(() => {
@@ -273,6 +282,10 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
       setMsgs((m) => [...m, { role: "assistant", content: r.text }]);
     } catch (err) {
       console.error("[prospect] send failed", err);
+      setMsgs(before);
+      setInput(text);
+      // Stale/foreign session: start a clean one so the user can retry.
+      if (err instanceof Error && /Sesiune/.test(err.message)) { setIdent(resetSessionIdent()); setCount(0); setMsgs([]); }
       setChatError(t.replyError);
     } finally {
       sendingRef.current = false;
@@ -310,9 +323,12 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
           {submitted ? t.requested : t.pilot}
         </Button>
       </div>
-      <div className="min-w-0 flex-1 space-y-4 overflow-y-auto pb-4">
-        <div className="max-w-[92%] break-words rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm">
-          <KaiRichMessage content={t.greeting} />
+      <div className="min-w-0 flex-1 space-y-4 pb-4">
+        <div className="flex items-start gap-2">
+          <KaiFace size={32} className="mt-0.5 shrink-0" />
+          <div className="max-w-[88%] break-words rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm">
+            <KaiRichMessage content={t.greeting} />
+          </div>
         </div>
         {msgs.map((m, i) => {
           const hasForm = m.content.includes(FORM_TOKEN);
@@ -322,19 +338,22 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
               {content}
             </div>
           ) : (
-            <div key={i} className="max-w-[92%] break-words rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm">
-              <SafeRender fallback={<p className="whitespace-pre-wrap">{content}</p>}>
-                <KaiRichMessage content={content} />
-              </SafeRender>
-              {hasForm && i === lastIdx && !submitted && (
-                <Button size="sm" className="mt-3" onClick={openForm}>
-                  <UserPlus className="mr-1 h-4 w-4" /> {t.contactDetails}
-                </Button>
-              )}
+            <div key={i} className="flex items-start gap-2">
+              <KaiFace size={32} className="mt-0.5 shrink-0" />
+              <div className="min-w-0 max-w-[88%] break-words rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm">
+                <SafeRender fallback={<p className="whitespace-pre-wrap">{content}</p>}>
+                  <KaiRichMessage content={content} />
+                </SafeRender>
+                {hasForm && i === lastIdx && !submitted && (
+                  <Button size="sm" className="mt-3" onClick={openForm}>
+                    <UserPlus className="mr-1 h-4 w-4" /> {t.contactDetails}
+                  </Button>
+                )}
+              </div>
             </div>
           );
         })}
-        {busy && <div className="text-sm text-muted-foreground">{t.typing}</div>}
+        {busy && <div className="flex items-center gap-2 text-sm text-muted-foreground"><KaiFace size={32} state="thinking" />{t.typing}</div>}
         {gate === "login_required" && !signedIn && <ProspectSignIn />}
         {gate === "limit_reached" && (
           <div className="rounded-xl border border-primary/30 bg-card p-4 text-sm">
