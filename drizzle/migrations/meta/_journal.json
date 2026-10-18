@@ -99,6 +99,13 @@
       "when": 1792362879524,
       "tag": "0013_allow_unprivileged_kai_signup",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792363113531,
+      "tag": "0014_allow_profiles_without_company",
+      "breakpoints": true
     }
   ]
 }
