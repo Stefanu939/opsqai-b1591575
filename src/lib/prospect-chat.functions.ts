@@ -50,8 +50,8 @@ export const getProspectSession = createServerFn({ method: "POST" })
     let foreign = false;
     const s = await loadOwned(db, data.sessionId, data.token).catch(() => { foreign = true; return null; });
     const user = await caller(db);
-    if (s?.user_id && s.user_id !== user?.id) foreign = true;
-    if (!s || foreign) return { messages: [] as ProspectMsg[], count: 0, foreign };
+    if (s?.user_id && user && s.user_id !== user.id) foreign = true;
+    if (!s || foreign || (s.user_id && !user)) return { messages: [] as ProspectMsg[], count: 0, foreign };
     return { messages: (s.messages ?? []) as ProspectMsg[], count: s.user_message_count as number, foreign: false };
   });
 
