@@ -1,5 +1,11 @@
 # Roadmap
 
+## KAI public entry and languages (2026-10-18)
+- [ ] Make KAI the homepage primary action and a visible navigation action
+- [ ] Move public chat to /kai, preserving old links and access separation
+- [ ] Romanian first visit; complete RO/EN/DE chat, login and contact interface with selected-language answers
+- [ ] Run focused tests and verify public navigation, language changes and conversation continuity
+
 ## Cloud access separation (2026-10-18)
 - [x] Resolve Portal eligibility before rendering; visitors without customer enrolment go directly to Kai
 - [x] Keep explicit Kai sessions on Kai; separate MC and Portal login destinations
