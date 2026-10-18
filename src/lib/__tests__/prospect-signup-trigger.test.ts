@@ -5,13 +5,14 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 // Execute the actual deployed trigger SQL, not a JavaScript approximation.
 const db = new PGlite();
 const migration = readFileSync("drizzle/migrations/0013_allow_unprivileged_kai_signup.sql", "utf8");
+const profileMigration = readFileSync("drizzle/migrations/0014_allow_profiles_without_company.sql", "utf8");
 beforeAll(async () => {
   await db.exec(`
     CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE SCHEMA extensions;
     CREATE TYPE public.app_role AS ENUM ('employee','admin','platform_admin','platform_owner','superadmin');
     CREATE TABLE public.profiles (id uuid primary key, full_name text, first_name text,
-      last_name text, language_pref text, company_id uuid);
+      last_name text, language_pref text, company_id uuid NOT NULL);
     CREATE TABLE public.user_roles (user_id uuid, role public.app_role, company_id uuid,
       is_platform_owner boolean default false, immutable_owner boolean default false,
       UNIQUE(user_id, role));
@@ -20,6 +21,7 @@ beforeAll(async () => {
       raw_app_meta_data jsonb, invited_at timestamptz, email_confirmed_at timestamptz);
   `);
   await db.exec(migration);
+  await db.exec(profileMigration);
   await db.exec(`CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`);
 }, 30_000);
