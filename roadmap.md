@@ -1,8 +1,9 @@
 # Roadmap
 
 ## KAI public signup (2026-10-18)
-- [ ] Replace invite-only Cloud signup trigger with unprivileged profile creation; preserve authorized admin enrolment
-- [ ] Verify real signup, trigger regressions, and private-access denial; resolve QA finding
+- [x] Replace invite-only Cloud signup trigger with unprivileged profile creation; preserve authorized admin enrolment
+- [x] Verify real email signup, real Kai reply (29/30), no company or roles, Portal/MC redirect to Kai; 28 regression tests; test accounts cleaned up
+- [ ] Interactive Google account selection verification — requires user's Google session; provider enabled and trigger path tested
 
 ## KAI public entry and languages (2026-10-18)
 - [x] Make KAI the homepage primary action and a visible navigation action
