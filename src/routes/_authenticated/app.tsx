@@ -11,7 +11,7 @@ import { isKaiAudience } from "@/lib/cloud-access";
 export const Route = createFileRoute("/_authenticated/app")({
   beforeLoad: async ({ location }) => {
     if (getClientDeploymentMode() === "mc") {
-      if (isKaiAudience()) throw redirect({ to: "/prospect" });
+      if (isKaiAudience()) throw redirect({ to: "/kai" });
       throw redirect({ to: "/windows-only" });
     }
     // Self-Hosted: a one-time / temporary password must be replaced before

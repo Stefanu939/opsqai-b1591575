@@ -197,6 +197,7 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
   const qc = useQueryClient();
   const status = useQuery({ queryKey: ["prospect-status"], queryFn: () => getProspectStatus(), enabled: signedIn });
   const [ident, setIdent] = useState<{ sessionId: string; token: string } | null>(null);
+  const [restored, setRestored] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [count, setCount] = useState(0);
   const [gate, setGate] = useState<"ok" | "login_required" | "limit_reached">("ok");
@@ -211,12 +212,16 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
 
   // Restore the session (also after Google / email sign-in redirects).
   useEffect(() => {
+    let active = true;
+    setRestored(false);
     const id = sessionIdent();
     setIdent(id);
     void getProspectSession({ data: id }).then((r) => {
+      if (!active) return;
       if (r.messages.length) setMsgs(r.messages.map((m) => ({ role: m.role, content: m.content })));
       setCount(r.count);
-    }).catch(() => { /* fresh session */ });
+    }).catch(() => { /* fresh session */ }).finally(() => { if (active) setRestored(true); });
+    return () => { active = false; };
   }, [signedIn]);
 
   useEffect(() => {
@@ -234,7 +239,7 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
 
   const send = async (raw?: string) => {
     const text = (raw ?? input).trim();
-    if (!text || sendingRef.current || !ident) return;
+    if (!text || sendingRef.current || !ident || !restored) return;
     const local = prospectGate(count, signedIn);
     if (local !== "ok") {
       if (local === "login_required") {
@@ -277,16 +282,15 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
 
   // After signing in, send the question that hit the login gate.
   useEffect(() => {
-    if (!signedIn || !ident || resumedRef.current) return;
+    if (!signedIn || !ident || !restored || resumedRef.current) return;
     let pending: string | null = null;
     try { pending = localStorage.getItem(PENDING_KEY); } catch { /* noop */ }
     if (!pending) return;
-    resumedRef.current = true;
     setGate("ok");
-    const t = setTimeout(() => void send(pending), 400);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => { resumedRef.current = true; void send(pending); }, 400);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn, ident]);
+  }, [signedIn, ident, restored, lang]);
 
   const submitted = status.data?.submitted;
   const lastIdx = msgs.length - 1;
@@ -360,7 +364,7 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
       >
         <div className="flex gap-2">
           <Input value={input} maxLength={4000} aria-label={t.message} disabled={gate === "limit_reached"} onChange={(e) => setInput(e.target.value)} placeholder={t.placeholder} />
-          <Button type="submit" size="icon" disabled={busy || !input.trim() || gate === "limit_reached"} aria-label={t.send}>
+          <Button type="submit" size="icon" disabled={busy || !restored || !input.trim() || gate === "limit_reached"} aria-label={t.send}>
             <Send className="h-4 w-4" />
           </Button>
         </div>

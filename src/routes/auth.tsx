@@ -328,7 +328,7 @@ function AuthPage() {
                   <SelectItem value="prospect">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-primary" />
-                      <span>Discută cu KAI (fără licență)</span>
+                      <span>{lang === "ro" ? "Discută cu KAI" : lang === "de" ? "Mit KAI sprechen" : "Talk to KAI"}</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
