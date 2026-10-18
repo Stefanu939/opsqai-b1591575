@@ -290,6 +290,7 @@ export const firstRunCreateAdmin = createServerFn({ method: "POST" })
       email: data.email,
       password: data.password,
       email_confirm: true,
+      app_metadata: { opsqai_provisioned: true },
       user_metadata: { full_name: data.full_name },
     });
     if (createErr || !created?.user) {
