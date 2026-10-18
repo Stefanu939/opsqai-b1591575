@@ -1,10 +1,10 @@
 # Roadmap
 
 ## KAI public entry and languages (2026-10-18)
-- [ ] Make KAI the homepage primary action and a visible navigation action
-- [ ] Move public chat to /kai, preserving old links and access separation
-- [ ] Romanian first visit; complete RO/EN/DE chat, login and contact interface with selected-language answers
-- [ ] Run focused tests and verify public navigation, language changes and conversation continuity
+- [x] Make KAI the homepage primary action and a visible navigation action
+- [x] Move public chat to /kai, preserving old links and access separation
+- [x] Romanian first visit; complete RO/EN/DE chat, login and contact interface with selected-language answers
+- [x] 20 focused tests; desktop/mobile navigation, translated authenticated contact forms, three real AI replies, selected language and conversation history retained after reload
 
 ## Cloud access separation (2026-10-18)
 - [x] Resolve Portal eligibility before rendering; visitors without customer enrolment go directly to Kai
@@ -15,7 +15,7 @@
 - [x] Keep chat controls and contact form outside reply-render boundaries; display request failures separately
 - [x] Validate rich reply data before rendering; guard repeated submissions and registration errors
 - [x] Verify focused tests (19 passed) and authenticated mobile failure/contact flow (simulated network failure; no provider or contact submission)
-- [ ] Verify a real AI reply — blocked by confirmed workspace AI credit exhaustion; no further probes until restored
+- [x] Verified real AI replies in RO/EN/DE after renewal (2026-10-18); history and remaining-message counter retained after reload
 
 ## MC client discovery (2026-10-09)
 - [x] Universal search across customers and CRM with contextual quick actions (Ctrl+Shift+K; Kai keeps Ctrl+K)
