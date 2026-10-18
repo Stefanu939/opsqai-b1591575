@@ -1,5 +1,9 @@
 # Roadmap
 
+## KAI public signup (2026-10-18)
+- [ ] Replace invite-only Cloud signup trigger with unprivileged profile creation; preserve authorized admin enrolment
+- [ ] Verify real signup, trigger regressions, and private-access denial; resolve QA finding
+
 ## KAI public entry and languages (2026-10-18)
 - [x] Make KAI the homepage primary action and a visible navigation action
 - [x] Move public chat to /kai, preserving old links and access separation

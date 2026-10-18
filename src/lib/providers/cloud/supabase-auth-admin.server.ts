@@ -133,6 +133,8 @@ export function createSupabaseAuthAdminProvider(
         email: input.email,
         password: input.password,
         email_confirm: input.emailConfirm !== false,
+        // Server-owned marker; public signUp cannot write app_metadata.
+        app_metadata: { opsqai_provisioned: true },
         user_metadata: {
           ...(input.metadata ?? {}),
           ...(input.mustChangePassword ? { must_change_password: true } : {}),

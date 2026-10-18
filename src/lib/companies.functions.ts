@@ -164,6 +164,7 @@ export const createCompany = createServerFn({ method: "POST" })
       email: data.admin_email,
       password: data.admin_password,
       email_confirm: true,
+      app_metadata: { opsqai_provisioned: true },
       user_metadata: {
         first_name: data.admin_first_name,
         last_name: data.admin_last_name,
@@ -176,7 +177,7 @@ export const createCompany = createServerFn({ method: "POST" })
     });
     if (uerr || !created.user) throw new Error(uerr?.message || "Admin user create failed");
 
-    // The trigger places this user in the right company; ensure 'admin' role bound to this company:
+    // Trusted admin provisioning places this user in the company; ensure its admin role:
     await supabaseAdmin.from("user_roles").delete().eq("user_id", created.user.id);
     await supabaseAdmin.from("user_roles").insert({
       user_id: created.user.id,
