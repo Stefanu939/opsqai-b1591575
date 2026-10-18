@@ -6,6 +6,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { uuidString } from "@/lib/zod-uuid";
+import { requirePortalAccess } from "@/lib/cloud-access.server";
 
 const STAFF_ROLES = ["platform_owner", "platform_admin"] as const;
 
@@ -68,6 +69,7 @@ export const listAnnouncementsAdmin = createServerFn({ method: "GET" })
 export const listAnnouncementsPublic = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalAnnouncement[]> => {
+    await requirePortalAccess(context);
     const { data, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_announcements")
       .select("*")
@@ -84,6 +86,7 @@ export const getAnnouncement = createServerFn({ method: "POST" })
     z.object({ slug: z.string().optional(), id: uuidString().optional() }).parse(d),
   )
   .handler(async ({ data, context }): Promise<PortalAnnouncement | null> => {
+    await requirePortalAccess(context);
     const q = getCloudSupabase(context, "portal-admin").from("portal_announcements").select("*");
     const { data: row, error } = data.id
       ? await q.eq("id", data.id).maybeSingle()
@@ -191,6 +194,7 @@ export const listDownloadModulesAdmin = createServerFn({ method: "GET" })
 export const listDownloadModulesPublic = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalDownloadModule[]> => {
+    await requirePortalAccess(context);
     const { data, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_download_modules")
       .select("*")
@@ -282,6 +286,7 @@ export const signPortalStoragePath = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     // Files are readable directly only by staff. Customers get a signed link
+    await requirePortalAccess(context);
     // only for files attached to published news or download modules.
     const userDb = getCloudSupabase(context, "portal-admin") as never as {
       from: (t: string) => any;
