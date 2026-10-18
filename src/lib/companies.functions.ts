@@ -48,9 +48,12 @@ export const listCompanies = createServerFn({ method: "POST" })
       .select("company_id");
     const { data: faqCounts } = await supabaseAdmin.from("faqs").select("company_id");
 
-    const tally = (rows: Array<{ company_id: string }> | null) => {
+    const tally = (rows: Array<{ company_id: string | null }> | null) => {
       const m = new Map<string, number>();
-      for (const r of rows ?? []) m.set(r.company_id, (m.get(r.company_id) ?? 0) + 1);
+      for (const r of rows ?? []) {
+        if (!r.company_id) continue;
+        m.set(r.company_id, (m.get(r.company_id) ?? 0) + 1);
+      }
       return m;
     };
     const usersBy = tally(profileCounts);
