@@ -66,9 +66,9 @@ import { useDiscoveryCopy } from "@/i18n/pages/discovery";
 export const Route = createFileRoute("/")({
   head: () =>
     pageHead({
-      title: "Your Workspace. Built around your problems. | OPSQAI",
+      title: "OPSQAI — Discută cu KAI despre firma ta",
       description:
-        "You tell us the problem. We analyze the root cause, design the solution and build it into your OPSQAI Workspace — installed on your own Windows environment. Start with OPSQAI Discovery: written diagnosis, workspace configuration, value estimate, direct path into a 30-day pilot.",
+        "Descoperă OPSQAI împreună cu KAI. Discută despre nevoile firmei tale în română, engleză sau germană și explorează soluții Self-Hosted pentru echipa ta.",
       path: "/",
       keywords:
         "OPSQAI Discovery, banking operational AI, financial services AI, workspace built around problems, enterprise operational AI, Windows self-hosted AI, logistics AI, HR AI",

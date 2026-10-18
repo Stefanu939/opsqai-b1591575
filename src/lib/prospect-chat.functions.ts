@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { PROSPECT_KAI_SYSTEM } from "@/lib/portal-kai.functions";
+import { ProspectLanguageSchema, prospectLanguageInstruction } from "@/lib/prospect-language";
 import {
   PROSPECT_ANON_SESSIONS_PER_IP_DAY,
   prospectGate,
@@ -53,7 +54,7 @@ export const getProspectSession = createServerFn({ method: "POST" })
   });
 
 export const askProspectKai = createServerFn({ method: "POST" })
-  .validator((d: unknown) => Ident.extend({ message: z.string().trim().min(1).max(4000) }).parse(d))
+  .inputValidator((d: unknown) => Ident.extend({ message: z.string().trim().min(1).max(4000), language: ProspectLanguageSchema }).parse(d))
   .handler(async ({ data }) => {
     const db = await admin();
     const user = await caller(db);
@@ -92,7 +93,7 @@ export const askProspectKai = createServerFn({ method: "POST" })
       const { generateAiText } = await import("@/lib/ai-provider.server");
       reply = (await generateAiText({
         role: "chat",
-        system: PROSPECT_KAI_SYSTEM,
+        system: `${PROSPECT_KAI_SYSTEM}\n\n${prospectLanguageInstruction(data.language)}`,
         messages: history.slice(-20).map((m) => ({ role: m.role, content: m.content })),
       })).trim() || null;
     } catch (e) {

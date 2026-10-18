@@ -24,6 +24,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as HrReviewRouteImport } from './routes/hr-review'
 import { Route as InvestRouteImport } from './routes/invest'
+import { Route as KaiRouteImport } from './routes/kai'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ModulesRouteImport } from './routes/modules'
@@ -268,6 +269,11 @@ const HrReviewRoute = HrReviewRouteImport.update({
 const InvestRoute = InvestRouteImport.update({
   id: '/invest',
   path: '/invest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KaiRoute = KaiRouteImport.update({
+  id: '/kai',
+  path: '/kai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalRouteRoute = LegalRouteRouteImport.update({
@@ -1222,6 +1228,7 @@ export interface FileRoutesByFullPath {
   '/health': typeof HealthRoute
   '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
+  '/kai': typeof KaiRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/partners': typeof PartnersRoute
@@ -1407,6 +1414,7 @@ export interface FileRoutesByTo {
   '/health': typeof HealthRoute
   '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
+  '/kai': typeof KaiRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/partners': typeof PartnersRoute
@@ -1591,6 +1599,7 @@ export interface FileRoutesById {
   '/health': typeof HealthRoute
   '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
+  '/kai': typeof KaiRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/partners': typeof PartnersRoute
@@ -1780,6 +1789,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/hr-review'
     | '/invest'
+    | '/kai'
     | '/mcp'
     | '/modules'
     | '/partners'
@@ -1965,6 +1975,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/hr-review'
     | '/invest'
+    | '/kai'
     | '/mcp'
     | '/modules'
     | '/partners'
@@ -2148,6 +2159,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/hr-review'
     | '/invest'
+    | '/kai'
     | '/mcp'
     | '/modules'
     | '/partners'
@@ -2337,6 +2349,7 @@ export interface RootRouteChildren {
   HealthRoute: typeof HealthRoute
   HrReviewRoute: typeof HrReviewRoute
   InvestRoute: typeof InvestRoute
+  KaiRoute: typeof KaiRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
   PartnersRoute: typeof PartnersRoute
@@ -2522,6 +2535,13 @@ declare module '@tanstack/react-router' {
       path: '/invest'
       fullPath: '/invest'
       preLoaderRoute: typeof InvestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kai': {
+      id: '/kai'
+      path: '/kai'
+      fullPath: '/kai'
+      preLoaderRoute: typeof KaiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal': {
@@ -4067,6 +4087,7 @@ const rootRouteChildren: RootRouteChildren = {
   HealthRoute: HealthRoute,
   HrReviewRoute: HrReviewRoute,
   InvestRoute: InvestRoute,
+  KaiRoute: KaiRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
   PartnersRoute: PartnersRoute,

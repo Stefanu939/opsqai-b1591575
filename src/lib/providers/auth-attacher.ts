@@ -78,8 +78,8 @@ export const attachPlatformAuth = createMiddleware({ type: "function" }).client(
       // No session at all: send the visitor to sign-in instead of letting
       // the RPC fail with a 401 that surfaces as a blank error screen.
       const path = window.location.pathname;
-      // /prospect allows anonymous Kai questions (public server fns).
-      if (path !== "/auth" && !path.startsWith("/auth/") && path !== "/prospect") {
+      // Public Kai allows anonymous questions; legacy links redirect there.
+      if (path !== "/auth" && !path.startsWith("/auth/") && path !== "/kai" && path !== "/prospect") {
         window.location.assign(
           `/auth?next=${encodeURIComponent(path + window.location.search)}`,
         );

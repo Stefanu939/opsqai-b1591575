@@ -35,7 +35,7 @@ function parseAudience(raw: unknown): Audience {
 // screen never gates by audience — everyone lands in /app.
 async function resolvePostLoginTarget(
   audience: Audience,
-): Promise<{ target: "/app" | "/management" | "/portal" | "/prospect" }> {
+): Promise<{ target: "/app" | "/management" | "/portal" | "/kai" }> {
   if (getClientDeploymentMode() === "selfhost") return { target: "/app" };
   const access = await getCloudAccess();
   return { target: cloudDestination(audience === "mc" ? "mc" : "portal", access) };
@@ -125,7 +125,7 @@ function AuthPage() {
       const { target } = await resolvePostLoginTarget(effectiveAudience);
       if (target === "/app") await navigate({ to: "/app" });
       else {
-        setCloudAudience(target === "/prospect" ? "prospect" : effectiveAudience === "mc" ? "mc" : "portal");
+        setCloudAudience(target === "/kai" ? "prospect" : effectiveAudience === "mc" ? "mc" : "portal");
         await navigate({ to: safeCloudNext(nextParam, target), replace: true });
       }
     } catch (error) {
@@ -302,7 +302,7 @@ function AuthPage() {
           ) : (
             <div className="space-y-2 mb-5">
               <Label className="text-sm">{t("audienceLabel")}</Label>
-              <Select value={audience} onValueChange={(v) => { if (v === "prospect") { setCloudAudience("prospect"); void navigate({ to: "/prospect" }); return; } setAudience(parseAudience(v)); }}>
+              <Select value={audience} onValueChange={(v) => { if (v === "prospect") { setCloudAudience("prospect"); void navigate({ to: "/kai" }); return; } setAudience(parseAudience(v)); }}>
                 <SelectTrigger className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md">
                   <SelectValue />
                 </SelectTrigger>
@@ -328,7 +328,7 @@ function AuthPage() {
                   <SelectItem value="prospect">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-primary" />
-                      <span>Discută cu KAI (fără licență)</span>
+                      <span>{lang === "ro" ? "Discută cu KAI" : lang === "de" ? "Mit KAI sprechen" : "Talk to KAI"}</span>
                     </div>
                   </SelectItem>
                 </SelectContent>

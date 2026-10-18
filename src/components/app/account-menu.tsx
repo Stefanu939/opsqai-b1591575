@@ -268,7 +268,7 @@ export function AccountMenu({
             </DropdownMenuItem>
           ) : null}
           {showSurfaceSwitch ? (
-            <DropdownMenuItem onSelect={() => window.open("/prospect", "_blank", "noopener")}>
+            <DropdownMenuItem onSelect={() => window.open("/kai", "_blank", "noopener")}>
               <ArrowLeftRight className="mr-2 h-4 w-4" />
               Open Prospect Mode (Kai)
             </DropdownMenuItem>

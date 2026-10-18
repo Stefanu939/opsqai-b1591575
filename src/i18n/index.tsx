@@ -555,7 +555,7 @@ const Ctx = createContext<LangCtx | null>(null);
 const isLang = (v: unknown): v is Lang => v === "en" || v === "de" || v === "ro";
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("de");
+  const [lang, setLangState] = useState<Lang>("ro");
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("lang") : null;
@@ -577,6 +577,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLangState(l);
     if (typeof window !== "undefined") localStorage.setItem("lang", l);
   };
+
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
 
   const t = (k: DictKey) => dicts[lang]?.[k] ?? dict.en[k] ?? k;
 
