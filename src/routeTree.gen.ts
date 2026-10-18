@@ -161,6 +161,7 @@ import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes
 import { Route as AuthenticatedManagementCrmIndexRouteImport } from './routes/_authenticated/management.crm.index'
 import { Route as AuthenticatedManagementCrmLeadIdRouteImport } from './routes/_authenticated/management.crm.$leadId'
 import { Route as AuthenticatedManagementCrmActivitiesRouteImport } from './routes/_authenticated/management.crm.activities'
+import { Route as AuthenticatedManagementCrmProspectsRouteImport } from './routes/_authenticated/management.crm.prospects'
 import { Route as AuthenticatedManagementCrmReportsRouteImport } from './routes/_authenticated/management.crm.reports'
 import { Route as AuthenticatedManagementTeamUserIdRouteImport } from './routes/_authenticated/management.team.$userId'
 import { Route as AuthenticatedManagementUsageIndexRouteImport } from './routes/_authenticated/management.usage.index'
@@ -1012,6 +1013,12 @@ const AuthenticatedManagementCrmActivitiesRoute =
     path: '/crm/activities',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
+const AuthenticatedManagementCrmProspectsRoute =
+  AuthenticatedManagementCrmProspectsRouteImport.update({
+    id: '/crm/prospects',
+    path: '/crm/prospects',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedManagementCrmReportsRoute =
   AuthenticatedManagementCrmReportsRouteImport.update({
     id: '/crm/reports',
@@ -1347,6 +1354,7 @@ export interface FileRoutesByFullPath {
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/management/crm/$leadId': typeof AuthenticatedManagementCrmLeadIdRoute
   '/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
+  '/management/crm/prospects': typeof AuthenticatedManagementCrmProspectsRoute
   '/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/management/usage/$installId': typeof AuthenticatedManagementUsageInstallIdRoute
@@ -1526,6 +1534,7 @@ export interface FileRoutesByTo {
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/management/crm/$leadId': typeof AuthenticatedManagementCrmLeadIdRoute
   '/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
+  '/management/crm/prospects': typeof AuthenticatedManagementCrmProspectsRoute
   '/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/management/usage/$installId': typeof AuthenticatedManagementUsageInstallIdRoute
@@ -1714,6 +1723,7 @@ export interface FileRoutesById {
   '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/_authenticated/management/crm/$leadId': typeof AuthenticatedManagementCrmLeadIdRoute
   '/_authenticated/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
+  '/_authenticated/management/crm/prospects': typeof AuthenticatedManagementCrmProspectsRoute
   '/_authenticated/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/_authenticated/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/_authenticated/management/usage/$installId': typeof AuthenticatedManagementUsageInstallIdRoute
@@ -1902,6 +1912,7 @@ export interface FileRouteTypes {
     | '/management/companies/$id'
     | '/management/crm/$leadId'
     | '/management/crm/activities'
+    | '/management/crm/prospects'
     | '/management/crm/reports'
     | '/management/team/$userId'
     | '/management/usage/$installId'
@@ -2081,6 +2092,7 @@ export interface FileRouteTypes {
     | '/management/companies/$id'
     | '/management/crm/$leadId'
     | '/management/crm/activities'
+    | '/management/crm/prospects'
     | '/management/crm/reports'
     | '/management/team/$userId'
     | '/management/usage/$installId'
@@ -2268,6 +2280,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/companies/$id'
     | '/_authenticated/management/crm/$leadId'
     | '/_authenticated/management/crm/activities'
+    | '/_authenticated/management/crm/prospects'
     | '/_authenticated/management/crm/reports'
     | '/_authenticated/management/team/$userId'
     | '/_authenticated/management/usage/$installId'
@@ -3470,6 +3483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementCrmActivitiesRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
+    '/_authenticated/management/crm/prospects': {
+      id: '/_authenticated/management/crm/prospects'
+      path: '/crm/prospects'
+      fullPath: '/management/crm/prospects'
+      preLoaderRoute: typeof AuthenticatedManagementCrmProspectsRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/crm/reports': {
       id: '/_authenticated/management/crm/reports'
       path: '/crm/reports'
@@ -3827,6 +3847,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementCompaniesIdRoute: typeof AuthenticatedManagementCompaniesIdRoute
   AuthenticatedManagementCrmLeadIdRoute: typeof AuthenticatedManagementCrmLeadIdRoute
   AuthenticatedManagementCrmActivitiesRoute: typeof AuthenticatedManagementCrmActivitiesRoute
+  AuthenticatedManagementCrmProspectsRoute: typeof AuthenticatedManagementCrmProspectsRoute
   AuthenticatedManagementCrmReportsRoute: typeof AuthenticatedManagementCrmReportsRoute
   AuthenticatedManagementUsageInstallIdRoute: typeof AuthenticatedManagementUsageInstallIdRoute
   AuthenticatedManagementValueIdRoute: typeof AuthenticatedManagementValueIdRoute
@@ -3865,6 +3886,8 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
       AuthenticatedManagementCrmLeadIdRoute,
     AuthenticatedManagementCrmActivitiesRoute:
       AuthenticatedManagementCrmActivitiesRoute,
+    AuthenticatedManagementCrmProspectsRoute:
+      AuthenticatedManagementCrmProspectsRoute,
     AuthenticatedManagementCrmReportsRoute:
       AuthenticatedManagementCrmReportsRoute,
     AuthenticatedManagementUsageInstallIdRoute:

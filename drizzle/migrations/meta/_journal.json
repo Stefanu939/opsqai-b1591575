@@ -85,6 +85,13 @@
       "when": 1792024062145,
       "tag": "0011_prospect_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792328930815,
+      "tag": "0012_prospect_sessions",
+      "breakpoints": true
     }
   ]
 }

@@ -19,6 +19,7 @@ import {
   Handshake,
   Calculator,
   Gauge,
+  Radar,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { AccountMenu } from "@/components/app/account-menu";
@@ -46,6 +47,7 @@ const SECTIONS: Section[] = [
     title: "Customers",
     items: [
       { to: "/management/crm", label: "CRM", icon: Handshake },
+      { to: "/management/crm/prospects", label: "Prospect Radar", icon: Radar },
       { to: "/management/sales", label: "Sales Cockpit", icon: Megaphone },
       { to: "/management/pricing", label: "Preț & ofertă", icon: Calculator },
       { to: "/management/onboarding", label: "Client nou (3 pași)", icon: Rocket },

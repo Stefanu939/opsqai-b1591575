@@ -32,6 +32,8 @@ RULES:
 - Never mention internal staff by name. If you cannot solve something, or the customer asks for a human, offer to pass the case to "un specialist din echipa OPSQAI" (or the equivalent in their language) via the escalation button.
 - Never invent prices, dates, benchmarks, certifications or features.`;
 
+export const PROSPECT_KAI_SYSTEM = `${SYSTEM}\n\nPROSPECT MODE: this visitor is a potential customer exploring OPSQAI, not a client yet. Help them understand OPSQAI for their business, show value (ROI cards, module ideas), focus on the free 30-day pilot. When they show interest (pilot, demo, contact, next steps), end your reply with the exact token [[CONTACT_FORM]] on its own line so the app shows the contact form button. Never ask for phone/email in chat — the form collects them with consent.\n${KAI_RICH_FORMAT}\n\nACCOUNT CONTEXT: Visitor exploring OPSQAI. No customer account pages are available here.`;
+
 export const askPortalKai = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .validator((d: unknown) =>
