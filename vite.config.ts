@@ -11,14 +11,15 @@ import { resolve as resolvePath } from "node:path";
 
 const selfhostAliases = opsqaiSelfhostAliases();
 
-// pdf-lib imports helpers from tslib 1.x. In the server bundle its CommonJS
-// build is wrapped so that `.default` is undefined ("Cannot destructure
-// property '__extends'"). Point pdf-lib's tslib at the ES module build instead.
+// pdf-lib and the WebAuthn crypto chain (@simplewebauthn/server → @peculiar/*)
+// import helpers from tslib. In the server bundle tslib's CommonJS build is
+// wrapped so that `.default` is undefined ("Cannot destructure property
+// '__extends'"). Point those importers at the ES module build instead.
 const pdfLibTslib = {
   name: "opsqai-pdf-lib-tslib-esm",
   enforce: "pre" as const,
   resolveId(id: string, importer?: string) {
-    if (id === "tslib" && importer && /[\\/](pdf-lib|@pdf-lib)[\\/]/.test(importer)) {
+    if (id === "tslib" && importer && /[\\/](pdf-lib|@pdf-lib|@peculiar|@simplewebauthn)[\\/]/.test(importer)) {
       return resolvePath(process.cwd(), "node_modules/tslib/tslib.es6.js");
     }
     return null;
