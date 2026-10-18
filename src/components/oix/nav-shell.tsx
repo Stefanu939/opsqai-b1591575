@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, Moon, Sun } from "lucide-react";
+import { Menu, Moon, Sun, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OixButton } from "./buttons";
 import { LogoMark } from "@/components/brand/logo";
@@ -8,12 +8,14 @@ import { useT } from "@/i18n";
 import { useMarketing } from "@/i18n/marketing";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useProspectCopy } from "@/i18n/pages/prospect";
 
 export function NavShell() {
   const [scrolled, setScrolled] = useState(false);
   const [dark, setDark] = useState(true);
   const { lang, setLang } = useT();
   const m = useMarketing();
+  const kai = useProspectCopy();
 
   const links = [
     { to: "/discovery", label: "Discovery" },
@@ -73,7 +75,7 @@ export function NavShell() {
         </Link>
 
 
-        <nav className="hidden items-center gap-5 lg:flex xl:gap-6" aria-label="Primary navigation">
+        <nav className="hidden items-center gap-3 2xl:flex" aria-label="Primary navigation">
           {links.map((l) => (
             <Link
               key={l.to}
@@ -123,25 +125,21 @@ export function NavShell() {
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <OixButton variant="ghost" to="/prospect" className="hidden px-4 py-2 lg:inline-flex">
-            ✨ Discută cu KAI
-          </OixButton>
+          <Button asChild size="sm" className="shrink-0 gap-1.5 px-3">
+            <Link to="/kai" aria-label={kai.chatCta}><MessageCircle className="h-4 w-4" /><span className="sm:hidden">KAI</span><span className="hidden sm:inline">{kai.chatCta}</span></Link>
+          </Button>
 
           <OixButton
             variant="ghost"
             to="/auth"
-            className="hidden px-4 py-2 xl:inline-flex"
+            className="hidden px-4 py-2 2xl:inline-flex"
           >
             {m.cta.signIn}
           </OixButton>
 
-          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 2xl:inline-flex">
-            {m.cta.proposal}
-          </OixButton>
-
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="border-[var(--oix-gold-line)] bg-transparent text-[var(--oix-cream)] lg:hidden" aria-label="Open navigation">
+              <Button variant="outline" size="icon" className="border-[var(--oix-gold-line)] bg-transparent text-[var(--oix-cream)] 2xl:hidden" aria-label="Open navigation">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -170,7 +168,7 @@ export function NavShell() {
                 </div>
 
                 <OixButton variant="gold" to="/contact" withArrow className="w-full">{m.cta.proposal}</OixButton>
-                <OixButton variant="ghost" to="/prospect" className="w-full">✨ Discută cu KAI</OixButton>
+                <SheetClose asChild><Button asChild className="w-full"><Link to="/kai"><MessageCircle className="mr-2 h-4 w-4" />{kai.chatCta}</Link></Button></SheetClose>
                 <OixButton variant="ghost" to="/auth" className="w-full">{m.cta.signIn}</OixButton>
               </div>
             </SheetContent>
