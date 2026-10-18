@@ -1178,3 +1178,18 @@ html {
 body {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Kai companion animations */
+.kai-face .kai-eyes { transform-origin: 32px 33px; animation: kai-blink 5s infinite; }
+.kai-face .kai-body { transform-origin: 32px 40px; animation: kai-breathe 4s ease-in-out infinite; }
+.kai-thinking .kai-eyes { animation: kai-look 1.6s ease-in-out infinite; }
+.kai-thinking .kai-halo { animation: kai-pulse 1.2s ease-in-out infinite; }
+.kai-speaking .kai-mouth-talk { transform-origin: 32px 42.5px; animation: kai-talk .35s ease-in-out infinite alternate; }
+.kai-float { animation: kai-float 5s ease-in-out infinite; }
+@keyframes kai-blink { 0%,92%,100% { transform: scaleY(1) } 95% { transform: scaleY(.1) } }
+@keyframes kai-breathe { 0%,100% { transform: scale(1) } 50% { transform: scale(1.03, .98) } }
+@keyframes kai-look { 0%,100% { transform: translateX(-1.5px) } 50% { transform: translateX(1.5px) } }
+@keyframes kai-pulse { 0%,100% { opacity: .25 } 50% { opacity: .6 } }
+@keyframes kai-talk { from { transform: scaleY(.4) } to { transform: scaleY(1.2) } }
+@keyframes kai-float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+@media (prefers-reduced-motion: reduce) { .kai-face *, .kai-float { animation: none !important; } }
