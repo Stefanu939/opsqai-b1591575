@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { RouteErrorState } from "@/components/app/route-error-state";
+import { isKaiAudience } from "@/lib/cloud-access";
 
 // The OPSQAI application (`/app/*`) is the Self-Hosted Windows product.
 // It runs INSIDE the customer's infrastructure. On the cloud / Management
@@ -10,6 +11,7 @@ import { RouteErrorState } from "@/components/app/route-error-state";
 export const Route = createFileRoute("/_authenticated/app")({
   beforeLoad: async ({ location }) => {
     if (getClientDeploymentMode() === "mc") {
+      if (isKaiAudience()) throw redirect({ to: "/prospect" });
       throw redirect({ to: "/windows-only" });
     }
     // Self-Hosted: a one-time / temporary password must be replaced before
