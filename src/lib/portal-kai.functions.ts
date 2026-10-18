@@ -7,6 +7,7 @@ import { z } from "zod";
 import { KAI_RICH_FORMAT } from "@/lib/kai-rich-format";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { generateAiText } from "@/lib/ai-provider.server";
+import { requirePortalAccess } from "@/lib/cloud-access.server";
 
 const PRODUCT_FACTS = `
 OFFICIAL OPSQAI FACTS (the only product truth you may use):
@@ -45,7 +46,10 @@ export const askPortalKai = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const account = await loadAccountContext(context);
+    if (data.mode === "portal") await requirePortalAccess(context);
+    const account = data.mode === "prospect"
+      ? { companyId: null, text: "Visitor exploring OPSQAI. No customer account pages are available here." }
+      : await loadAccountContext(context);
     const prospect =
       data.mode === "prospect"
         ? `\n\nPROSPECT MODE: this visitor is a potential customer exploring OPSQAI, not a client yet. Help them understand OPSQAI for their business, show value (ROI cards, module ideas), focus on the free 30-day pilot. When they show interest (pilot, demo, contact, next steps), end your reply with the exact token [[CONTACT_FORM]] on its own line so the app shows the contact form button. Never ask for phone/email in chat — the form collects them with consent.`
@@ -157,6 +161,7 @@ export const escalatePortalKai = createServerFn({ method: "POST" })
       .parse(x),
   )
   .handler(async ({ data, context }) => {
+    await requirePortalAccess(context);
     const account = await loadAccountContext(context);
     if (!account.companyId) throw new Error("Contul nu este asociat unei companii.");
     const transcript = data.messages

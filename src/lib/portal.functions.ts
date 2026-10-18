@@ -11,11 +11,13 @@ import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-ava
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
+import { requirePortalAccess } from "@/lib/cloud-access.server";
 
 /** All licenses (install + module) tied to the current user's email. */
 export const getMyPortalOverview = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requirePortalAccess(context);
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) return { email: null, installs: [] as PortalInstall[] };
 
@@ -86,6 +88,7 @@ export const listPortalReleases = createServerFn({ method: "POST" })
     z.object({ channel: z.string().max(32).optional() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requirePortalAccess(context);
     const db = getCloudSupabase(context, "portal");
     const query = db
       .from("license_releases")
@@ -132,6 +135,7 @@ export const downloadMyActivationBundle = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => DownloadInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requirePortalAccess(context);
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) throw new Error("No email on session");
     const supabaseAdmin = await getCloudSupabaseAdmin("portal");
@@ -165,6 +169,7 @@ export const downloadMyModuleLicense = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => ModuleDownloadInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requirePortalAccess(context);
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) throw new Error("No email on session");
     const supabaseAdmin = await getCloudSupabaseAdmin("portal");
@@ -187,6 +192,7 @@ export const downloadMyModuleLicense = createServerFn({ method: "POST" })
 export const listPortalDocs = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requirePortalAccess(context);
     const { data, error } = await getCloudSupabase(context, "portal")
       .from("system_doc_catalog")
       .select("slug, title, category, updated_at")
@@ -200,6 +206,7 @@ export const getPortalDoc = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePortalAccess(context);
     const { data: row, error } = await getCloudSupabase(context, "portal")
       .from("system_doc_catalog")
       .select("slug, title, category, body_md, related_slugs, updated_at")

@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { LogoMark } from "@/components/brand/logo";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Building2, ShieldCheck, HardDrive, Sparkles } from "lucide-react";
+import { getCloudAccess } from "@/lib/cloud-access.functions";
+import { cloudDestination, safeCloudNext, setCloudAudience } from "@/lib/cloud-access";
 
 type Audience = "portal" | "mc" | "company";
 
@@ -32,28 +34,11 @@ function parseAudience(raw: unknown): Audience {
 // AND the user's actual roles. On the Windows Self-Hosted install this
 // screen never gates by audience — everyone lands in /app.
 async function resolvePostLoginTarget(
-  userId: string,
   audience: Audience,
-  pickedPortal = false,
-): Promise<{ target: string; deny?: string }> {
+): Promise<{ target: "/app" | "/management" | "/portal" | "/prospect" }> {
   if (getClientDeploymentMode() === "selfhost") return { target: "/app" };
-  const { supabase } = await import("@/integrations/supabase/client");
-  const { data: roles } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId);
-  const isPlatform = (roles ?? []).some(
-    (r) => r.role === "platform_admin" || r.role === "platform_owner",
-  );
-  if (audience === "mc") {
-    if (!isPlatform) return { target: "/portal", deny: "mcAccessDenied" };
-    return { target: "/management" };
-  }
-  // Portal (and any accidental "company" pick — company users have no cloud
-  // account and never reach a successful sign-in here anyway). Platform staff
-  // can still enter the customer portal if they explicitly picked it.
-  if (isPlatform && !pickedPortal) return { target: "/management" };
-  return { target: "/portal" };
+  const access = await getCloudAccess();
+  return { target: cloudDestination(audience === "mc" ? "mc" : "portal", access) };
 }
 
 export const Route = createFileRoute("/auth")({
@@ -81,6 +66,8 @@ export const Route = createFileRoute("/auth")({
           "Sign in to the OPSQAI Customer Portal or Management Center. Company end users sign in only inside their local Windows installation.",
       },
       { property: "og:url", content: "https://opsqai.de/auth" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: "https://opsqai.de/auth" }],
   }),
@@ -110,11 +97,6 @@ function AuthPage() {
   const [audience, setAudience] = useState<Audience>(
     isSelfHosted ? "company" : parseAudience(search.audience),
   );
-  const pickedPortalRef = useRef(false);
-  useEffect(() => {
-    pickedPortalRef.current = audience === "portal" && userPickedRef.current;
-  }, [audience]);
-  const userPickedRef = useRef(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -134,20 +116,24 @@ function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audience, isSelfHosted]);
 
-  const holdNavRef = useRef(false);
-  const goTo = async (userId: string) => {
-    const auth = getBrowserAuthProvider();
-    const explicit =
-      nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
-    const { target, deny } = await resolvePostLoginTarget(userId, effectiveAudience, pickedPortalRef.current);
-    if (deny) {
-      toast.error(t(deny as "mcAccessDenied"));
-      await auth.signOut();
-      return;
+  const navigatingRef = useRef(false);
+  const goTo = async (_userId: string) => {
+    if (navigatingRef.current) return;
+    navigatingRef.current = true;
+    setBusy(true);
+    try {
+      const { target } = await resolvePostLoginTarget(effectiveAudience);
+      if (target === "/app") await navigate({ to: "/app" });
+      else {
+        setCloudAudience(target === "/prospect" ? "prospect" : effectiveAudience === "mc" ? "mc" : "portal");
+        await navigate({ to: safeCloudNext(nextParam, target), replace: true });
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("errorOccurred"));
+    } finally {
+      navigatingRef.current = false;
+      setBusy(false);
     }
-    const dest = explicit ?? target;
-    if (dest.startsWith("/app")) navigate({ to: "/app" });
-    else window.location.href = dest;
   };
 
   const [current, setCurrent] = useState<{ id: string; email: string } | null>(null);
@@ -162,17 +148,6 @@ function AuthPage() {
     });
   }, []);
 
-  useEffect(() => {
-    const auth = getBrowserAuthProvider();
-    const unsubscribe = auth.onSessionChange(async (event, s) => {
-      if (!s || (event !== "SIGNED_IN" && event !== "USER_UPDATED")) return;
-      if (holdNavRef.current) return;
-      await goTo(s.user.id);
-    });
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate, nextParam, effectiveAudience, t]);
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (effectiveAudience === "company" && !isSelfHosted) {
@@ -182,17 +157,15 @@ function AuthPage() {
     }
     setBusy(true);
     const offer = !isSelfHosted && bioAvail && !deviceHasPasskey() && !passkeyDeclined();
-    holdNavRef.current = offer;
     try {
       await getBrowserAuthProvider().signInWithPassword({ email, password });
       void storeCredential(email, password);
-      if (offer) {
-        const s = await getBrowserAuthProvider().getSession();
-        if (s) setOfferBio(s.user.id);
-        else holdNavRef.current = false;
-      }
+      const s = await getBrowserAuthProvider().getSession();
+      if (!s) throw new Error(t("errorOccurred"));
+      setCurrent({ id: s.user.id, email: s.user.email ?? "" });
+      if (offer) setOfferBio(s.user.id);
+      else await goTo(s.user.id);
     } catch (err) {
-      holdNavRef.current = false;
       toast.error(err instanceof Error ? err.message : t("errorOccurred"));
     } finally {
       setBusy(false);
@@ -203,6 +176,8 @@ function AuthPage() {
     setBusy(true);
     try {
       await signInWithPasskey();
+      const s = await getBrowserAuthProvider().getSession();
+      if (s) await goTo(s.user.id);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
       if (!/NotAllowed|cancel|abort/i.test(msg)) toast.error(msg || t("errorOccurred"));
@@ -223,7 +198,6 @@ function AuthPage() {
       setBusy(false);
     }
     if (userId) {
-      holdNavRef.current = false;
       await goTo(userId);
     }
   };
@@ -293,7 +267,7 @@ function AuthPage() {
               <Button disabled={busy} className="w-full h-12 md:h-10 rounded-xl md:rounded-md" onClick={() => onEnroll(offerBio)}>
                 <Fingerprint className="mr-2 h-4 w-4" />Activează amprenta
               </Button>
-              <Button variant="ghost" disabled={busy} className="w-full" onClick={() => { declinePasskey(); holdNavRef.current = false; void goTo(offerBio); }}>
+              <Button variant="ghost" disabled={busy} className="w-full" onClick={() => { declinePasskey(); void goTo(offerBio); }}>
                 Nu acum
               </Button>
             </div>
@@ -328,7 +302,7 @@ function AuthPage() {
           ) : (
             <div className="space-y-2 mb-5">
               <Label className="text-sm">{t("audienceLabel")}</Label>
-              <Select value={audience} onValueChange={(v) => { if (v === "prospect") { window.location.assign("/prospect"); return; } userPickedRef.current = true; pickedPortalRef.current = v === "portal"; setAudience(parseAudience(v)); }}>
+              <Select value={audience} onValueChange={(v) => { if (v === "prospect") { setCloudAudience("prospect"); void navigate({ to: "/prospect" }); return; } setAudience(parseAudience(v)); }}>
                 <SelectTrigger className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md">
                   <SelectValue />
                 </SelectTrigger>

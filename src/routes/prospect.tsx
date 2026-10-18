@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Send, Sparkles, UserPlus, CheckCircle2, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { setCloudAudience } from "@/lib/cloud-access";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { askPortalKai } from "@/lib/portal-kai.functions";
@@ -37,19 +38,26 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 function ProspectPage() {
   const { user, loading } = useAuth();
+  const queryClient = useQueryClient();
+  useEffect(() => { setCloudAudience("prospect"); }, []);
+  const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+  };
   if (loading) return <div className="min-h-dvh bg-background" />;
   return (
     <div className="oq-product flex min-h-dvh flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <Link to="/" className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <LogoMark className="h-7 w-7" />
           <span className="font-display font-semibold">OPSQAI</span>
           <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
             Prospect Mode
           </span>
-        </Link>
+        </div>
         {user && (
-          <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>
+          <Button variant="ghost" size="sm" onClick={signOut}>
             <LogOut className="mr-1 h-4 w-4" /> Ieșire
           </Button>
         )}
@@ -71,7 +79,10 @@ function ProspectSignIn() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const remember = () => localStorage.setItem(CONSENT_KEY, consent ? "1" : "0");
+  const remember = () => {
+    setCloudAudience("prospect");
+    localStorage.setItem(CONSENT_KEY, consent ? "1" : "0");
+  };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);

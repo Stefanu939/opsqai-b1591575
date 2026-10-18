@@ -30,3 +30,4 @@
 - Kai conversations live in `kai_conversations` (per user, RLS); localStorage is only an offline cache — memory must follow the account across devices.
 - Colleague outreach uses compose deep-links into their own mailbox (`mc_sender_settings`), never server-side sending from personal accounts — keeps the human as sender.
 - Android app (TWA): APK built by .github/workflows/build-android-app.yml, uploaded via /api/public/v1/android/ci to releases/android, downloaded through getAndroidAppDownload (AndroidAppCard in MC profile + portal downloads) — one signing key, matched by public/.well-known/assetlinks.json.
+- Cloud access facts are resolved by authenticated `cloud-access` server checks before Portal/MC rendering and on Portal RPCs; browser audience intent only restricts navigation, never grants access — prevents prospect/portal bouncing without trusting browser storage for authorization.

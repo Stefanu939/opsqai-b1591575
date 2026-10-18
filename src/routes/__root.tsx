@@ -27,9 +27,9 @@ import { LicenseProvider } from "@/lib/license";
  * - Public marketing pages: none.
  */
 function FloatingBubbles() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname.startsWith("/portal")) return <SupportWidget />;
-  if (pathname.startsWith("/management") || pathname.startsWith("/app")) return <ChatGlider />;
+  const surface = useRouterState({ select: (s) => s.matches.map(m => m.routeId) });
+  if (surface.some(id => id.startsWith("/_authenticated/portal"))) return <SupportWidget />;
+  if (surface.some(id => id.startsWith("/_authenticated/management") || id.startsWith("/_authenticated/app"))) return <ChatGlider />;
   return null;
 }
 
@@ -181,7 +181,7 @@ function RootComponent() {
         // from their Authorization header, then remove all private cache.
         await queryClient.cancelQueries();
         queryClient.clear();
-        await router.navigate({ to: "/auth", replace: true });
+        await router.navigate({ to: router.state.location.pathname === "/prospect" ? "/prospect" : "/auth", replace: true });
         await router.invalidate();
         return;
       }

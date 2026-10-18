@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
-import { getBrowserAuthProvider } from "@/lib/providers/registry";
+import { getCloudAccess } from "@/lib/cloud-access.functions";
+import { isKaiAudience } from "@/lib/cloud-access";
 import { ManagementShell } from "@/components/mc/mc-shell";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { RouteErrorState } from "@/components/app/route-error-state";
@@ -12,13 +12,9 @@ export const Route = createFileRoute("/_authenticated/management")({
     if (getClientDeploymentMode() === "selfhost") {
       throw redirect({ to: "/app" });
     }
-    const user = await getBrowserAuthProvider().getUser();
-    if (!user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
-    const ok = (roles ?? []).some(
-      (r) => r.role === "platform_admin" || r.role === "platform_owner",
-    );
-    if (!ok) throw redirect({ to: "/portal" });
+    if (isKaiAudience()) throw redirect({ to: "/prospect" });
+    const access = await getCloudAccess();
+    if (!access.isStaff) throw redirect({ to: access.isCustomer ? "/portal" : "/prospect" });
   },
   component: ManagementLayout,
   errorComponent: ({ error }) => <RouteErrorState error={error} homeTo="/management" />,
