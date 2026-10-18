@@ -3838,6 +3838,57 @@ export type Database = {
         }
         Relationships: []
       }
+      prospect_sessions: {
+        Row: {
+          analysis: Json | null
+          converted_at: string | null
+          crm_lead_id: string | null
+          email: string | null
+          id: string
+          ip_hash: string | null
+          last_message_at: string
+          login_gate_at: string | null
+          messages: Json
+          signed_in_at: string | null
+          started_at: string
+          token_hash: string
+          user_id: string | null
+          user_message_count: number
+        }
+        Insert: {
+          analysis?: Json | null
+          converted_at?: string | null
+          crm_lead_id?: string | null
+          email?: string | null
+          id: string
+          ip_hash?: string | null
+          last_message_at?: string
+          login_gate_at?: string | null
+          messages?: Json
+          signed_in_at?: string | null
+          started_at?: string
+          token_hash: string
+          user_id?: string | null
+          user_message_count?: number
+        }
+        Update: {
+          analysis?: Json | null
+          converted_at?: string | null
+          crm_lead_id?: string | null
+          email?: string | null
+          id?: string
+          ip_hash?: string | null
+          last_message_at?: string
+          login_gate_at?: string | null
+          messages?: Json
+          signed_in_at?: string | null
+          started_at?: string
+          token_hash?: string
+          user_id?: string | null
+          user_message_count?: number
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           permission: string

@@ -7,7 +7,8 @@ import { useAuth } from "@/lib/auth-context";
 import { setCloudAudience } from "@/lib/cloud-access";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { askPortalKai } from "@/lib/portal-kai.functions";
+import { askProspectKai, getProspectSession, markProspectConverted } from "@/lib/prospect-chat.functions";
+import { PROSPECT_ANON_MESSAGES, PROSPECT_SESSION_MESSAGES, prospectGate, prospectRemaining } from "@/lib/prospect-limits";
 import { getProspectStatus, registerProspect, submitProspectLead } from "@/lib/prospect.functions";
 import { KaiRichMessage } from "@/components/kai/kai-rich-message";
 import { LogoMark } from "@/components/brand/logo";
@@ -62,11 +63,7 @@ function ProspectPage() {
           </Button>
         )}
       </header>
-      {user ? (
-        <ProspectChat />
-      ) : (
-        <ProspectSignIn />
-      )}
+      <ProspectChat signedIn={Boolean(user)} />
     </div>
   );
 }
@@ -112,55 +109,44 @@ function ProspectSignIn() {
   };
 
   return (
-    <main className="mx-auto grid w-full max-w-5xl flex-1 gap-8 px-4 py-10 md:grid-cols-2 md:items-center">
-      <section>
-        <div className="mb-3 inline-flex items-center gap-2 text-sm text-primary">
-          <Sparkles className="h-4 w-4" /> Kai, asistentul AI OPSQAI
-        </div>
-        <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
-          Află în 5 minute ce poate face OPSQAI pentru firma ta.
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Spune-i lui Kai cum lucrați. Îți arată ce module se potrivesc, un calcul estimativ de timp
-          economisit și cum arată pilotul gratuit de 30 de zile. Fără formulare lungi, fără prețuri
-          ascunse în text mic.
-        </p>
-      </section>
-      <section className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-xl border border-primary/30 bg-card p-4">
         {sent ? (
           <div className="space-y-2 text-center">
             <CheckCircle2 className="mx-auto h-8 w-8 text-success" />
             <p className="font-semibold">Verifică emailul</p>
             <p className="text-sm text-muted-foreground">
-              Ți-am trimis un link de confirmare la {email}. După confirmare, revii direct la Kai.
+              Ți-am trimis un link de confirmare la {email}. După confirmare, conversația continuă de unde ai rămas.
             </p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
-            <h2 className="font-display text-lg font-semibold">
-              {mode === "signup" ? "Creează cont gratuit" : "Intră în cont"}
-            </h2>
+            <h2 className="font-display text-base font-semibold">Conectează-te ca să continui conversația</h2>
+            <p className="text-xs text-muted-foreground">
+              Gratuit. Conversația ta rămâne exact unde ai lăsat-o și primești până la {PROSPECT_SESSION_MESSAGES} de mesaje.
+            </p>
             <Button type="button" variant="outline" className="w-full" onClick={google}>
               Continuă cu Google
             </Button>
             <div className="text-center text-xs text-muted-foreground">sau cu orice adresă de email</div>
-            <div>
-              <Label htmlFor="p-email">Email</Label>
-              <Input id="p-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="p-pass">Parolă</Label>
-              <Input id="p-pass" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="p-email">Email</Label>
+                <Input id="p-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="p-pass">Parolă</Label>
+                <Input id="p-pass" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
             </div>
             <label className="flex items-start gap-2 text-xs text-muted-foreground">
               <Checkbox checked={consent} onCheckedChange={(v) => setConsent(v === true)} className="mt-0.5" />
               <span>
-                Sunt de acord ca OPSQAI să folosească datele contului și conversațiile cu Kai pentru a
-                mă contacta cu informații despre produs. Opțional — poți folosi Kai și fără acord.
+                Sunt de acord ca OPSQAI să folosească datele contului pentru a mă contacta cu informații
+                despre produs. Opțional — poți folosi Kai și fără acord.
               </span>
             </label>
             <Button type="submit" className="w-full" disabled={busy}>
-              {mode === "signup" ? "Creează cont și vorbește cu Kai" : "Intră"}
+              {mode === "signup" ? "Creează cont și continuă" : "Intră și continuă"}
             </Button>
             <button
               type="button"
@@ -171,58 +157,104 @@ function ProspectSignIn() {
             </button>
           </form>
         )}
-      </section>
-    </main>
+    </div>
   );
 }
 
-function ProspectChat() {
+const SESSION_KEY = "opsqai.prospect.session";
+const PENDING_KEY = "opsqai.prospect.pending";
+function sessionIdent() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw) {
+      const v = JSON.parse(raw) as { sessionId: string; token: string };
+      if (v.sessionId && v.token) return v;
+    }
+  } catch { /* regenerate */ }
+  const v = { sessionId: crypto.randomUUID(), token: `${crypto.randomUUID()}${crypto.randomUUID()}` };
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(v)); } catch { /* memory only */ }
+  return v;
+}
+
+const GREETING: Msg = {
+  role: "assistant",
+  content:
+    "Bună! Sunt **Kai**, asistentul OPSQAI. 👋\n\nSpune-mi pe scurt: cu ce se ocupă firma ta și câți oameni lucrează acolo? Îți arăt ce te-ar putea ajuta concret.",
+};
+
+function ProspectChat({ signedIn }: { signedIn: boolean }) {
   const qc = useQueryClient();
-  const status = useQuery({ queryKey: ["prospect-status"], queryFn: () => getProspectStatus() });
-  const [msgs, setMsgs] = useState<Msg[]>([
-    {
-      role: "assistant",
-      content:
-        "Bună! Sunt **Kai**, asistentul OPSQAI. 👋\n\nSpune-mi pe scurt: cu ce se ocupă firma ta și câți oameni lucrează acolo? Îți arăt ce te-ar putea ajuta concret.",
-    },
-  ]);
+  const status = useQuery({ queryKey: ["prospect-status"], queryFn: () => getProspectStatus(), enabled: signedIn });
+  const [ident, setIdent] = useState<{ sessionId: string; token: string } | null>(null);
+  const [msgs, setMsgs] = useState<Msg[]>([GREETING]);
+  const [count, setCount] = useState(0);
+  const [gate, setGate] = useState<"ok" | "login_required" | "limit_reached">("ok");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const sendingRef = useRef(false);
   const registeredRef = useRef(false);
+  const resumedRef = useRef(false);
   const endRef = useRef<HTMLDivElement>(null);
 
+  // Restore the session (also after Google / email sign-in redirects).
   useEffect(() => {
-    if (!status.data || status.data.isProspect || status.data.hasCompany || registeredRef.current) return;
+    const id = sessionIdent();
+    setIdent(id);
+    void getProspectSession({ data: id }).then((r) => {
+      if (r.messages.length) setMsgs([GREETING, ...r.messages.map((m) => ({ role: m.role, content: m.content }))]);
+      setCount(r.count);
+    }).catch(() => { /* fresh session */ });
+  }, [signedIn]);
+
+  useEffect(() => {
+    if (!signedIn || !status.data || status.data.isProspect || status.data.hasCompany || registeredRef.current) return;
     registeredRef.current = true;
     let consent = false;
     try { consent = localStorage.getItem(CONSENT_KEY) === "1"; } catch { /* optional storage */ }
     void registerProspect({ data: { dataConsent: consent } }).then(() =>
       qc.invalidateQueries({ queryKey: ["prospect-status"] }),
     ).catch(() => { /* Chat and contact form remain available if registration fails. */ });
-  }, [status.data, qc]);
+  }, [signedIn, status.data, qc]);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs, busy, chatError]);
+  }, [msgs, busy, chatError, gate]);
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || sendingRef.current) return;
+  const send = async (raw?: string) => {
+    const text = (raw ?? input).trim();
+    if (!text || sendingRef.current || !ident) return;
+    const local = prospectGate(count, signedIn);
+    if (local !== "ok") {
+      if (local === "login_required") {
+        try { localStorage.setItem(PENDING_KEY, text); } catch { /* keep in input */ }
+      }
+      setGate(local);
+      return;
+    }
     sendingRef.current = true;
     setChatError(null);
-    const next = [...msgs, { role: "user" as const, content: text }];
-    setMsgs(next);
+    setGate("ok");
+    const before = msgs;
+    setMsgs([...msgs, { role: "user", content: text }]);
     setInput("");
     setBusy(true);
     try {
-      const r = await askPortalKai({ data: { messages: next.slice(-20), mode: "prospect" } });
-      if (!r.ok || typeof r.text !== "string" || !r.text.trim()) {
+      const r = await askProspectKai({ data: { ...ident, message: text } });
+      if (r.gate !== "ok") {
+        setMsgs(before);
+        setInput(text);
+        if (r.gate === "login_required") { try { localStorage.setItem(PENDING_KEY, text); } catch { /* noop */ } }
+        setGate(r.gate);
+        return;
+      }
+      try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+      setCount(r.count);
+      if (!r.ok || !r.text) {
         setChatError("Kai nu poate răspunde momentan. Conversația rămâne aici; poți solicita contactul echipei OPSQAI.");
         return;
       }
-      setMsgs([...next, { role: "assistant", content: r.text }]);
+      setMsgs((m) => [...m, { role: "assistant", content: r.text }]);
     } catch (err) {
       console.error("[prospect] send failed", err);
       setChatError("Nu am putut primi răspunsul lui Kai. Conversația rămâne aici; poți solicita contactul echipei OPSQAI.");
@@ -232,14 +264,33 @@ function ProspectChat() {
     }
   };
 
+  // After signing in, send the question that hit the login gate.
+  useEffect(() => {
+    if (!signedIn || !ident || resumedRef.current) return;
+    let pending: string | null = null;
+    try { pending = localStorage.getItem(PENDING_KEY); } catch { /* noop */ }
+    if (!pending) return;
+    resumedRef.current = true;
+    setGate("ok");
+    const t = setTimeout(() => void send(pending!), 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn, ident]);
+
   const submitted = status.data?.submitted;
   const lastIdx = msgs.length - 1;
+  const remaining = prospectRemaining(count);
+  const openForm = () => (signedIn ? setFormOpen(true) : setGate("login_required"));
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4">
       <div className="flex items-center justify-between gap-2 py-3">
-        <p className="text-sm text-muted-foreground">Întreabă orice despre OPSQAI.</p>
-        <Button size="sm" onClick={() => setFormOpen(true)} disabled={submitted}>
+        <p className="text-sm text-muted-foreground">
+          {signedIn
+            ? <>Mesaje rămase: <span className="font-semibold text-foreground">{remaining}/{PROSPECT_SESSION_MESSAGES}</span></>
+            : <>Întrebări gratuite fără cont: <span className="font-semibold text-foreground">{Math.max(0, PROSPECT_ANON_MESSAGES - count)}</span></>}
+        </p>
+        <Button size="sm" onClick={openForm} disabled={submitted}>
           <UserPlus className="mr-1 h-4 w-4" />
           {submitted ? "Cerere trimisă" : "Solicită pilot gratuit"}
         </Button>
@@ -258,7 +309,7 @@ function ProspectChat() {
                 <KaiRichMessage content={content} />
               </SafeRender>
               {hasForm && i === lastIdx && !submitted && (
-                <Button size="sm" className="mt-3" onClick={() => setFormOpen(true)}>
+                <Button size="sm" className="mt-3" onClick={openForm}>
                   <UserPlus className="mr-1 h-4 w-4" /> Completează datele de contact
                 </Button>
               )}
@@ -266,11 +317,19 @@ function ProspectChat() {
           );
         })}
         {busy && <div className="text-sm text-muted-foreground">Kai scrie…</div>}
+        {gate === "login_required" && !signedIn && <ProspectSignIn />}
+        {gate === "limit_reached" && (
+          <div className="rounded-xl border border-primary/30 bg-card p-4 text-sm">
+            <p className="font-semibold">Ai folosit toate cele {PROSPECT_SESSION_MESSAGES} de mesaje din această sesiune.</p>
+            <p className="mt-1 text-muted-foreground">Continuăm cu un specialist OPSQAI și pilotul gratuit de 30 de zile.</p>
+            {!submitted && <Button size="sm" className="mt-3" onClick={openForm}><UserPlus className="mr-1 h-4 w-4" /> Solicită pilot gratuit</Button>}
+          </div>
+        )}
         {chatError && (
           <div role="alert" className="border-l-2 border-destructive py-2 pl-3 text-sm text-muted-foreground">
             <p>{chatError}</p>
             {!submitted && (
-              <Button variant="link" size="sm" className="mt-1 px-0" onClick={() => setFormOpen(true)}>
+              <Button variant="link" size="sm" className="mt-1 px-0" onClick={openForm}>
                 <UserPlus className="mr-1 h-4 w-4" /> Solicită contact
               </Button>
             )}
@@ -279,22 +338,30 @@ function ProspectChat() {
         <div ref={endRef} />
       </div>
       <form
-        className="sticky bottom-0 flex gap-2 border-t border-border bg-background py-3"
+        className="sticky bottom-0 border-t border-border bg-background py-3"
         onSubmit={(e) => {
           e.preventDefault();
           void send();
         }}
       >
-        <Input value={input} maxLength={4000} aria-label="Mesaj pentru Kai" onChange={(e) => setInput(e.target.value)} placeholder="Scrie un mesaj pentru Kai…" />
-        <Button type="submit" size="icon" disabled={busy || !input.trim()} aria-label="Trimite">
-          <Send className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-2">
+          <Input value={input} maxLength={4000} aria-label="Mesaj pentru Kai" disabled={gate === "limit_reached"} onChange={(e) => setInput(e.target.value)} placeholder="Scrie un mesaj pentru Kai…" />
+          <Button type="submit" size="icon" disabled={busy || !input.trim() || gate === "limit_reached"} aria-label="Trimite">
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Conversațiile cu Kai sunt salvate și pot fi citite de echipa OPSQAI pentru a-ți oferi o recomandare potrivită.
+        </p>
       </form>
       <ContactDialog
         open={formOpen}
         onOpenChange={setFormOpen}
         transcript={msgs.slice(1).map((m) => ({ ...m, content: m.content.replace(FORM_TOKEN, "").slice(0, 4000) })).slice(-40)}
-        onDone={() => qc.invalidateQueries({ queryKey: ["prospect-status"] })}
+        onDone={(leadId) => {
+          if (ident) void markProspectConverted({ data: { ...ident, leadId } }).catch(() => { /* optional */ });
+          void qc.invalidateQueries({ queryKey: ["prospect-status"] });
+        }}
       />
     </main>
   );
@@ -309,7 +376,7 @@ function ContactDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
   transcript: Msg[];
-  onDone: () => void;
+  onDone: (leadId: string | null) => void;
 }) {
   const [v, setV] = useState({ full_name: "", company_name: "", phone: "", employees: "", message: "" });
   const [consent, setConsent] = useState(false);
@@ -320,10 +387,10 @@ function ContactDialog({
     if (!consent) return;
     setBusy(true);
     try {
-      await submitProspectLead({ data: { ...v, consent_contact: true, transcript } });
+      const res = await submitProspectLead({ data: { ...v, consent_contact: true, transcript } });
       toast.success("Mulțumim! Un specialist din echipa OPSQAI te va contacta.");
       onOpenChange(false);
-      onDone();
+      onDone(res.crmLeadId ?? null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Nu am putut trimite cererea");
     } finally {

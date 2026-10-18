@@ -119,5 +119,5 @@ export const submitProspectLead = createServerFn({ method: "POST" })
       transcript,
     });
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, crmLeadId: crmId };
   });
