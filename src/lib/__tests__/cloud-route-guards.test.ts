@@ -22,7 +22,8 @@ import { cloudDestination, setCloudAudience } from "../cloud-access";
 async function guard(route: typeof management | typeof portal | typeof app) {
   const beforeLoad = route.options.beforeLoad;
   if (!beforeLoad) throw new Error("Missing route guard");
-  return beforeLoad({ location: { pathname: "/app" } } as Parameters<typeof beforeLoad>[0]);
+  const invoke = beforeLoad as (context: { location: { pathname: string } }) => unknown;
+  return invoke({ location: { pathname: "/app" } });
 }
 
 beforeEach(() => {
