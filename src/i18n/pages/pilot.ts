@@ -12,7 +12,7 @@ export const pilotCopyEn = {
     serifAccent: "on your server.",
     headline: "Run OPSQAI free for 30 days —",
     body:
-      "Install the Windows Self-Hosted platform in your environment, ingest your SOPs and let your team ask operational questions with grounded, source-cited answers. No credit card. No data leaves your boundary.",
+      "Install the Windows Self-Hosted platform in your environment, ingest your SOPs and let your team ask operational questions with grounded, source-cited answers. No credit card. With the local AI engine, your data stays inside your infrastructure.",
   },
   terms: {
     eyebrow: "What is included",
@@ -68,7 +68,7 @@ const de: PilotCopy = {
     serifAccent: "auf Ihrem Server.",
     headline: "OPSQAI 30 Tage kostenlos nutzen —",
     body:
-      "Installieren Sie die Windows-Self-Hosted-Plattform in Ihrer Umgebung, importieren Sie Ihre SOPs und lassen Sie Ihr Team operative Fragen mit belegten, quellengestützten Antworten stellen. Keine Kreditkarte. Keine Daten verlassen Ihre Grenzen.",
+      "Installieren Sie die Windows-Self-Hosted-Plattform in Ihrer Umgebung, importieren Sie Ihre SOPs und lassen Sie Ihr Team operative Fragen mit belegten, quellengestützten Antworten stellen. Keine Kreditkarte. Mit der lokalen KI-Engine bleiben Ihre Daten in Ihrer Infrastruktur.",
   },
   terms: {
     eyebrow: "Was enthalten ist",
@@ -122,7 +122,7 @@ const ro: PilotCopy = {
     serifAccent: "pe serverul tău.",
     headline: "Rulează OPSQAI gratuit 30 de zile —",
     body:
-      "Instalează platforma Windows Self-Hosted în mediul tău, încarcă SOP-urile și lasă echipa să pună întrebări operaționale cu răspunsuri fundamentate și cu citare sursă. Fără card de credit. Datele nu părăsesc granița ta.",
+      "Instalează platforma Windows Self-Hosted în mediul tău, încarcă SOP-urile și lasă echipa să pună întrebări operaționale cu răspunsuri fundamentate și cu citare sursă. Fără card de credit. Cu motorul AI local, datele rămân în infrastructura ta.",
   },
   terms: {
     eyebrow: "Ce include",
