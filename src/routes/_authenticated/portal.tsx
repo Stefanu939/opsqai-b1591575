@@ -8,7 +8,6 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getCloudAccess } from "@/lib/cloud-access.functions";
-import { isKaiAudience } from "@/lib/cloud-access";
 import {
   Headphones,
   Download,
@@ -42,7 +41,6 @@ export const Route = createFileRoute("/_authenticated/portal")({
     if (getClientDeploymentMode() === "selfhost") {
       throw redirect({ to: "/app" });
     }
-    if (isKaiAudience()) throw redirect({ to: "/kai" });
     const access = await getCloudAccess();
     if (!access.isStaff && !access.isCustomer) throw redirect({ to: "/kai" });
   },
