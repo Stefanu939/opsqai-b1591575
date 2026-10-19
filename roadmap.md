@@ -1,5 +1,9 @@
 # Roadmap
 
+## Monitoring findings (2026-10-19)
+- [x] Verify owner signup evidence against live schema: superseded by nullable-company signup migrations
+- [x] Remove sticky Kai navigation veto; 33 tests pass; signed-in staff navigates Kai → Prospect Radar (including reload) → Portal admin with prospect intent retained; build OK
+
 ## KAI public signup (2026-10-18)
 - [x] Replace invite-only Cloud signup trigger with unprivileged profile creation; preserve authorized admin enrolment
 - [x] Verify real email signup, real Kai reply (29/30), no company or roles, Portal/MC redirect to Kai; 28 regression tests; test accounts cleaned up

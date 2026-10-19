@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getCloudAccess } from "@/lib/cloud-access.functions";
-import { isKaiAudience } from "@/lib/cloud-access";
 import { ManagementShell } from "@/components/mc/mc-shell";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { RouteErrorState } from "@/components/app/route-error-state";
@@ -12,7 +11,6 @@ export const Route = createFileRoute("/_authenticated/management")({
     if (getClientDeploymentMode() === "selfhost") {
       throw redirect({ to: "/app" });
     }
-    if (isKaiAudience()) throw redirect({ to: "/kai" });
     const access = await getCloudAccess();
     if (!access.isStaff) throw redirect({ to: access.isCustomer ? "/portal" : "/kai" });
   },
