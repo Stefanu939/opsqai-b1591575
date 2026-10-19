@@ -2,7 +2,7 @@
 
 ## Monitoring findings (2026-10-19)
 - [x] Verify owner signup evidence against live schema: superseded by nullable-company signup migrations
-- [ ] Remove sticky Kai navigation veto for authorized direct MC/Portal visits; test guards and signed-in navigation
+- [x] Remove sticky Kai navigation veto; 33 tests pass; signed-in staff navigates Kai → Prospect Radar (including reload) → Portal admin with prospect intent retained; build OK
 
 ## KAI public signup (2026-10-18)
 - [x] Replace invite-only Cloud signup trigger with unprivileged profile creation; preserve authorized admin enrolment
