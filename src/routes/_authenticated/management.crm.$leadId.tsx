@@ -34,6 +34,7 @@ import {
   saveCrmActivity,
   saveCrmLead,
   saveCrmOffer,
+  setCrmOfferStatus,
 } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/management/crm/$leadId")({
@@ -74,6 +75,7 @@ function LeadDetailPage() {
   const doneActivity = useServerFn(completeCrmActivity);
   const addOffer = useServerFn(saveCrmOffer);
   const offerPdf = useServerFn(renderCrmOfferPdf);
+  const offerStatus = useServerFn(setCrmOfferStatus);
   const convert = useServerFn(convertCrmLeadToCustomer);
 
   const { data, isLoading } = useQuery({
@@ -386,10 +388,35 @@ function LeadDetailPage() {
                   <Badge variant="outline" className="text-[10px]">
                     {o.status}
                   </Badge>
-                  {o.amount != null && (
-                    <span className="text-xs text-muted-foreground">
-                      {Number(o.amount).toLocaleString()} {o.currency}
-                    </span>
+                  {(() => {
+                    const x = o as typeof o & { setup_amount?: number | null; monthly_amount?: number | null };
+                    if (x.setup_amount != null || x.monthly_amount != null)
+                      return (
+                        <span className="text-xs text-muted-foreground">
+                          {Number(x.setup_amount ?? 0).toLocaleString("ro-RO")} {o.currency} implementare · {Number(x.monthly_amount ?? 0).toLocaleString("ro-RO")} {o.currency}/lună
+                        </span>
+                      );
+                    return o.amount != null ? (
+                      <span className="text-xs text-muted-foreground">
+                        {Number(o.amount).toLocaleString("ro-RO")} {o.currency}
+                      </span>
+                    ) : null;
+                  })()}
+                  {canEdit && (
+                    <Select
+                      value={o.status}
+                      onValueChange={(v) =>
+                        void guard(offerStatus({ data: { id: o.id, status: v } } as never))
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-32 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Ciornă</SelectItem>
+                        <SelectItem value="sent">Trimisă</SelectItem>
+                        <SelectItem value="accepted">Aprobată</SelectItem>
+                        <SelectItem value="declined">Refuzată</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                   <Button
                     size="sm"
