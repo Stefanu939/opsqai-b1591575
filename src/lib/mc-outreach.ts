@@ -49,6 +49,11 @@ export function signature(v: Vars, channel: "whatsapp" | "email" = "email") {
   return `\n\n${who}\n${role ? `${role} · ` : ""}OPSQAI\n\nDiscutați direct cu KAI, asistentul nostru, fără cont: ${KAI_URL}\nUrmăriți-ne pe Instagram: ${INSTAGRAM_URL}\nopsqai.de`;
 }
 
+/** Drops a trailing "{sender}" (the signature carries the name). */
+function signWa(text: string, v: Vars) {
+  return fill(text.replace(/[\s,]*\{sender\}\s*$/, ""), v) + signature(v, "whatsapp");
+}
+
 /** Drops the template's short sign-off line and appends the full signature. */
 function signEmail(body: string, v: Vars) {
   const cut = body.replace(/\n+(Cu stimă,|Cu drag,|Cu deosebită considerație,)?\n?\{sender\} \| OPSQAI(\nopsqai\.de)?\s*$/, (_m, greet) => `\n\n${greet ?? "Cu stimă,"}`);
@@ -75,7 +80,7 @@ const WA: Record<Industry | "followup", string> = {
 };
 
 export function whatsappTemplate(kind: Industry | "followup", v: Vars) {
-  return fill(WA[kind], v) + signature(v, "whatsapp");
+  return signWa(WA[kind], v);
 }
 
 export function coldEmail(v: Vars) {
@@ -283,8 +288,8 @@ export function toneScripts(tone: Tone, industry: Industry, v: Vars) {
   return {
     opening: fill(s.opening, v),
     pitch: fill(s.pitch, v),
-    whatsapp: fill(s.wa, v) + signature(v, "whatsapp"),
-    whatsappFollowUp: fill(s.waFollow, v) + signature(v, "whatsapp"),
+    whatsapp: signWa(s.wa, v),
+    whatsappFollowUp: signWa(s.waFollow, v),
     subject: fill(s.subject, v),
     email: signEmail(s.email, v),
   };
