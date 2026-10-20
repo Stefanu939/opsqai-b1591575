@@ -1185,8 +1185,12 @@ body {
 .kai-thinking .kai-eyes { animation: kai-look 1.6s ease-in-out infinite; }
 .kai-thinking .kai-halo { animation: kai-pulse 1.2s ease-in-out infinite; }
 .kai-speaking .kai-mouth-talk { transform-origin: 32px 42.5px; animation: kai-talk .35s ease-in-out infinite alternate; }
+.kai-listening .kai-eyes { animation: kai-blink-wide 5s infinite; }
+.kai-listening .kai-halo { opacity: .55; animation: kai-pulse 2.4s ease-in-out infinite; }
+.kai-listening .kai-body { animation: kai-breathe 2.2s ease-in-out infinite; }
 .kai-float { animation: kai-float 5s ease-in-out infinite; }
 @keyframes kai-blink { 0%,92%,100% { transform: scaleY(1) } 95% { transform: scaleY(.1) } }
+@keyframes kai-blink-wide { 0%,92%,100% { transform: scaleY(1.12) } 95% { transform: scaleY(.1) } }
 @keyframes kai-breathe { 0%,100% { transform: scale(1) } 50% { transform: scale(1.03, .98) } }
 @keyframes kai-look { 0%,100% { transform: translateX(-1.5px) } 50% { transform: translateX(1.5px) } }
 @keyframes kai-pulse { 0%,100% { opacity: .25 } 50% { opacity: .6 } }

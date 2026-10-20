@@ -2,7 +2,7 @@
 // Shared by the public KAI page, homepage, MC and Portal.
 import { useId } from "react";
 
-export type KaiFaceState = "idle" | "thinking" | "speaking";
+export type KaiFaceState = "idle" | "thinking" | "speaking" | "listening";
 
 export function KaiFace({
   size = 40,
