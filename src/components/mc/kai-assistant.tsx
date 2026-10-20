@@ -53,6 +53,7 @@ import {
   PhoneOff,
   CalendarPlus,
   Car,
+  Paperclip,
 } from "lucide-react";
 import { useVoiceMode, voiceSupported } from "@/components/mc/use-voice-mode";
 import {
@@ -145,6 +146,21 @@ export function KaiAssistant() {
   const actionLocks = useRef(new Set<string>());
   const actionInFlight = useRef(false);
   const [input, setInput] = useState("");
+  type Img = { name: string; mediaType: "image/jpeg"; data: string; preview: string };
+  const [images, setImages] = useState<Img[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const addImages = async (files: FileList | null) => {
+    const list = Array.from(files ?? []).filter((f) => f.type.startsWith("image/"));
+    if (fileRef.current) fileRef.current.value = "";
+    for (const f of list.slice(0, 3 - images.length)) {
+      try {
+        const img = await shrinkImage(f);
+        setImages((all) => (all.length >= 3 ? all : [...all, img]));
+      } catch {
+        toast.error(`Nu am putut citi imaginea ${f.name}.`);
+      }
+    }
+  };
   const [convs, setConvs] = useState<Conv[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -378,7 +394,7 @@ export function KaiAssistant() {
   const patch = (id: string, fn: (c: Conv) => Conv) =>
     setConvs((all) => all.map((c) => (c.id === id ? fn(c) : c)));
 
-  const run = async (convId: string, history: Msg[]) => {
+  const run = async (convId: string, history: Msg[], imgs: Img[] = []) => {
     askLocation();
     const req = ++reqRef.current;
     setPendingFor(convId);
@@ -399,6 +415,7 @@ export function KaiAssistant() {
             minute: "2-digit",
           }),
           coords: coordsRef.current ?? undefined,
+          images: imgs.length ? imgs.map((i) => ({ mediaType: i.mediaType, data: i.data })) : undefined,
         },
       });
       reply = { role: "assistant", content: r.reply, actions: r.actions, at: Date.now() };
@@ -411,15 +428,17 @@ export function KaiAssistant() {
   };
 
   const send = (text: string) => {
-    const t = text.trim();
+    const imgs = images;
+    const t = text.trim() || (imgs.length ? "Analizează imaginea atașată." : "");
     if (!t || pendingFor) return;
     if (/^(conversație nouă|conversatie noua)$/i.test(t)) {
       newChat();
       voice.speak("Desigur. Începem o conversație nouă.");
       return;
     }
-    const userMsg: Msg = { role: "user", content: t, at: Date.now() };
-    if (active) {
+    const label = imgs.length ? `${t}\n\n_📎 ${imgs.map((i) => i.name).join(", ")}_` : t;
+    const userMsg: Msg = { role: "user", content: imgs.length ? label : t, at: Date.now() };
+    if (active && !imgs.length) {
       const proposal = [...active.messages]
         .reverse()
         .find((m) => m.role === "assistant" && m.actions?.length);
@@ -461,7 +480,8 @@ export function KaiAssistant() {
     setInput("");
     setShowHistory(false);
     composerRef.current?.focus();
-    void run(id, history);
+    setImages([]);
+    void run(id, history, imgs);
   };
 
   const voice = useVoiceMode((t) => send(t));
@@ -1389,6 +1409,31 @@ export function KaiAssistant() {
                 </Button>
               </div>
             )}
+            {images.length > 0 && (
+              <div className="flex gap-2 px-1 pb-2">
+                {images.map((img, i) => (
+                  <div key={i} className="relative">
+                    <img src={img.preview} alt={img.name} className="h-14 w-14 rounded-md border border-border object-cover" />
+                    <button
+                      type="button"
+                      aria-label={`Elimină ${img.name}`}
+                      className="absolute -right-1.5 -top-1.5 rounded-full bg-background border border-border p-0.5"
+                      onClick={() => setImages((all) => all.filter((_, j) => j !== i))}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => void addImages(e.target.files)}
+            />
             <PromptInput onSubmit={({ text }) => send(text)}>
               <PromptInputTextarea
                 ref={composerRef}
@@ -1407,6 +1452,17 @@ export function KaiAssistant() {
                   onClick={startCar}
                 >
                   <Car />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Atașează imagine"
+                  title="Atașează imagine (max. 3)"
+                  disabled={images.length >= 3 || Boolean(pendingFor)}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Paperclip />
                 </Button>
                 {voice.state === "off" && !pending && (
                   <Button
@@ -1432,7 +1488,7 @@ export function KaiAssistant() {
                   title={pending ? "Oprește" : "Trimite"}
                   status={pending ? "submitted" : "ready"}
                   onStop={stop}
-                  disabled={!pending && (!input.trim() || Boolean(pendingFor))}
+                  disabled={!pending && ((!input.trim() && !images.length) || Boolean(pendingFor))}
                   className="ml-auto shrink-0"
                 />
               </PromptInputFooter>
@@ -1528,4 +1584,26 @@ function CarMode(p: {
       </div>
     </div>
   );
+}
+
+/** Downscales a photo to max 1600px JPEG so uploads stay small and fast. */
+async function shrinkImage(file: File) {
+  const url = URL.createObjectURL(file);
+  try {
+    const el = await new Promise<HTMLImageElement>((ok, bad) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = bad;
+      i.src = url;
+    });
+    const k = Math.min(1, 1600 / Math.max(el.width, el.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(el.width * k);
+    c.height = Math.round(el.height * k);
+    c.getContext("2d")!.drawImage(el, 0, 0, c.width, c.height);
+    const preview = c.toDataURL("image/jpeg", 0.85);
+    return { name: file.name, mediaType: "image/jpeg" as const, data: preview.split(",")[1], preview };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
