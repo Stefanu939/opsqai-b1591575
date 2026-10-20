@@ -1561,7 +1561,7 @@ function CarMode(p: {
         className="h-auto min-h-0 flex-1 flex-col items-center justify-center gap-8 whitespace-normal px-6 hover:bg-transparent"
         aria-label={label}
       >
-        <span className="relative flex h-56 w-56 items-center justify-center sm:h-72 sm:w-72">
+        <span className="relative flex h-64 w-64 items-center justify-center sm:h-80 sm:w-80">
           <span
             className={cn(
               "absolute inset-0 rounded-full border-2 border-primary/50",
@@ -1573,9 +1573,9 @@ function CarMode(p: {
           {/* The ghost Button forces every descendant svg to 1rem; the important
               size utilities below override it so Kai fills the ring. */}
           <KaiFace
-            size={200}
+            size={315}
             float
-            className="size-[200px]! sm:size-[258px]!"
+            className="size-[315px]! sm:size-[390px]!"
             state={
               p.state === "thinking"
                 ? "thinking"
