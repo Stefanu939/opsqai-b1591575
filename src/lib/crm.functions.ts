@@ -380,9 +380,6 @@ export const saveCrmActivity = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { actor, admin } = await assertCanEdit(context as never, data.lead_id);
-    const previousResult = data.id ? await admin.from("crm_offers").select("status, accepted_at").eq("id", data.id).eq("lead_id", data.lead_id).maybeSingle() : null;
-    if (previousResult?.error) throw new Error(previousResult.error.message);
-    if (data.id && !previousResult?.data) throw new Error("Offer not found");
     const values = {
       lead_id: data.lead_id,
       kind: data.kind,
@@ -487,6 +484,9 @@ export const saveCrmOffer = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { actor, admin } = await assertCanEdit(context as never, data.lead_id);
+    const previousResult = data.id ? await admin.from("crm_offers").select("status, accepted_at").eq("id", data.id).eq("lead_id", data.lead_id).maybeSingle() : null;
+    if (previousResult?.error) throw new Error(previousResult.error.message);
+    if (data.id && !previousResult?.data) throw new Error("Offer not found");
     const values = {
       lead_id: data.lead_id,
       title: data.title,
