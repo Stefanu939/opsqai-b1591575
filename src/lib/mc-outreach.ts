@@ -56,7 +56,7 @@ function signWa(text: string, v: Vars) {
 
 /** Drops the template's short sign-off line and appends the full signature. */
 function signEmail(body: string, v: Vars) {
-  const cut = body.replace(/\n+(Cu stimă,|Cu drag,|Cu deosebită considerație,)?\n?\{sender\} \| OPSQAI(\nopsqai\.de)?\s*$/, (_m, greet) => `\n\n${greet ?? "Cu stimă,"}`);
+  const cut = body.replace(/\n+(Cu stimă,|Cu drag,|Cu deosebită considerație,)?\n?\{sender\}( \| OPSQAI|\nOPSQAI \| opsqai\.de)(\nopsqai\.de)?\s*$/, (_m, greet: string | undefined) => `\n\n${greet ?? "Cu stimă,"}`);
   return fill(cut, v) + signature(v, "email").replace(/^\n\n/, "\n");
 }
 
