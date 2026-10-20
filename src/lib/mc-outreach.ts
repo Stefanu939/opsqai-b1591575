@@ -40,18 +40,19 @@ export type Vars = { name?: string; company?: string; sender?: string; time?: st
 export const KAI_URL = "https://opsqai.de/kai";
 export const INSTAGRAM_URL = "https://www.instagram.com/opsqai";
 
-/** Personal sign-off: sender name, position, plus Kai + Instagram links. */
-export function signature(v: Vars, channel: "whatsapp" | "email" = "email") {
+/** Personal sign-off. First contact on WhatsApp = name only (no links, avoids spam look). */
+export function signature(v: Vars, channel: "whatsapp" | "email" | "whatsapp-cold" = "email") {
   const who = v.sender?.trim() || "Echipa OPSQAI";
   const role = v.role?.trim();
+  if (channel === "whatsapp-cold") return `\n\n${who}${role ? `, ${role}` : ""} · OPSQAI`;
   if (channel === "whatsapp")
-    return `\n\n— ${who}${role ? `, ${role}` : ""} · OPSQAI\n💬 Discutați acum cu KAI: ${KAI_URL}\n📸 Instagram: ${INSTAGRAM_URL}`;
+    return `\n\n— ${who}${role ? `, ${role}` : ""} · OPSQAI\n💬 Puteți încerca KAI, fără cont: ${KAI_URL}`;
   return `\n\n${who}\n${role ? `${role} · ` : ""}OPSQAI\n\nDiscutați direct cu KAI, asistentul nostru, fără cont: ${KAI_URL}\nUrmăriți-ne pe Instagram: ${INSTAGRAM_URL}\nopsqai.de`;
 }
 
 /** Drops a trailing "{sender}" (the signature carries the name). */
-function signWa(text: string, v: Vars) {
-  return fill(text.replace(/[\s,]*\{sender\}\s*$/, ""), v) + signature(v, "whatsapp");
+function signWa(text: string, v: Vars, cold = false) {
+  return fill(text.replace(/[\s,]*\{sender\}\s*$/, ""), v) + signature(v, cold ? "whatsapp-cold" : "whatsapp");
 }
 
 /** Drops the template's short sign-off line and appends the full signature. */
@@ -68,19 +69,20 @@ function fill(t: string, v: Vars) {
     .replaceAll("{time}", v.time?.trim() || "[ora]");
 }
 
+// First-contact messages: introduce yourself, one line on OPSQAI, ask permission. No links.
 const WA: Record<Industry | "followup", string> = {
   transport:
-    "Bună ziua, {name}! Sunt {sender} de la OPSQAI. Vă scriu pentru că sprijinim companiile de transport să reducă erorile de dispecerat și timpul pierdut cu instruirea șoferilor pe proceduri interne. Sistemul nostru AI rulează direct pe calculatoarele firmei (fără cloud) și răspunde instant angajaților din documentele dumneavoastră. Aveți deschidere pentru un demo scurt de 10-15 minute săptămâna aceasta?",
+    "Bună ziua, {name}! Numele meu este {sender}, de la OPSQAI. Vă scriu direct pentru că lucrăm cu firme de transport ca {company} pe partea de proceduri interne și instruirea șoferilor/dispecerilor. Sistemul nostru rulează pe calculatoarele firmei, fără cloud. Ați fi deschis să vă trimit o fișă de o pagină, să vedeți dacă are sens pentru dumneavoastră?",
   production:
-    "Bună ziua, {name}! Vă contactez din partea OPSQAI. Am dezvoltat o platformă internă de proceduri și instruire automată (cu teste și diplome) care rulează 100% on-premise, pe serverele locale ale companiei, păstrând toate datele complet confidențiale. Când ați avea 10 minute pentru o scurtă prezentare online?",
+    "Bună ziua, {name}! Numele meu este {sender}, de la OPSQAI. Vă scriu direct pentru că ajutăm firme de producție ca {company} cu procedurile interne și instruirea echipelor noi. Totul rulează pe serverele firmei, fără ca datele să plece în cloud. Ați fi deschis să vă trimit o fișă de o pagină, fără nicio obligație?",
   finance:
-    "Bună ziua, {name}! Sunt {sender} de la OPSQAI. Ajutăm echipele din zona financiară să găsească instant procedurile interne (creditare, audit, conformitate) și să instruiască angajații noi — totul instalat local, fără ca datele să părăsească rețeaua firmei (sprijin tehnic pentru cerințele GDPR / DORA). Ați avea 15 minute pentru un demo săptămâna aceasta?",
+    "Bună ziua, {name}! Numele meu este {sender}, de la OPSQAI. Vă scriu direct pentru că sprijinim echipe din zona financiară să găsească rapid procedurile interne și să instruiască angajații noi, cu sistemul instalat local, în rețeaua firmei. Ați fi deschis să vă trimit o fișă de o pagină?",
   followup:
-    "Bună ziua, {name}! Conform discuției noastre de adineauri, vă trimit fișa tehnică și de conformitate OPSQAI (1 pagină). Așa cum am stabilit, ne auzim la ora {time} pentru demo-ul scurt. O zi excelentă!",
+    "Bună ziua, {name}! Conform discuției noastre, vă trimit fișa OPSQAI de o pagină. Așa cum am stabilit, ne auzim la ora {time}. O zi excelentă!",
 };
 
 export function whatsappTemplate(kind: Industry | "followup", v: Vars) {
-  return signWa(WA[kind], v);
+  return signWa(WA[kind], v, kind !== "followup");
 }
 
 export function coldEmail(v: Vars) {
