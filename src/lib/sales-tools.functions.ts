@@ -42,30 +42,36 @@ export const generateSalesDoc = createServerFn({ method: "POST" })
     let title: string;
     let blocks: Blocks;
     if (data.kind === "onepager") {
-      title = `OPSQAI pentru ${firm}`;
+      // Solution sheet: NO prices. Prices live only in the financial proposal.
+      title = `OPSQAI pentru ${firm} - solutii propuse`;
       blocks = [
-        { type: "callout", kind: "executive", title: "Pe scurt", text: plain(`OPSQAI este o platforma AI instalata pe serverul ${data.company_name}: procedurile interne, documentele si instruirea angajatilor devin raspunsuri clare, cu sursa citata, fara ca datele sa paraseasca firma.`) },
-        { type: "h2", text: "Ce rezolva" },
-        { type: "bullets", items: [
-          "Angajatii gasesc procedura corecta in cateva secunde, cu trimitere la documentul sursa.",
-          "Academie de instruire cu teste scurte si certificate verificabile.",
-          transport ? "Workspace Transport: documente soferi, flota si termene intr-un singur loc." : "Workspace-uri dedicate (Transport, HR) activate doar cand aveti nevoie.",
-          "Audit intern: cine a citit, cine a promovat instruirea, ce documente expira.",
-        ] },
-        { type: "h2", text: "De ce Self-Hosted" },
-        { type: "bullets", items: [
-          "AI-ul ruleaza local, pe serverul firmei. Fara trimitere de date catre servicii cloud externe.",
-          "Licenta unica de implementare in loc de abonament per utilizator care creste lunar.",
-          "Firma ramane operatorul datelor (Data Controller); OPSQAI nu are acces la continut.",
-        ] },
+        { type: "callout", kind: "executive", title: "Pe scurt", text: plain(`Am pregatit pentru ${data.company_name} o imagine clara a ce putem implementa: un asistent AI instalat pe serverul firmei, care transforma procedurile, documentele si instruirea in raspunsuri clare, cu sursa citata.`) },
         { type: "kpis", items: [
-          { label: "Implementare", value: "de la 12.000 EUR", sub: "o singura data" },
-          { label: "Mentenanta", value: "de la 500 EUR", sub: "pe luna" },
-          { label: "Workspace", value: "de la 400 EUR", sub: "pe luna" },
+          { label: "Pilot", value: "30 zile", sub: "gratuit, fara obligatii" },
+          { label: "Instalare", value: "~1 zi", sub: "pe serverul firmei" },
+          { label: "Datele", value: "La firma", sub: "documentele raman local" },
         ] },
-        { type: "callout", kind: "note", title: "Comparatie orientativa", text: `Un instrument SaaS tipic la ~30 EUR/utilizator/luna pentru ${users} utilizatori costa ~${saasYear.toLocaleString("ro-RO")} EUR pe an, in fiecare an. Valoare estimativa, nu oferta.` },
-        { type: "h2", text: "Pasul urmator" },
-        { type: "p", text: "Pilot pe procedurile interne ale unui departament, apoi extindere. Oferta exacta se calculeaza pe numarul real de statii si module." },
+        { type: "h2", text: "Ce putem implementa" },
+        { type: "table", headers: ["Solutie", "Ce primeste echipa"], rows: [
+          ["Asistent pe proceduri", "Raspunsuri din documentele firmei, cu trimitere la sursa"],
+          ["Academy de instruire", "Lectii, teste scurte si diplome pentru angajati noi"],
+          transport ? ["Workspace Transport", "Documente soferi, flota, curse si CMR intr-un singur loc"] : ["Workspace HR", "Dosare, concedii si raspunsuri rapide pentru angajati"],
+          ["Audit intern", "Cine a citit, cine a promovat instruirea, ce documente expira"],
+          ["Module la cerere", "Fluxuri construite pe procesele specifice firmei"],
+        ] },
+        { type: "h2", text: "De ce instalat local" },
+        { type: "bullets", items: [
+          "AI-ul ruleaza pe serverul firmei; documentele si conversatiile nu sunt trimise in cloud.",
+          "Spre exterior pleaca doar verificarea licentei si cifre agregate de utilizare.",
+          `${firm} ramane operatorul datelor; OPSQAI nu are acces la continut.`,
+        ] },
+        { type: "h2", text: "Cum arata pilotul" },
+        { type: "numbered", items: [
+          "Saptamana 1: instalare si incarcarea procedurilor unui departament.",
+          "Saptamanile 2-3: echipa foloseste asistentul si Academy zilnic.",
+          "Saptamana 4: raport cu rezultatele si decizia dumneavoastra.",
+        ] },
+        { type: "callout", kind: "note", title: "Incercati acum", text: "Puteti vorbi cu Kai, asistentul OPSQAI, fara cont: opsqai.de/kai" },
       ];
     } else {
       title = `Fisa de securitate IT si GDPR - ${firm}`;
