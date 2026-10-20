@@ -31,6 +31,9 @@ export function opsqaiSelfhostAliases(): AliasOptions | null {
     { find: /^@\/integrations\/supabase(\/.*)?$/, replacement: STUB },
     // Cloud provider implementations.
     { find: /^@\/lib\/providers\/cloud(\/.*)?$/, replacement: STUB },
+    // Lovable Cloud OAuth broker (Cloud-only sign-in).
+    { find: /^@\/integrations\/lovable(\/.*)?$/, replacement: STUB },
+    { find: /^@lovable\.dev\/cloud-auth-js$/, replacement: STUB },
     // Belt-and-suspenders: any reachable @supabase/* bare import.
     { find: /^@supabase\/.*/, replacement: STUB },
   ];
