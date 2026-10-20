@@ -28,6 +28,7 @@ import { formatDistanceToNow } from "date-fns";
 import { UpcomingCard } from "@/components/calendar/upcoming-card";
 import { AlertLanes } from "@/components/mc/alert-lanes";
 import { AndroidAppCard } from "@/components/app/android-app-card";
+import { ApprovedRevenuePanel } from "@/components/mc/approved-revenue-panel";
 
 
 export const Route = createFileRoute("/_authenticated/management/")({
@@ -196,6 +197,8 @@ function OverviewPage() {
               </div>
             )}
           </div>
+
+          <ApprovedRevenuePanel enabled={!!session} />
 
           {/* Commercial KPIs */}
           <BentoGrid>
