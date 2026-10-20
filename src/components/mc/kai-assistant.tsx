@@ -1570,7 +1570,22 @@ function CarMode(p: {
             )}
           />
 
-          <KaiFace size={190} float state={p.state === "thinking" ? "thinking" : p.state === "speaking" ? "speaking" : "idle"} />
+          {/* The ghost Button forces every descendant svg to 1rem; the important
+              size utilities below override it so Kai fills the ring. */}
+          <KaiFace
+            size={200}
+            float
+            className="size-[200px]! sm:size-[258px]!"
+            state={
+              p.state === "thinking"
+                ? "thinking"
+                : p.state === "speaking"
+                  ? "speaking"
+                  : p.state === "listening"
+                    ? "listening"
+                    : "idle"
+            }
+          />
         </span>
         <span className="text-center font-display text-2xl font-medium sm:text-3xl">{label}</span>
         <span className="line-clamp-3 min-h-[3.5rem] max-w-xl text-center text-base text-muted-foreground">
