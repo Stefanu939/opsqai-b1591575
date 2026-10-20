@@ -25,6 +25,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { kaiActionKey, resolveKaiConfirmation, type KaiActionResult } from "@/lib/kai-confirmation";
 import { toast } from "sonner";
 import { KaiRichMessage } from "@/components/kai/kai-rich-message";
+import { KaiFace } from "@/components/kai/kai-face";
 import {
   Mail,
   MessageCircle,
@@ -1565,7 +1566,7 @@ function CarMode(p: {
             )}
           />
 
-          <KaiOrb className="h-32 w-32 sm:h-40 sm:w-40" />
+          <KaiFace size={190} float state={p.state === "thinking" ? "thinking" : p.state === "speaking" ? "speaking" : "idle"} />
         </span>
         <span className="text-center font-display text-2xl font-medium sm:text-3xl">{label}</span>
         <span className="line-clamp-3 min-h-[3.5rem] max-w-xl text-center text-base text-muted-foreground">
