@@ -156,7 +156,7 @@ export function KaiAssistant() {
   const navigate = useNavigate();
   const page = useRouterState({ select: (s) => s.location.pathname });
   const { user, session, loading } = useAuth();
-  const { firstName: name, fullName } = useMyName();
+  const { firstName: name, fullName, position } = useMyName();
   const ask = useServerFn(askKai);
   const addLead = useServerFn(saveCrmLead);
   const saveDebrief = useServerFn(applyCallDebrief);
@@ -389,6 +389,7 @@ export function KaiAssistant() {
           messages: history.slice(-20).map((m) => ({ role: m.role, content: m.content })),
           page,
           senderName: fullName || name || undefined,
+          senderRole: position || undefined,
           mode: carRef.current ? "car" : "chat",
           localTime: new Date().toLocaleString("ro-RO", {
             weekday: "long",
