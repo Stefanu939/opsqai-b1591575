@@ -49,6 +49,8 @@ export const requireSupabaseAuth = stub;
 export const attachSupabaseAuth = stub;
 export const attachBearerToken = stub;
 export const bootstrapCloudProviders = stub;
+export const lovable = stub;
+export const createLovableAuth = stub;
 
 // Type-only re-exports — `any` avoids leaking Cloud SDK types into the
 // Self-Hosted build's type-check surface.

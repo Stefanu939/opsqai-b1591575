@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { Send, Sparkles, UserPlus, CheckCircle2, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { setCloudAudience } from "@/lib/cloud-access";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { getCloudBrowserDb } from "@/lib/cloud-client";
+import { isCloud } from "@/lib/platform";
 import { askProspectKai, getProspectSession, markProspectConverted } from "@/lib/prospect-chat.functions";
 import { PROSPECT_ANON_MESSAGES, PROSPECT_SESSION_MESSAGES, prospectGate, prospectRemaining } from "@/lib/prospect-limits";
 import { getProspectStatus, registerProspect, submitProspectLead } from "@/lib/prospect.functions";
@@ -50,7 +50,8 @@ function ProspectPage() {
   const signOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    const db = await getCloudBrowserDb();
+    await db?.auth.signOut();
   };
   if (loading) return <div className="min-h-dvh bg-background" />;
   return (
@@ -99,6 +100,8 @@ function ProspectSignIn() {
     setBusy(true);
     remember();
     try {
+      const supabase = await getCloudBrowserDb();
+      if (!supabase) throw new Error(t.error);
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -119,6 +122,8 @@ function ProspectSignIn() {
   };
   const google = async () => {
     remember();
+    if (!isCloud()) return;
+    const { lovable } = await import("@/integrations/lovable");
     await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/kai` });
   };
 
