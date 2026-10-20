@@ -269,4 +269,4 @@ export async function offerPdfFile(data: OfferPdfInput) {
       filename: `Oferta-OPSQAI-${data.customer.replace(/[^\w-]+/g, "_").slice(0, 40)}.pdf`,
       base64: Buffer.from(bytes).toString("base64"),
     };
-  });
+}
