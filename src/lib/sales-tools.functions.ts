@@ -36,8 +36,6 @@ export const generateSalesDoc = createServerFn({ method: "POST" })
     const firm = plain(data.company_name);
     const date = new Date().toISOString().slice(0, 10);
     const transport = /transport|logist|curier|4941|5229|5210/i.test(data.industry ?? "");
-    const users = data.employees && data.employees > 0 ? data.employees : 50;
-    const saasYear = users * 30 * 12; // illustrative SaaS benchmark, labelled as such
 
     let title: string;
     let blocks: Blocks;
