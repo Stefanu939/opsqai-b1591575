@@ -1,5 +1,12 @@
 # Roadmap
 
+## Sales documents & approved revenue (2026-10-20)
+- [x] Car Mode shows the interactive Kai face
+- [x] One-pager is a solutions sheet with no prices; Kai attaches promised documents
+- [x] Kai labels landlines, looks for mobile/email, never offers WhatsApp on a landline
+- [x] Editable implementation fee; financial proposal PDF from calculator and CRM offers
+- [x] Offers can be approved in CRM; dashboard shows approved one-off vs monthly with breakdown (2 tests)
+
 ## Monitoring findings (2026-10-19)
 - [x] Verify owner signup evidence against live schema: superseded by nullable-company signup migrations
 - [x] Remove sticky Kai navigation veto; 33 tests pass; signed-in staff navigates Kai → Prospect Radar (including reload) → Portal admin with prospect intent retained; build OK
