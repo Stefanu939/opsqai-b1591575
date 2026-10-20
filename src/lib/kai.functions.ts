@@ -150,12 +150,12 @@ export const askKai = createServerFn({ method: "POST" })
     const foundCuis: string[] = [];
     const webContext = new Map<string, string>();
     const offTopic = /(cod(uri)? de reducere|cupon|voucher|discount|reduceri la|nike|adidas|zara|emag|horoscop|rețet|retet|meci|pariu)/i.test(last);
-    if (!offTopic && /\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search)/i.test(last)) {
+    if (!offTopic && /\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search|contact|telefon|număr|numar|email|e-mail|whatsapp)/i.test(last)) {
       try {
         const planRaw = await generateAiJson({
           role: "chat-fast",
           system:
-            'Generezi interogări de căutare web pentru a găsi firme românești reale și CUI-urile lor. Răspunde STRICT JSON: {"queries":["..."]} cu 2-3 interogări în română. Include o interogare cu "CUI" și una țintită pe site-uri de registru (listafirme.ro, termene.ro, risco.ro).',
+            'Generezi interogări de căutare web pentru a găsi firme românești reale, CUI-urile și datele lor de contact. Răspunde STRICT JSON: {"queries":["..."]} cu 2-3 interogări în română. Include o interogare cu "CUI", una țintită pe site-uri de registru (listafirme.ro, termene.ro, risco.ro) și, când se cer contacte, una de tip "<firmă> contact email telefon mobil".',
           prompt: last,
           maxOutputTokens: 300,
         });
