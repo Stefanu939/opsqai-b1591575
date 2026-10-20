@@ -11,7 +11,7 @@ async function loadReport(period: RevenuePeriod) {
   const admin = await getCloudSupabaseAdmin("crm");
   const [offerResult, paymentResult] = await Promise.all([
     admin.from("crm_offers").select("id, lead_id, title, currency, amount, setup_amount, monthly_amount, accepted_at, created_at, crm_leads(company_name)").eq("status", "accepted").order("accepted_at", { ascending: false, nullsFirst: false }),
-    admin.from("license_orders").select("unit_price_cents, paid_at").eq("status", "paid"),
+    admin.from("license_orders").select("unit_price_cents, paid_at, currency").eq("status", "paid"),
   ]);
   if (offerResult.error || paymentResult.error) throw new Error("Raportul financiar nu a putut fi încărcat. Încearcă din nou.");
   const offers: RevenueOffer[] = (offerResult.data ?? []).filter(o => inRevenuePeriod(o.accepted_at ?? o.created_at, period)).map(o => {
@@ -21,7 +21,10 @@ async function loadReport(period: RevenuePeriod) {
     return { id: o.id, lead_id: o.lead_id, title: o.title, company: o.crm_leads?.company_name ?? "—", currency: o.currency, setup, monthly, firstYear: setup + monthly * 12, date: o.accepted_at ?? o.created_at, estimatedDate: !o.accepted_at };
   });
   const payments = (paymentResult.data ?? []).filter(o => inRevenuePeriod(o.paid_at, period));
-  return { period, offers, totals: totalRevenueOffers(offers), receipts: payments.reduce((sum, o) => sum + Number(o.unit_price_cents ?? 0), 0) / 100, paymentCount: payments.length };
+  const receiptsByCurrency = new Map<string, number>();
+  for (const payment of payments) receiptsByCurrency.set(payment.currency, (receiptsByCurrency.get(payment.currency) ?? 0) + Number(payment.unit_price_cents ?? 0) / 100);
+  const receipts = [...receiptsByCurrency].map(([currency, amount]) => ({ currency, amount }));
+  return { period, offers, totals: totalRevenueOffers(offers), receipts, paymentCount: payments.length };
 }
 
 export const getMcRevenueReport = createServerFn({ method: "POST" }).middleware([requireAuth]).inputValidator(validate).handler(async ({ context, data }) => {
@@ -39,7 +42,7 @@ export const exportMcRevenuePdf = createServerFn({ method: "POST" }).middleware(
     title: "Raport financiar", subtitle: label, meta: { brand: "OPSQAI", documentType: "Management Center - Raport financiar" },
     blocks: [
       { type: "p", text: "Ofertele aprobate reprezinta valoare comerciala, nu incasari. Recurentul lunar este valoarea contractata pe luna; primul an include implementarea plus 12 luni, nu venit realizat in perioada." },
-      { type: "kpis", items: [{ label: "Incasari inregistrate", value: money(report.receipts, "EUR"), sub: `${report.paymentCount} plati` }, { label: "Oferte aprobate", value: String(report.offers.length) }] },
+      { type: "kpis", items: [{ label: "Incasari inregistrate", value: report.receipts.length ? report.receipts.map(r => money(r.amount, r.currency)).join(" / ") : money(0, "EUR"), sub: `${report.paymentCount} plati` }, { label: "Oferte aprobate", value: String(report.offers.length) }] },
       { type: "table", headers: ["Moneda", "Implementare", "Recurent / luna", "Valoare primul an"], rows: report.totals.map(t => [t.currency, money(t.setup, t.currency), money(t.monthly, t.currency), money(t.firstYear, t.currency)]) },
       { type: "h2", text: "Defalcare pe client si oferta" },
       { type: "table", headers: ["Client / Oferta", "Aprobata", "Implementare", "Lunar", "Primul an"], rows: report.offers.map(o => [`${o.company} / ${o.title}`, `${o.date.slice(0, 10)}${o.estimatedDate ? "*" : ""}`, money(o.setup, o.currency), money(o.monthly, o.currency), money(o.firstYear, o.currency)]) },

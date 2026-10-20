@@ -46,7 +46,7 @@ export function ApprovedRevenuePanel({ enabled }: { enabled: boolean }) {
       {!valid ? <p role="alert" className="text-sm text-destructive">Data de început trebuie să fie înaintea datei de sfârșit.</p> : q.isError ? <div className="flex flex-wrap items-center gap-2"><p role="alert" className="text-sm text-destructive">Raportul nu a putut fi încărcat.</p><Button variant="outline" size="sm" onClick={() => void q.refetch()}>Reîncearcă</Button></div> : !report ? <p className="text-sm text-muted-foreground">Se încarcă…</p> : <>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-muted-foreground">{report.offers.length} oferte aprobate în perioada selectată</span>
-          <span className="font-medium text-foreground">Încasări înregistrate: {money(report.receipts)}</span>
+          <span className="font-medium text-foreground">Încasări înregistrate: {report.receipts.length ? report.receipts.map(r => money(r.amount, r.currency)).join(" / ") : money(0)}</span>
         </div>
         {(report.totals.length ? report.totals : [{ currency: "EUR", setup: 0, monthly: 0, firstYear: 0 }]).map(t => <div key={t.currency} className="mb-3 grid gap-3 sm:grid-cols-3">
           <Stat label={`Implementare · ${t.currency}`} value={money(t.setup, t.currency)} />
