@@ -35,7 +35,30 @@ export function telUrl(phone: string | null | undefined) {
   return n ? `tel:${n}` : "";
 }
 
-export type Vars = { name?: string; company?: string; sender?: string; time?: string };
+export type Vars = { name?: string; company?: string; sender?: string; time?: string; role?: string };
+
+export const KAI_URL = "https://opsqai.de/kai";
+export const INSTAGRAM_URL = "https://www.instagram.com/opsqai";
+
+/** Personal sign-off: sender name, position, plus Kai + Instagram links. */
+export function signature(v: Vars, channel: "whatsapp" | "email" = "email") {
+  const who = v.sender?.trim() || "Echipa OPSQAI";
+  const role = v.role?.trim();
+  if (channel === "whatsapp")
+    return `\n\n— ${who}${role ? `, ${role}` : ""} · OPSQAI\n💬 Discutați acum cu KAI: ${KAI_URL}\n📸 Instagram: ${INSTAGRAM_URL}`;
+  return `\n\n${who}\n${role ? `${role} · ` : ""}OPSQAI\n\nDiscutați direct cu KAI, asistentul nostru, fără cont: ${KAI_URL}\nUrmăriți-ne pe Instagram: ${INSTAGRAM_URL}\nopsqai.de`;
+}
+
+/** Drops a trailing "{sender}" (the signature carries the name). */
+function signWa(text: string, v: Vars) {
+  return fill(text.replace(/[\s,]*\{sender\}\s*$/, ""), v) + signature(v, "whatsapp");
+}
+
+/** Drops the template's short sign-off line and appends the full signature. */
+function signEmail(body: string, v: Vars) {
+  const cut = body.replace(/\n+(Cu stimă,|Cu drag,|Cu deosebită considerație,)?\n?\{sender\}( \| OPSQAI|\nOPSQAI \| opsqai\.de)(\nopsqai\.de)?\s*$/, (_m, greet: string | undefined) => `\n\n${greet ?? "Cu stimă,"}`);
+  return fill(cut, v) + signature(v, "email").replace(/^\n\n/, "\n");
+}
 
 function fill(t: string, v: Vars) {
   return t
@@ -57,13 +80,13 @@ const WA: Record<Industry | "followup", string> = {
 };
 
 export function whatsappTemplate(kind: Industry | "followup", v: Vars) {
-  return fill(WA[kind], v);
+  return signWa(WA[kind], v);
 }
 
 export function coldEmail(v: Vars) {
   return {
     subject: fill("Optimizare proceduri interne și instruire {company} (100% local, fără cloud)", v),
-    body: fill(
+    body: signEmail(
       `Bună ziua, {name},
 
 Vă contactez direct deoarece sprijinim companiile din România să reducă timpul alocat căutării de proceduri interne și instruirii noilor angajați.
@@ -265,10 +288,10 @@ export function toneScripts(tone: Tone, industry: Industry, v: Vars) {
   return {
     opening: fill(s.opening, v),
     pitch: fill(s.pitch, v),
-    whatsapp: fill(s.wa, v),
-    whatsappFollowUp: fill(s.waFollow, v),
+    whatsapp: signWa(s.wa, v),
+    whatsappFollowUp: signWa(s.waFollow, v),
     subject: fill(s.subject, v),
-    email: fill(s.email, v),
+    email: signEmail(s.email, v),
   };
 }
 

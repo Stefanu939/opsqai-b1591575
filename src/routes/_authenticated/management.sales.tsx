@@ -7,6 +7,7 @@ import { onePagerHtml, openHtml, securityHtml } from "@/lib/sales-html";
 import { toast } from "sonner";
 import { ModulePage } from "@/components/app/module-page";
 import { Panel } from "@/components/ui/panel";
+import { useMyName } from "@/lib/use-my-name";
 import { FollowUpRadar } from "@/components/mc/follow-up-radar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,7 +67,9 @@ function SalesCockpit() {
   const analyze = useServerFn(analyzeClient);
   useEffect(() => { setName(pre.contact); setCompany(pre.company); setPhone(pre.phone); setEmail(pre.email); setNotes(pre.notes); setAnalysis(null); setWaEdit(null); }, [pre.company, pre.contact, pre.phone, pre.email, pre.notes]);
 
-  const vars = { name, company, sender, time };
+  const me = useMyName();
+  useEffect(() => { if (me.fullName) setSender(me.fullName); }, [me.fullName]);
+  const vars = { name, company, sender, time, role: me.position };
   const sc = toneScripts(tone, industry, vars);
   const waText = kind === "intro" ? sc.whatsapp : sc.whatsappFollowUp;
   const [waEdit, setWaEdit] = useState<string | null>(null);
@@ -100,7 +103,7 @@ function SalesCockpit() {
       title="Sales Cockpit"
       description="Ține pagina deschisă în timpul apelului: scriptul, obiecțiile și mesajele sunt la un click."
     >
-      <FollowUpRadar sender={sender} />
+      <FollowUpRadar sender={sender} role={me.position} />
 
       <Panel title="Cu cine vorbești?">
         <div className="grid gap-3 sm:grid-cols-3">

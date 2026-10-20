@@ -6,7 +6,7 @@ import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { listFollowUps, type FollowUp } from "@/lib/sales-tools.functions";
-import { mailtoUrl, telUrl, whatsappUrl } from "@/lib/mc-outreach";
+import { mailtoUrl, signature, telUrl, whatsappUrl } from "@/lib/mc-outreach";
 
 const LABEL: Record<FollowUp["urgency"], string> = {
   overdue: "Întârziat",
@@ -21,16 +21,20 @@ const VARIANT: Record<FollowUp["urgency"], "destructive" | "default" | "secondar
   week: "outline",
 };
 
-function followUpText(f: FollowUp, sender: string) {
-  const hi = f.contact_name ? `Bună ziua, ${f.contact_name}` : "Bună ziua";
-  if (f.stage === "offer")
-    return `${hi}, revin scurt legat de oferta OPSQAI trimisă pentru ${f.company_name}. Ați apucat să o parcurgeți? Pot clarifica orice întrebare în 10 minute. Mulțumesc, ${sender}`;
-  if (f.stage === "demo" || f.stage === "pilot")
-    return `${hi}, cum vi s-a părut OPSQAI după demo? Dacă vă ajută, putem porni un pilot scurt pe procedurile unui departament. Când aveți 15 minute? ${sender}`;
-  return `${hi}, revin după discuția noastră despre OPSQAI pentru ${f.company_name}. Vă pot trimite o prezentare de o pagină sau putem face un demo de 15 minute săptămâna aceasta? ${sender}`;
+function followUpText(f: FollowUp, sender: string, role?: string) {
+  return baseText(f).replace(/\s*$/, "") + signature({ sender, role }, "whatsapp");
 }
 
-export function FollowUpRadar({ sender = "Ștefan", limit = 12 }: { sender?: string; limit?: number }) {
+function baseText(f: FollowUp) {
+  const hi = f.contact_name ? `Bună ziua, ${f.contact_name}` : "Bună ziua";
+  if (f.stage === "offer")
+    return `${hi}, revin scurt legat de oferta OPSQAI trimisă pentru ${f.company_name}. Ați apucat să o parcurgeți? Pot clarifica orice întrebare în 10 minute. Mulțumesc!`;
+  if (f.stage === "demo" || f.stage === "pilot")
+    return `${hi}, cum vi s-a părut OPSQAI după demo? Dacă vă ajută, putem porni un pilot scurt pe procedurile unui departament. Când aveți 15 minute?`;
+  return `${hi}, revin după discuția noastră despre OPSQAI pentru ${f.company_name}. Vă pot trimite o prezentare de o pagină sau putem face un demo de 15 minute săptămâna aceasta?`;
+}
+
+export function FollowUpRadar({ sender = "Ștefan", role, limit = 12 }: { sender?: string; role?: string; limit?: number }) {
   const fetchFn = useServerFn(listFollowUps);
   const q = useQuery({ queryKey: ["mc-follow-ups"], queryFn: () => fetchFn(), staleTime: 60_000 });
   const items = (q.data ?? []).slice(0, limit);
@@ -50,7 +54,7 @@ export function FollowUpRadar({ sender = "Ștefan", limit = 12 }: { sender?: str
       </div>
       <div className="grid gap-2">
         {items.map((f) => {
-          const text = followUpText(f, sender);
+          const text = followUpText(f, sender, role);
           return (
             <div key={f.id} className="flex flex-col gap-2 rounded-lg border border-border bg-card/50 p-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">

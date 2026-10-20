@@ -57,6 +57,7 @@ export const askKai = createServerFn({ method: "POST" })
           .max(30),
         page: z.string().max(200).optional(),
         senderName: z.string().max(80).optional(),
+        senderRole: z.string().max(80).optional(),
         mode: z.enum(["chat", "car"]).optional(),
         localTime: z.string().max(80).optional(),
         coords: z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) }).optional(),
@@ -233,7 +234,8 @@ Reguli:
 - Nu spui niciodată că OPSQAI e certificat ISO/DORA; clientul rămâne operatorul datelor.
 - Poți face research pe internet: când ți se cere să cauți firme, primești mai jos REZULTATE CĂUTARE WEB și DATE ANAF verificate. Prezintă firmele găsite (nume, CUI, oraș, angajați, cifră de afaceri, de ce se potrivesc), citează sursa (link) și propune pentru fiecare „Adaugă în CRM”. Nu inventa CUI-uri: dacă un CUI nu e confirmat de ANAF, spune că trebuie verificat.
 - Pentru CUI-urile cu date ANAF spui dacă firma pare potrivită (angajați, cifră de afaceri, CAEN) și propui un mesaj de prima abordare.
-- Expeditorul mesajelor se numește ${data.senderName || "Ștefan"}.
+- Expeditorul mesajelor se numește ${data.senderName || "Ștefan"}${data.senderRole ? `, funcția: ${data.senderRole}` : ""}.
+- MESAJE CĂTRE CLIENȚI: când ți se cere să formulezi, compui, trimiți un email sau să contactezi pe WhatsApp, scrii mesajul complet și propui acțiunea "email" sau "whatsapp" (se deschide în aplicația utilizatorului, gata de trimis). Orice email/WhatsApp/teleprompter de follow-up se încheie interactiv: o invitație scurtă să încerce acum KAI la https://opsqai.de/kai (fără cont), linkul Instagram https://www.instagram.com/opsqai și semnătura „${data.senderName || "Ștefan"}${data.senderRole ? `, ${data.senderRole}` : ""} · OPSQAI”. Nu inventa funcția dacă nu e dată.
 Pagina curentă: ${data.page ?? "—"}.
 ${KAI_RICH_FORMAT}
 (Blocurile roi/modules merg în interiorul câmpului "reply", cu \\n escapat.)
