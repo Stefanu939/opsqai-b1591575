@@ -1459,42 +1459,54 @@ export type Database = {
       }
       crm_offers: {
         Row: {
+          accepted_at: string | null
           amount: number | null
           created_at: string
           currency: string
+          details: Json
           id: string
           lead_id: string
+          monthly_amount: number | null
           owner_user_id: string | null
           pdf_path: string | null
           products: string[]
+          setup_amount: number | null
           status: string
           title: string
           updated_at: string
           valid_until: string | null
         }
         Insert: {
+          accepted_at?: string | null
           amount?: number | null
           created_at?: string
           currency?: string
+          details?: Json
           id?: string
           lead_id: string
+          monthly_amount?: number | null
           owner_user_id?: string | null
           pdf_path?: string | null
           products?: string[]
+          setup_amount?: number | null
           status?: string
           title: string
           updated_at?: string
           valid_until?: string | null
         }
         Update: {
+          accepted_at?: string | null
           amount?: number | null
           created_at?: string
           currency?: string
+          details?: Json
           id?: string
           lead_id?: string
+          monthly_amount?: number | null
           owner_user_id?: string | null
           pdf_path?: string | null
           products?: string[]
+          setup_amount?: number | null
           status?: string
           title?: string
           updated_at?: string
