@@ -1,5 +1,10 @@
 # Roadmap
 
+## MC revenue period report (2026-10-20)
+- [x] Reconcile dashboard approved value versus recorded receipts; selectable inclusive dates and all-time
+- [x] Download the same period and customer breakdown as PDF
+- [x] Seven tests pass; authenticated dashboard shows approved 18,000 EUR vs 0 recorded receipts; custom 1–20 October selection and matching PDF verified, no browser errors, build OK
+
 ## Sales documents & approved revenue (2026-10-20)
 - [x] Car Mode shows the interactive Kai face
 - [x] One-pager is a solutions sheet with no prices; Kai attaches promised documents

@@ -11,6 +11,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles, requirePlatformAdmin } from "@/lib/authorization";
 import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 import { uuidString } from "@/lib/zod-uuid";
+import { approvalDate } from "@/lib/mc-revenue";
 
 export const CRM_STAGES = [
   "new",
@@ -483,6 +484,9 @@ export const saveCrmOffer = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { actor, admin } = await assertCanEdit(context as never, data.lead_id);
+    const previousResult = data.id ? await admin.from("crm_offers").select("status, accepted_at").eq("id", data.id).eq("lead_id", data.lead_id).maybeSingle() : null;
+    if (previousResult?.error) throw new Error(previousResult.error.message);
+    if (data.id && !previousResult?.data) throw new Error("Offer not found");
     const values = {
       lead_id: data.lead_id,
       title: data.title,
@@ -494,7 +498,7 @@ export const saveCrmOffer = createServerFn({ method: "POST" })
       ...(data.setup_amount !== undefined ? { setup_amount: data.setup_amount } : {}),
       ...(data.monthly_amount !== undefined ? { monthly_amount: data.monthly_amount } : {}),
       ...(data.details ? { details: data.details as never } : {}),
-      accepted_at: data.status === "accepted" ? new Date().toISOString() : null,
+      accepted_at: approvalDate(data.status, previousResult?.data ?? null, new Date().toISOString()),
     };
     if (data.id) {
       const { error } = await admin.from("crm_offers").update(values).eq("id", data.id);
@@ -718,12 +722,12 @@ export const setCrmOfferStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const admin = await getCloudSupabaseAdmin("crm");
-    const { data: offer } = await admin.from("crm_offers").select("id, lead_id, title").eq("id", data.id).maybeSingle();
+    const { data: offer } = await admin.from("crm_offers").select("id, lead_id, title, status, accepted_at").eq("id", data.id).maybeSingle();
     if (!offer) throw new Error("Offer not found");
     const { actor } = await assertCanEdit(context as never, offer.lead_id as string);
     const { error } = await admin
       .from("crm_offers")
-      .update({ status: data.status, accepted_at: data.status === "accepted" ? new Date().toISOString() : null })
+      .update({ status: data.status, accepted_at: approvalDate(data.status, offer, new Date().toISOString()) })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     await logEvent(admin, offer.lead_id as string, "offer", `${offer.title as string} (${data.status})`, actor.userId);
