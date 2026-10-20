@@ -14,6 +14,8 @@ export interface MyName {
   fullName: string;
   /** "SB" */
   initials: string;
+  /** Profile position, e.g. "Sales Manager" */
+  position: string;
 }
 
 function fromEmail(email?: string | null): MyName {
@@ -23,6 +25,7 @@ function fromEmail(email?: string | null): MyName {
     firstName: first,
     fullName: first,
     initials: (local.slice(0, 2) || "OQ").toUpperCase(),
+    position: "",
   };
 }
 
@@ -40,11 +43,12 @@ export function useMyName(): MyName {
 
   const first = profile.data?.first_name?.trim() ?? "";
   const last = profile.data?.last_name?.trim() ?? "";
-  if (!first && !last) return fallback;
+  const position = profile.data?.position?.trim() ?? "";
+  if (!first && !last) return { ...fallback, position };
 
   const fullName = [first, last].filter(Boolean).join(" ");
   const initials =
     ((first[0] ?? "") + (last[0] ?? "")).toUpperCase() ||
     fallback.initials;
-  return { firstName: first || last, fullName, initials };
+  return { firstName: first || last, fullName, initials, position };
 }
