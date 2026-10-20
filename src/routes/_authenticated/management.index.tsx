@@ -9,7 +9,6 @@ import {
   KeyRound,
   Package,
   Rocket,
-  TrendingUp,
   Users2,
   CalendarClock,
 } from "lucide-react";
@@ -32,6 +31,14 @@ import { ApprovedRevenuePanel } from "@/components/mc/approved-revenue-panel";
 
 
 export const Route = createFileRoute("/_authenticated/management/")({
+  head: () => ({ meta: [
+    { title: "Control Center — OPSQAI Management Center" },
+    { name: "description", content: "Clienți, licențe, oferte aprobate și raport financiar pe perioada selectată." },
+    { property: "og:title", content: "Control Center — OPSQAI" },
+    { property: "og:description", content: "Situația comercială și operațională OPSQAI." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: OverviewPage,
   errorComponent: ({ error, reset }) => (
     <div className="mx-auto max-w-2xl p-6 md:p-10 space-y-3">
@@ -202,7 +209,7 @@ function OverviewPage() {
 
           {/* Commercial KPIs */}
           <BentoGrid>
-            <BentoItem span={3} index={0}>
+            <BentoItem span={4} index={0}>
               <MetricTile
                 label="Active licenses"
                 value={kpis?.activeLicenses ?? "—"}
@@ -219,32 +226,7 @@ function OverviewPage() {
                 }
               />
             </BentoItem>
-            <BentoItem span={3} index={1}>
-              <MetricTile
-                label="Revenue (30d)"
-                value={
-                  kpis
-                    ? new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "EUR",
-                        maximumFractionDigits: 0,
-                      }).format(kpis.revenueMonthCents / 100)
-                    : "—"
-                }
-                icon={TrendingUp}
-                tone="gold"
-                hint="Rolling window"
-                delta={
-                  kpis && kpis.revenueTrend !== 0
-                    ? {
-                        value: `${Math.abs(kpis.revenueTrend)}%`,
-                        direction: kpis.revenueTrend > 0 ? "up" : "down",
-                      }
-                    : undefined
-                }
-              />
-            </BentoItem>
-            <BentoItem span={3} index={2}>
+            <BentoItem span={4} index={1}>
               <MetricTile
                 label="Online installs"
                 value={kpis?.onlineInstalls ?? "—"}
@@ -252,7 +234,7 @@ function OverviewPage() {
                 hint="Heartbeat < 15 min"
               />
             </BentoItem>
-            <BentoItem span={3} index={3}>
+            <BentoItem span={4} index={2}>
               <MetricTile
                 label="Companies"
                 value={platform?.total_companies ?? "—"}
