@@ -290,7 +290,7 @@ export function toneScripts(tone: Tone, industry: Industry, v: Vars) {
   return {
     opening: fill(s.opening, v),
     pitch: fill(s.pitch, v),
-    whatsapp: signWa(s.wa, v),
+    whatsapp: signWa(s.wa, v, true),
     whatsappFollowUp: signWa(s.waFollow, v),
     subject: fill(s.subject, v),
     email: signEmail(s.email, v),
