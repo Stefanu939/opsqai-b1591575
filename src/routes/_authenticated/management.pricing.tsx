@@ -66,6 +66,7 @@ function PricingPage() {
   const [ws, setWs] = useState<Record<string, { on: boolean; monthly: number }>>(
     Object.fromEntries(WORKSPACES.map((w) => [w.key, { on: (search.workspaces ?? "").split(",").includes(w.key), monthly: PRICING.workspaceMonthlyMin }])),
   );
+  const [setupFee, setSetupFee] = useState<number>(PRICING.setupOneTime);
   const [employees, setEmployees] = useState(search.employees ?? 25);
   const [pickOpen, setPickOpen] = useState(false);
   const [hint, setHint] = useState<Suggestion | null>(null);
@@ -81,7 +82,7 @@ function PricingPage() {
     label: w.label,
     monthly: ws[w.key].monthly,
   }));
-  const quote = computeQuote({ workstations, maintenanceMonthly: maintenance, workspaces: selected, employees });
+  const quote = computeQuote({ workstations, maintenanceMonthly: maintenance, workspaces: selected, employees, setupOneTime: setupFee });
   const savings = useMemo(
     () => estimateSavings({ employees, hourlyCost: hourly, minutesSavedPerDay: minutes, newHiresPerYear: hires, trainingDaysSavedPerHire: daysSaved }),
     [employees, hourly, minutes, hires, daysSaved],
@@ -139,6 +140,22 @@ function PricingPage() {
     toast.success(`Date precompletate pentru ${o.name} — le poți modifica oricând.`);
   };
 
+  const offerPayload = () => ({
+    customer: customer.trim() || "Client",
+    contact,
+    sender,
+    computers: quote.computers,
+    workspaces: selected.map((w) => ({ label: w.label, monthly: Math.max(PRICING.workspaceMonthlyMin, w.monthly) })),
+    setup: quote.setup,
+    maintenance: Math.max(PRICING.maintenanceMonthlyMin, maintenance),
+    monthly: quote.monthly,
+    annual: quote.annual,
+    firstYear: quote.firstYear,
+    perEmployeePerDay: quote.perEmployeePerDay,
+    employees,
+    savings: roiOn ? savings : null,
+    validDays: 30,
+  });
   const pdfFn = useServerFn(renderOfferPdf);
   const pdfMut = useMutation({
     mutationFn: () =>
@@ -176,6 +193,9 @@ function PricingPage() {
           title: `Ofertă OPSQAI — ${quote.computers} calculatoare${selected.length ? " + " + selected.map((s) => s.label).join(", ") : ""}`,
           products: selected.map((s) => s.key),
           amount: quote.firstYear,
+          setup_amount: quote.setup,
+          monthly_amount: quote.monthly,
+          details: { quote: offerPayload() },
           currency: "EUR",
           status: "draft",
           valid_until: new Date(Date.now() + 30 * 86_400_000).toISOString(),
@@ -253,6 +273,10 @@ function PricingPage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
+                  <Label className="text-xs">Implementare (o singură dată)</Label>
+                  <Input type="number" min={0} step={500} className="mt-1" value={setupFee} onChange={(e) => setSetupFee(Math.max(0, Number(e.target.value) || 0))} />
+                </div>
+                <div>
                   <Label className="text-xs">Mentenanță / lună (minim {eur(PRICING.maintenanceMonthlyMin)})</Label>
                   <Input type="number" min={PRICING.maintenanceMonthlyMin} step={50} className="mt-1" value={maintenance} onChange={(e) => setMaintenance(Number(e.target.value))} />
                 </div>
@@ -315,7 +339,7 @@ function PricingPage() {
           <Panel title="Trimite oferta">
             <div className="flex flex-col gap-2">
               <Button onClick={() => pdfMut.mutate()} disabled={pdfMut.isPending}>
-                <Download className="mr-1.5 h-4 w-4" />{pdfMut.isPending ? "Se generează…" : "Generează ofertă PDF"}
+                <Download className="mr-1.5 h-4 w-4" />{pdfMut.isPending ? "Se generează…" : "Descarcă propunerea financiară (PDF)"}
               </Button>
               <div className="grid grid-cols-2 gap-2">
                 <Button asChild variant="outline"><a href={whatsappUrl(null, summary)} target="_blank" rel="noreferrer"><MessageCircle className="mr-1.5 h-4 w-4" />WhatsApp</a></Button>

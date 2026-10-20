@@ -25,6 +25,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { kaiActionKey, resolveKaiConfirmation, type KaiActionResult } from "@/lib/kai-confirmation";
 import { toast } from "sonner";
 import { KaiRichMessage } from "@/components/kai/kai-rich-message";
+import { KaiFace } from "@/components/kai/kai-face";
 import {
   Mail,
   MessageCircle,
@@ -627,7 +628,11 @@ export function KaiAssistant() {
           lead: a.lead_id && /^[0-9a-f-]{36}$/i.test(a.lead_id) ? a.lead_id : undefined,
         },
       });
-    } else if (a.type === "whatsapp") window.open(whatsappUrl(a.phone, a.text), "_blank");
+    } else if (a.type === "whatsapp") {
+      const landline = a.phone && /^(\+?40|0040|0)?[23]\d{7,8}$/.test(a.phone.replace(/[\s.\-()]/g, ""));
+      if (landline) toast.info("Numărul este de fix — nu are WhatsApp. Alegeți destinatarul în WhatsApp.");
+      window.open(whatsappUrl(landline ? null : a.phone, a.text), "_blank");
+    }
     else if (a.type === "email") window.open(
         sender.kai_may_compose
           ? composeEmailUrl(sender.email_provider, sender.sender_email, a.email, a.subject, a.body)
@@ -1565,7 +1570,7 @@ function CarMode(p: {
             )}
           />
 
-          <KaiOrb className="h-32 w-32 sm:h-40 sm:w-40" />
+          <KaiFace size={190} float state={p.state === "thinking" ? "thinking" : p.state === "speaking" ? "speaking" : "idle"} />
         </span>
         <span className="text-center font-display text-2xl font-medium sm:text-3xl">{label}</span>
         <span className="line-clamp-3 min-h-[3.5rem] max-w-xl text-center text-base text-muted-foreground">

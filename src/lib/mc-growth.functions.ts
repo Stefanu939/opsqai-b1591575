@@ -181,6 +181,14 @@ export const renderOfferPdf = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => OfferInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context as never);
+    return offerPdfFile(data);
+  });
+
+export type OfferPdfInput = z.infer<typeof OfferInput>;
+export const parseOfferInput = (d: unknown) => OfferInput.parse(d);
+
+/** Financial proposal PDF (server-only; callers must authorize first). */
+export async function offerPdfFile(data: OfferPdfInput) {
     const { generatePdf } = await import("@/lib/generators/pdf.server");
     const today = new Date();
     const valid = new Date(today.getTime() + data.validDays * 86_400_000);
@@ -261,4 +269,4 @@ export const renderOfferPdf = createServerFn({ method: "POST" })
       filename: `Oferta-OPSQAI-${data.customer.replace(/[^\w-]+/g, "_").slice(0, 40)}.pdf`,
       base64: Buffer.from(bytes).toString("base64"),
     };
-  });
+}

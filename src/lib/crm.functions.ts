@@ -475,6 +475,9 @@ export const saveCrmOffer = createServerFn({ method: "POST" })
         currency: z.string().min(1).max(8).default("EUR"),
         status: z.enum(["draft", "sent", "accepted", "declined"]).default("draft"),
         valid_until: z.string().nullish(),
+        setup_amount: z.number().min(0).max(100_000_000).nullish(),
+        monthly_amount: z.number().min(0).max(100_000_000).nullish(),
+        details: z.record(z.string(), z.unknown()).nullish(),
       })
       .parse(d),
   )
@@ -488,6 +491,10 @@ export const saveCrmOffer = createServerFn({ method: "POST" })
       currency: data.currency,
       status: data.status,
       valid_until: data.valid_until ? data.valid_until.slice(0, 10) : null,
+      ...(data.setup_amount !== undefined ? { setup_amount: data.setup_amount } : {}),
+      ...(data.monthly_amount !== undefined ? { monthly_amount: data.monthly_amount } : {}),
+      ...(data.details ? { details: data.details as never } : {}),
+      accepted_at: data.status === "accepted" ? new Date().toISOString() : null,
     };
     if (data.id) {
       const { error } = await admin.from("crm_offers").update(values).eq("id", data.id);
@@ -515,6 +522,16 @@ export const renderCrmOfferPdf = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!offer) throw new Error("Offer not found");
     const lead = (offer as Record<string, unknown>)['crm_leads'] as Record<string, unknown> | null;
+    const quote = ((offer as Record<string, unknown>)['details'] as Record<string, unknown> | null)?.['quote'];
+    if (quote) {
+      const { offerPdfFile, parseOfferInput } = await import("@/lib/mc-growth.functions");
+      const input = parseOfferInput({
+        ...(quote as object),
+        customer: (lead?.['company_name'] as string) || "Client",
+        contact: (lead?.['contact_name'] as string) || "",
+      });
+      return offerPdfFile(input);
+    }
     const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
     const bytes = await renderTablePdf({
       title: `OPSQAI — ${offer.title as string}`,
@@ -691,3 +708,75 @@ export const exportCrmReportPdf = createServerFn({ method: "POST" })
       base64: Buffer.from(bytes).toString("base64"),
     };
   });
+
+// ── Offer status + approved revenue summary ───────────────────────────
+
+export const setCrmOfferStatus = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: uuidString(), status: z.enum(["draft", "sent", "accepted", "declined"]) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const admin = await getCloudSupabaseAdmin("crm");
+    const { data: offer } = await admin.from("crm_offers").select("id, lead_id, title").eq("id", data.id).maybeSingle();
+    if (!offer) throw new Error("Offer not found");
+    const { actor } = await assertCanEdit(context as never, offer.lead_id as string);
+    const { error } = await admin
+      .from("crm_offers")
+      .update({ status: data.status, accepted_at: data.status === "accepted" ? new Date().toISOString() : null })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logEvent(admin, offer.lead_id as string, "offer", `${offer.title as string} (${data.status})`, actor.userId);
+    return { ok: true };
+  });
+
+export type ApprovedOffer = {
+  id: string;
+  lead_id: string;
+  company: string;
+  title: string;
+  setup: number;
+  monthly: number;
+  firstYear: number;
+  accepted_at: string | null;
+};
+
+export const getApprovedOffersSummary = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({}).passthrough().parse(d ?? {}))
+  .handler(async ({ context }) => {
+    await staff(context as never);
+    const admin = await getCloudSupabaseAdmin("crm");
+    const { data, error } = await admin
+      .from("crm_offers")
+      .select("id, lead_id, title, amount, setup_amount, monthly_amount, accepted_at, created_at, crm_leads(company_name)")
+      .eq("status", "accepted")
+      .order("accepted_at", { ascending: false, nullsFirst: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    const offers: ApprovedOffer[] = (data ?? []).map((o) => summarizeOffer(o as never));
+    return {
+      offers,
+      totals: {
+        setup: offers.reduce((a, o) => a + o.setup, 0),
+        monthly: offers.reduce((a, o) => a + o.monthly, 0),
+        firstYear: offers.reduce((a, o) => a + o.firstYear, 0),
+      },
+    };
+  });
+
+/** Breakdown rule: explicit setup/monthly win; otherwise the whole amount is one-off. */
+export function summarizeOffer(o: {
+  id: string; lead_id: string; title: string; amount: number | null;
+  setup_amount: number | null; monthly_amount: number | null; accepted_at: string | null;
+  crm_leads?: { company_name?: string } | null;
+}): ApprovedOffer {
+  const hasSplit = o.setup_amount != null || o.monthly_amount != null;
+  const setup = Number(hasSplit ? o.setup_amount ?? 0 : o.amount ?? 0);
+  const monthly = Number(hasSplit ? o.monthly_amount ?? 0 : 0);
+  return {
+    id: o.id, lead_id: o.lead_id, title: o.title,
+    company: o.crm_leads?.company_name ?? "—",
+    setup, monthly, firstYear: setup + monthly * 12, accepted_at: o.accepted_at,
+  };
+}

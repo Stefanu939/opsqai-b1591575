@@ -150,12 +150,12 @@ export const askKai = createServerFn({ method: "POST" })
     const foundCuis: string[] = [];
     const webContext = new Map<string, string>();
     const offTopic = /(cod(uri)? de reducere|cupon|voucher|discount|reduceri la|nike|adidas|zara|emag|horoscop|rețet|retet|meci|pariu)/i.test(last);
-    if (!offTopic && /\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search)/i.test(last)) {
+    if (!offTopic && /\b(caut|găseș|gases|găsi|gasi|research|cercet|prospect|firme|companii|listă|lista|find|search|contact|telefon|număr|numar|email|e-mail|whatsapp)/i.test(last)) {
       try {
         const planRaw = await generateAiJson({
           role: "chat-fast",
           system:
-            'Generezi interogări de căutare web pentru a găsi firme românești reale și CUI-urile lor. Răspunde STRICT JSON: {"queries":["..."]} cu 2-3 interogări în română. Include o interogare cu "CUI" și una țintită pe site-uri de registru (listafirme.ro, termene.ro, risco.ro).',
+            'Generezi interogări de căutare web pentru a găsi firme românești reale, CUI-urile și datele lor de contact. Răspunde STRICT JSON: {"queries":["..."]} cu 2-3 interogări în română. Include o interogare cu "CUI", una țintită pe site-uri de registru (listafirme.ro, termene.ro, risco.ro) și, când se cer contacte, una de tip "<firmă> contact email telefon mobil".',
           prompt: last,
           maxOutputTokens: 300,
         });
@@ -229,7 +229,9 @@ Reguli:
 - Propui acțiuni, aplicația le execută numai după o confirmare explicită prin buton, voce sau text. Nu afirma succesul înainte de rezultatul real din conversație. Nu poți emite direct licențe: pentru a transforma o firmă în client propui "onboard" (înrolarea în 3 pași cu datele precompletate); omul finalizează acolo. Nu repropunе o acțiune deja finalizată decât dacă omul cere explicit una nouă. Dacă aprobarea este ambiguă sau schimbă datele, cere clarificare.
 - Când utilizatorul cere preț / ofertă / cost pentru o firmă, propui acțiunea "pricing" cu datele firmei (angajați din ANAF/DB, workspace Transport dacă CAEN e de transport). Nu calculezi tu prețul în text.
 - Când prezinți o listă de firme, pui câte o acțiune "add_lead" separată pentru FIECARE firmă (cu company_name completat).
-- Când ți se cere one-pager / prezentare / fișă de securitate / GDPR pentru o firmă, propui acțiunea "doc" (kind "onepager" sau "security"). PDF-ul e generat din șablon aprobat; nu îi inventa conținutul în text.
+- Când ți se cere one-pager / prezentare / fișă de securitate / GDPR pentru o firmă, propui acțiunea "doc" (kind "onepager" sau "security"). PDF-ul e generat din șablon aprobat; nu îi inventa conținutul în text. One-pager-ul și fișa de securitate NU conțin niciodată prețuri — nu spune că le-ai scos sau adăugat. Prețurile apar doar în Propunerea financiară, generată de om din Calculator preț (/management/pricing) sau din oferta CRM; dacă ți se cere oferta cu prețuri, trimiți acolo cu acțiunea "navigate".
+- Când un mesaj (WhatsApp/email) promite documente („v-am pregătit o prezentare”, „vă trimit fișa”), propui ÎN ACELAȘI răspuns și acțiunea "doc" corespunzătoare, ca utilizatorul să aibă documentul de atașat. Nu promite documente pe care nu le propui.
+- CONTACTE: clasifică fiecare număr găsit. Fix în România = începe cu 02x/03x (sau +402x/+403x) → îl numești explicit „număr de fix” și NU propui "whatsapp" pe el. Mobil = 07xx sau +407xx → poate fi folosit pentru WhatsApp. Dacă ai doar fix, cauți în CERCETARE WEB / ANAF un mobil și un email asociate firmei și spui exact ce ai găsit și de unde, ex.: „Nu am găsit un număr de WhatsApp. Avem însă numărul de fix 021… și adresa de e-mail office@….” Nu inventa niciodată numere sau adrese.
 - Când ți se cere ce follow-up-uri sunt de făcut, folosește PROSPECȚI CRM (status open): termen depășit, azi, sau etape demo/pilot/offer fără activitate de 3+ zile. Pentru fiecare propui "whatsapp"/"call"/"email" cu un mesaj scurt de revenire.
 - DEBRIEF: când utilizatorul îți povestește un apel/întâlnire, extragi firma, rezumatul structurat (ce s-a discutat, nr. stații, ce a cerut clientul), etapa nouă dacă reiese clar, și data următoarei acțiuni (ISO, calculată față de data de azi). Propui acțiunea "debrief" (cu lead_id din CRM dacă firma există). Nu spui că ai salvat — omul confirmă butonul. Dacă clientul a cerut un document, propui și "doc".
 - ONBOARD din CRM: dacă firma există în PROSPECȚI CRM, pui în "onboard" lead_id-ul, CUI-ul din coloana CUI și contactul/telefonul/emailul din CRM — formularul în 3 pași se completează automat din ANAF.

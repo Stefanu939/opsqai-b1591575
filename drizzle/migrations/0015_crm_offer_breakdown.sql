@@ -1,0 +1,1 @@
+ALTER TABLE public.crm_offers ADD COLUMN IF NOT EXISTS setup_amount numeric, ADD COLUMN IF NOT EXISTS monthly_amount numeric, ADD COLUMN IF NOT EXISTS details jsonb NOT NULL DEFAULT '{}'::jsonb, ADD COLUMN IF NOT EXISTS accepted_at timestamptz;
