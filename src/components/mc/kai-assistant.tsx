@@ -628,7 +628,11 @@ export function KaiAssistant() {
           lead: a.lead_id && /^[0-9a-f-]{36}$/i.test(a.lead_id) ? a.lead_id : undefined,
         },
       });
-    } else if (a.type === "whatsapp") window.open(whatsappUrl(a.phone, a.text), "_blank");
+    } else if (a.type === "whatsapp") {
+      const landline = a.phone && /^(\+?40|0040|0)?[23]\d{7,8}$/.test(a.phone.replace(/[\s.\-()]/g, ""));
+      if (landline) toast.info("Numărul este de fix — nu are WhatsApp. Alegeți destinatarul în WhatsApp.");
+      window.open(whatsappUrl(landline ? null : a.phone, a.text), "_blank");
+    }
     else if (a.type === "email") window.open(
         sender.kai_may_compose
           ? composeEmailUrl(sender.email_provider, sender.sender_email, a.email, a.subject, a.body)
