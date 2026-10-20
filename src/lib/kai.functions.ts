@@ -61,6 +61,10 @@ export const askKai = createServerFn({ method: "POST" })
         mode: z.enum(["chat", "car"]).optional(),
         localTime: z.string().max(80).optional(),
         coords: z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) }).optional(),
+        images: z
+          .array(z.object({ mediaType: z.enum(["image/jpeg", "image/png", "image/webp"]), data: z.string().max(4_000_000) }))
+          .max(3)
+          .optional(),
       })
       .parse(d),
   )
@@ -134,7 +138,11 @@ export const askKai = createServerFn({ method: "POST" })
         ambient += " VREMEA: indisponibilă acum.";
       }
     }
-    const { generateAiJson, AiCapabilityError } = await import("@/lib/ai-provider.server");
+    const { generateAiJson, AiCapabilityError, hasAiCapability } = await import("@/lib/ai-provider.server");
+    const images = data.images ?? [];
+    if (images.length && !hasAiCapability("vision")) {
+      return { reply: "Motorul AI activ nu poate analiza imagini. Descrie-mi în text ce conține.", actions: [] };
+    }
 
     // Web research: when asked to find companies, Kai plans searches, reads
     // the results and pulls CUIs out of them for ANAF verification.
@@ -265,7 +273,17 @@ ${snapshot}${webBlock}${anafBlock}${ambient}`;
       raw = await generateAiJson({
         role: "chat",
         system,
-        messages: data.messages.map((m) => ({ role: m.role, content: m.content })),
+        messages: data.messages.map((m, i) =>
+          i === data.messages.length - 1 && m.role === "user" && images.length
+            ? {
+                role: "user" as const,
+                content: [
+                  { type: "text" as const, text: m.content },
+                  ...images.map((img) => ({ type: "image" as const, image: img.data, mediaType: img.mediaType })),
+                ],
+              }
+            : { role: m.role, content: m.content },
+        ),
         temperature: 0.3,
         maxOutputTokens: 2500,
       });
