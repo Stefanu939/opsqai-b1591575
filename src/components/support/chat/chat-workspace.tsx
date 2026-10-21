@@ -27,7 +27,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAvatarUrl } from "@/lib/avatar";
 import { toast } from "sonner";
 import {
   listMyConversations,
@@ -83,14 +84,18 @@ function ContactAvatar({
   name,
   size = 36,
   staff = false,
+  path,
 }: {
   name: string;
   size?: number;
   staff?: boolean;
+  path?: string | null;
 }) {
+  const url = useAvatarUrl(path);
   return (
     <div className="relative shrink-0">
       <Avatar className="rounded-md" style={{ width: size, height: size }}>
+        {url ? <AvatarImage src={url} alt={name} className="object-cover" /> : null}
         <AvatarFallback className="rounded-md bg-primary/12 text-primary font-medium">
           {initials(name).toUpperCase()}
         </AvatarFallback>
@@ -282,7 +287,7 @@ function ConversationList({
                 c.id === activeConv && "bg-accent/60",
               )}
             >
-              <ContactAvatar name={c.peer?.full_name || "?"} staff={c.peer?.is_staff ?? false} />
+              <ContactAvatar name={c.peer?.full_name || "?"} staff={c.peer?.is_staff ?? false} path={c.peer?.avatar_url} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="truncate text-sm font-medium text-foreground">
@@ -436,6 +441,7 @@ function ConversationPane({
           name={conv?.peer?.full_name || "?"}
           size={38}
           staff={conv?.peer?.is_staff ?? false}
+          path={conv?.peer?.avatar_url}
         />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold leading-tight text-foreground">
@@ -505,6 +511,7 @@ function ConversationPane({
                   mine ? "You" : conv?.peer?.full_name || conv?.peer?.email || "Colleague"
                 }
                 staff={!mine && (conv?.peer?.is_staff ?? false)}
+                peerAvatar={conv?.peer?.avatar_url ?? null}
               />
             </div>
           );
@@ -600,7 +607,9 @@ function MessageRow({
   grouped,
   senderName,
   staff,
+  peerAvatar,
 }: {
+  peerAvatar?: string | null;
   message: ChatMessage;
   mine: boolean;
   grouped: boolean;
@@ -640,7 +649,7 @@ function MessageRow({
         (grouped ? (
           <span className="w-8 shrink-0" />
         ) : (
-          <ContactAvatar name={senderName} size={32} staff={staff} />
+          <ContactAvatar name={senderName} size={32} staff={staff} path={peerAvatar} />
         ))}
 
       <div className={cn("flex max-w-[74%] flex-col", mine ? "items-end" : "items-start")}>
@@ -855,7 +864,7 @@ function NewChatPane({
             disabled={starting === c.id}
             className="flex w-full items-center gap-3 border-b border-border/60 px-3 py-2.5 text-left hover:bg-accent/40 disabled:opacity-50"
           >
-            <ContactAvatar name={c.full_name || c.email} staff={c.is_staff} />
+            <ContactAvatar name={c.full_name || c.email} staff={c.is_staff} path={c.avatar_url} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="truncate text-sm font-medium">{c.full_name || c.email}</span>

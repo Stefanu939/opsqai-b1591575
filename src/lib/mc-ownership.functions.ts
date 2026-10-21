@@ -239,7 +239,7 @@ export const getColleagueOverview = createServerFn({ method: "POST" })
       admin.from("user_roles").select("user_id, role").in("role", ["platform_admin", "platform_owner"]),
       admin
         .from("profiles")
-        .select("id, full_name, first_name, last_name")
+        .select("id, full_name, first_name, last_name, avatar_url")
         .eq("id", uid)
         .maybeSingle(),
       admin.auth.admin.listUsers({ perPage: 1000 }),
@@ -353,6 +353,7 @@ export const getColleagueOverview = createServerFn({ method: "POST" })
         user_id: uid,
         name,
         email: emailById.get(uid) ?? "",
+        avatar_url: ((profile as { avatar_url?: string | null } | null)?.avatar_url ?? null) as string | null,
         is_super_admin: staffIds.includes(uid),
       },
       kpis: {
