@@ -1348,6 +1348,7 @@ export function KaiAssistant() {
                       </div>
                     )}
                   </Message>
+                  </div>
                 ))}
 
                 {pending && (
