@@ -55,11 +55,13 @@ function SalesCockpit() {
   const [email, setEmail] = useState(pre.email);
   const [sender, setSender] = useState("Ștefan");
   const [time, setTime] = useState("");
-  const [industry, setIndustry] = useState<Industry>("transport");
+  const [industry, setIndustry] = useState<Industry | "custom">("transport");
+  const [about, setAbout] = useState("");
+  const [customTone, setCustomTone] = useState("");
   const [kind, setKind] = useState<"intro" | "followup">("intro");
   const [objection, setObjection] = useState(0);
 
-  const [tone, setTone] = useState<Tone>("generic");
+  const [tone, setTone] = useState<Tone | "custom">("generic");
   const [role, setRole] = useState("");
   const [notes, setNotes] = useState(pre.notes);
   const [analysis, setAnalysis] = useState<ClientAnalysis | null>(null);
@@ -69,14 +71,16 @@ function SalesCockpit() {
 
   const me = useMyName();
   useEffect(() => { if (me.fullName) setSender(me.fullName); }, [me.fullName]);
-  const vars = { name, company, sender, time, role: me.position };
-  const sc = toneScripts(tone, industry, vars);
+  const vars = { name, company, sender, time, role: me.position, email: me.email };
+  const baseTone: Tone = tone === "custom" ? "generic" : tone;
+  const industryLabel = industry === "custom" ? about.trim() || "Alt domeniu" : INDUSTRY_LABELS[industry];
+  const sc = toneScripts(baseTone, industry, vars, about);
   const waText = kind === "intro" ? sc.whatsapp : sc.whatsappFollowUp;
   const [waEdit, setWaEdit] = useState<string | null>(null);
   const waFinal = waEdit ?? waText;
   const mail = { subject: sc.subject, body: sc.email };
   const objections = [
-    ...OBJECTIONS.map((o, i) => ({ q: o.q, a: toneObjection(tone, i) })),
+    ...OBJECTIONS.map((o, i) => ({ q: o.q, a: toneObjection(baseTone, i) })),
     ...(analysis?.objections ?? []).map((o) => ({ q: `„${o.q.replace(/[„”"]/g, "")}”`, a: o.a })),
   ];
 
@@ -84,18 +88,19 @@ function SalesCockpit() {
     if (!company.trim()) return toast.error("Completează firma.");
     setAnalyzing(true);
     try {
-      const r = await analyze({ data: { company, industry: INDUSTRY_LABELS[industry], contact: name || null, role: role || null, notes: notes || null } });
+      const toneNote = tone === "custom" && customTone.trim() ? `Ton dorit de vânzător: ${customTone.trim()}.` : "";
+      const r = await analyze({ data: { company, industry: industryLabel, contact: name || null, role: role || null, notes: [notes, toneNote].filter(Boolean).join(" ") || null } });
       setAnalysis(r);
-      setTone(r.tone);
+      if (tone !== "custom") setTone(r.tone);
       setWaEdit(null);
-      toast.success("Analiză gata. Tonul recomandat a fost aplicat.");
+      toast.success(tone === "custom" ? "Analiză gata, cu tonul tău." : "Analiză gata. Tonul recomandat a fost aplicat.");
     } catch {
       toast.error("Kai nu a putut face analiza acum.");
     } finally {
       setAnalyzing(false);
     }
   };
-  const docInput = { company, contact: name, sender, industry: INDUSTRY_LABELS[industry], pains: analysis?.pains, pilotGoal: analysis?.pilotGoal, modules: analysis?.modules };
+  const docInput = { company, contact: name, sender, industry: industryLabel, pains: analysis?.pains, pilotGoal: analysis?.pilotGoal, modules: analysis?.modules };
 
   return (
     <ModulePage
@@ -125,12 +130,16 @@ function SalesCockpit() {
             {(Object.keys(INDUSTRY_LABELS) as Industry[]).map((k) => (
               <Chip key={k} active={industry === k} onClick={() => { setIndustry(k); setWaEdit(null); }}>{INDUSTRY_LABELS[k]}</Chip>
             ))}
+            <Chip active={industry === "custom"} onClick={() => { setIndustry("custom"); setWaEdit(null); }}>+ Alt domeniu</Chip>
           </div>
+          {industry === "custom" && (
+            <Input className="mt-2" value={about} onChange={(e) => { setAbout(e.target.value); setWaEdit(null); }} placeholder="Descrie firma: ex. clinici veterinare, 5 locații, echipe pe ture" />
+          )}
         </div>
         <div className="mt-4">
           <Label className="text-xs">Tonul persoanei</Label>
-          <div className="mt-1 grid gap-2 sm:grid-cols-4">
-            {TONES.map((t) => (
+          <div className="mt-1 grid gap-2 sm:grid-cols-5">
+            {[...TONES, { id: "custom" as const, label: "Personalizat", hint: "Descrii tu tonul" }].map((t) => (
               <button
                 key={t.id}
                 type="button"
@@ -145,6 +154,9 @@ function SalesCockpit() {
               </button>
             ))}
           </div>
+          {tone === "custom" && (
+            <Input className="mt-2" value={customTone} onChange={(e) => setCustomTone(e.target.value)} placeholder="ex. cald, antreprenorial, fără jargon tehnic — Kai adaptează analiza" />
+          )}
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button size="sm" variant="outline" disabled={!phone} asChild={Boolean(phone)}>
