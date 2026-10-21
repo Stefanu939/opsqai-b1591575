@@ -27,7 +27,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAvatarUrl } from "@/lib/avatar";
 import { toast } from "sonner";
 import {
   listMyConversations,
@@ -83,14 +84,18 @@ function ContactAvatar({
   name,
   size = 36,
   staff = false,
+  path,
 }: {
   name: string;
   size?: number;
   staff?: boolean;
+  path?: string | null;
 }) {
+  const url = useAvatarUrl(path);
   return (
     <div className="relative shrink-0">
       <Avatar className="rounded-md" style={{ width: size, height: size }}>
+        {url ? <AvatarImage src={url} alt={name} className="object-cover" /> : null}
         <AvatarFallback className="rounded-md bg-primary/12 text-primary font-medium">
           {initials(name).toUpperCase()}
         </AvatarFallback>

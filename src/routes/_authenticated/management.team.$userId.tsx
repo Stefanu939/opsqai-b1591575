@@ -9,6 +9,7 @@ import {
   type ColleagueCompany,
 } from "@/lib/mc-ownership.functions";
 import { ModulePage } from "@/components/app/module-page";
+import { UserAvatar } from "@/components/app/user-avatar";
 import { StatCard } from "@/components/ui/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,7 @@ function ColleagueDetailPage() {
       breadcrumbs={[{ label: "Team", to: "/management/team" }, { label: member.name }]}
       actions={
         <div className="flex items-center gap-2">
+          <UserAvatar path={member.avatar_url} name={member.name} email={member.email} className="h-9 w-9" />
           {member.is_super_admin ? (
             <Badge variant="default">
               <ShieldCheck className="mr-1 h-3 w-3" /> SuperAdmin

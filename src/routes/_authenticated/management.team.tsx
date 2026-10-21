@@ -15,6 +15,7 @@ import {
   resetTeamMemberPassword,
 } from "@/lib/team.functions";
 import { ModulePage } from "@/components/app/module-page";
+import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,6 +79,7 @@ type Member = {
   last_name: string | null;
   full_name: string | null;
   position: string | null;
+  avatar_url?: string | null;
   phone: string | null;
   department_id: string | null;
   department_name: string | null;
@@ -258,9 +260,12 @@ function TeamPage() {
                     <tr key={m.id} className="hover:bg-muted/20">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                           <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary/15 text-xs font-semibold text-primary">
-                            {initials(m)}
-                          </div>
+                          <UserAvatar
+                            path={m.avatar_url}
+                            name={m.full_name || `${m.first_name ?? ""} ${m.last_name ?? ""}`.trim() || initials(m)}
+                            email={m.email}
+                            className="h-9 w-9"
+                          />
                           <div className="min-w-0">
                             <div className="font-medium truncate">
                               <Link

@@ -75,6 +75,7 @@ export const listTeamMembers = createServerFn({ method: "POST" })
         last_name: p.lastName,
         full_name: p.fullName,
         position: p.position,
+        avatar_url: p.avatarUrl,
         phone: p.phone,
         department_id: p.departmentId,
         department_name: p.departmentId ? (deptById.get(p.departmentId) ?? null) : null,

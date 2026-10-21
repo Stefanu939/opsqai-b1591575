@@ -18,6 +18,8 @@ export interface MyName {
   position: string;
   /** Sign-in email, shown in outreach contact lines */
   email?: string;
+  /** Profile photo storage key */
+  avatarPath?: string | null;
 }
 
 function fromEmail(email?: string | null): MyName {
@@ -47,11 +49,12 @@ export function useMyName(): MyName {
   const last = profile.data?.last_name?.trim() ?? "";
   const position = profile.data?.position?.trim() ?? "";
   const email = user?.email ?? "";
-  if (!first && !last) return { ...fallback, position, email };
+  const avatarPath = profile.data?.avatar_url ?? null;
+  if (!first && !last) return { ...fallback, position, email, avatarPath };
 
   const fullName = [first, last].filter(Boolean).join(" ");
   const initials =
     ((first[0] ?? "") + (last[0] ?? "")).toUpperCase() ||
     fallback.initials;
-  return { firstName: first || last, fullName, initials, position, email };
+  return { firstName: first || last, fullName, initials, position, email, avatarPath };
 }

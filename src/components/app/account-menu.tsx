@@ -18,6 +18,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useMyName } from "@/lib/use-my-name";
+import { UserAvatar } from "@/components/app/user-avatar";
 import { audienceForPath } from "@/lib/sign-out-target";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Button } from "@/components/ui/button";
@@ -179,7 +180,7 @@ export function AccountMenu({
 
   const status = (presence.data?.status ?? "available") as PresenceStatusValue;
 
-  const { fullName, initials } = useMyName();
+  const { fullName, initials, avatarPath } = useMyName();
   const displayName = fullName || user?.email?.split("@")[0] || "Account";
 
   return (
@@ -194,9 +195,8 @@ export function AccountMenu({
             )}
           >
             <span className="relative">
-              <span className="grid h-8 w-8 place-items-center rounded-sm bg-primary text-[11px] font-semibold text-primary-foreground">
-                {initials}
-              </span>
+              <UserAvatar path={avatarPath} name={fullName || initials} email={user?.email} />
+
               {staffTools ? (
                 <span className="absolute -bottom-0.5 -right-0.5">
                   <PresenceDot status={status} />

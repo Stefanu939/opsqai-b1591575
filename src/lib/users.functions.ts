@@ -654,6 +654,7 @@ export const getMyProfile = createServerFn({ method: "GET" })
       phone: profile.phone,
       department_id: profile.departmentId,
       language_pref: profile.languagePref,
+      avatar_url: profile.avatarUrl,
     };
   });
 
