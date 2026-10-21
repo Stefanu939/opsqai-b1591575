@@ -70,6 +70,7 @@ import { Input } from "@/components/ui/input";
 import { listKaiConversations, saveKaiConversations } from "@/lib/kai-conversations.functions";
 import { useAuth } from "@/lib/auth-context";
 import { useMyName } from "@/lib/use-my-name";
+import { UserAvatar } from "@/components/app/user-avatar";
 import {
   askKai,
   logKaiAction,
@@ -173,7 +174,7 @@ export function KaiAssistant() {
   const navigate = useNavigate();
   const page = useRouterState({ select: (s) => s.location.pathname });
   const { user, session, loading } = useAuth();
-  const { firstName: name, fullName, position, email: myEmail } = useMyName();
+  const { firstName: name, fullName, position, email: myEmail, avatarPath: myAvatar } = useMyName();
   const ask = useServerFn(askKai);
   const addLead = useServerFn(saveCrmLead);
   const saveDebrief = useServerFn(applyCallDebrief);
@@ -1219,7 +1220,13 @@ export function KaiAssistant() {
                 )}
 
                 {messages.map((m, i) => (
-                  <Message key={i} from={m.role} className="max-w-full">
+                  <div key={i} className={cn("flex items-start gap-2", m.role === "user" && "flex-row-reverse")}>
+                  {m.role === "user" ? (
+                    <UserAvatar path={myAvatar} name={fullName} email={myEmail} className="mt-1 h-7 w-7 shrink-0" />
+                  ) : (
+                    <KaiFace size={28} className="mt-1 shrink-0" />
+                  )}
+                  <Message from={m.role} className="min-w-0 max-w-full">
                     <MessageContent
                       className={cn(
                         "max-w-full break-words",

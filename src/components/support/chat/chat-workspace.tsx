@@ -441,6 +441,7 @@ function ConversationPane({
           name={conv?.peer?.full_name || "?"}
           size={38}
           staff={conv?.peer?.is_staff ?? false}
+          path={conv?.peer?.avatar_url}
         />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold leading-tight text-foreground">
