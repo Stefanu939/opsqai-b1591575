@@ -2,7 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Check, Download, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Download, FileText, Mail, MessageCircle, Phone, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useMyName } from "@/lib/use-my-name";
+import { mailtoUrl, telUrl, whatsappTemplate, whatsappUrl } from "@/lib/mc-outreach";
+import { isLandline, parseLeadFacts } from "@/lib/crm-lead-facts";
 import { toast } from "sonner";
 import { ModulePage } from "@/components/app/module-page";
 import { SalesDocButtons } from "@/components/mc/sales-docs";
@@ -63,6 +67,22 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
+function ContactRow({ icon, value, tag, warn, href }: { icon: React.ReactNode; value: string | null; tag?: string; warn?: boolean; href?: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-muted-foreground">{icon}</span>
+      {value ? (
+        <a href={href} className="min-w-0 flex-1 truncate font-medium text-foreground hover:text-primary">{value}</a>
+      ) : (
+        <span className="flex-1 text-muted-foreground">—</span>
+      )}
+      {tag && (
+        <Badge variant="outline" className={cn("text-[10px]", warn && "border-warning/50 text-warning")}>{tag}</Badge>
+      )}
+    </div>
+  );
+}
+
 function LeadDetailPage() {
   const { leadId } = Route.useParams();
   const qc = useQueryClient();
@@ -85,6 +105,7 @@ function LeadDetailPage() {
   });
 
   const [editOpen, setEditOpen] = useState(false);
+  const me = useMyName();
   const [act, setAct] = useState({ kind: "note", subject: "", body: "", due_at: "" });
   const [offer, setOffer] = useState({ title: "", amount: "", valid_until: "" });
 
@@ -135,6 +156,13 @@ function LeadDetailPage() {
 
   const lead = data.lead;
   const canEdit = data.canEdit;
+  const facts = parseLeadFacts(lead.notes);
+  const landline = isLandline(lead.phone);
+  const open = data.activities.filter((a) => !a.done_at);
+  const timeline = [
+    ...data.activities.map((a) => ({ id: a.id, at: a.created_at ?? a.due_at ?? "", kind: a.done_at ? `${a.kind} · făcut` : a.kind, title: a.subject, body: a.body })),
+    ...data.events.filter((e) => e.kind !== "audit").map((e) => ({ id: e.id, at: e.created_at, kind: e.kind, title: null as string | null, body: e.detail as string | null })),
+  ].sort((x, y) => (y.at > x.at ? 1 : -1));
 
   const doConvert = () =>
     convert({ data: { id: leadId } } as never)
