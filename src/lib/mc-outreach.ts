@@ -35,7 +35,7 @@ export function telUrl(phone: string | null | undefined) {
   return n ? `tel:${n}` : "";
 }
 
-export type Vars = { name?: string; company?: string; sender?: string; time?: string; role?: string };
+export type Vars = { name?: string; company?: string; sender?: string; time?: string; role?: string; email?: string };
 
 export const KAI_URL = "https://opsqai.de/kai";
 export const INSTAGRAM_URL = "https://www.instagram.com/opsqai";
@@ -82,7 +82,8 @@ const WA: Record<Industry | "followup", string> = {
 };
 
 export function whatsappTemplate(kind: Industry | "followup", v: Vars) {
-  return signWa(WA[kind], v, kind !== "followup");
+  if (kind === "followup") return signWa(WA.followup, v);
+  return coldWhatsapp("generic", PAIN[kind], v);
 }
 
 export function coldEmail(v: Vars) {
@@ -285,15 +286,50 @@ opsqai.de`,
   }
 }
 
-export function toneScripts(tone: Tone, industry: Industry, v: Vars) {
-  const s = toneSet(tone, industry);
+/** Contact lines under the first WhatsApp message (email, Instagram, KAI). */
+export function contactLines(v: Vars) {
+  const mail = v.email?.trim() || "contact@opsqai.de";
+  return `\n\n📧 ${mail}\n📸 Instagram: ${INSTAGRAM_URL}\n💬 Discutați cu KAI, fără cont: ${KAI_URL}`;
+}
+
+/**
+ * The one first-contact WhatsApp used by Sales Cockpit, CRM and Kai:
+ * name → on behalf of the OPSQAI team → short description → 30-day pilot
+ * offer "dacă sunteți interesați" → email, Instagram, KAI underneath.
+ */
+export function coldWhatsapp(tone: Tone | "custom", pain: string, v: Vars) {
+  const who = v.sender?.trim() || "Ștefan";
+  const role = v.role?.trim() ? `, ${v.role.trim()}` : "";
+  const greet =
+    tone === "protocol"
+      ? `Stimate domnule/Stimată doamnă ${v.name?.trim() || "[Nume]"},`
+      : v.name?.trim()
+        ? `Bună ziua, ${v.name.trim()}!`
+        : "Bună ziua!";
+  const desc = `OPSQAI este o platformă AI instalată pe calculatoarele firmei, care ajută echipele cu ${pain}, fără ca datele să plece în cloud.`;
+  const offer =
+    tone === "distant"
+      ? "Vă propunem un pilot gratuit de 30 de zile, dacă sunteți interesați."
+      : `Am dorit să vă propunem o colaborare pentru ${v.company?.trim() || "firma dumneavoastră"}, printr-un pilot gratuit de 30 de zile, dacă sunteți interesați.`;
+  return `${greet} Mă numesc ${who}${role} și vă contactez din partea echipei OPSQAI. ${desc} ${offer}${contactLines(v)}`;
+}
+
+export function painFor(industry: Industry | "custom", about?: string) {
+  if (industry === "custom") return about?.trim() ? `procedurile și instruirea specifice activității lor (${about.trim()})` : "procedurile interne și instruirea angajaților";
+  return PAIN[industry];
+}
+
+export function toneScripts(tone: Tone, industry: Industry | "custom", v: Vars, about?: string) {
+  const s = toneSet(tone, industry === "custom" ? "production" : industry);
+  const pain = painFor(industry, about);
+  const swap = (t: string) => (industry === "custom" ? t.replaceAll(PAIN.production, pain) : t);
   return {
-    opening: fill(s.opening, v),
-    pitch: fill(s.pitch, v),
-    whatsapp: signWa(s.wa, v, true),
-    whatsappFollowUp: signWa(s.waFollow, v),
-    subject: fill(s.subject, v),
-    email: signEmail(s.email, v),
+    opening: fill(swap(s.opening), v),
+    pitch: fill(swap(s.pitch), v),
+    whatsapp: coldWhatsapp(tone, pain, v),
+    whatsappFollowUp: signWa(swap(s.waFollow), v),
+    subject: fill(swap(s.subject), v),
+    email: signEmail(swap(s.email), v),
   };
 }
 
