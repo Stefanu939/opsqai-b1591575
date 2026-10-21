@@ -16,6 +16,8 @@ export interface MyName {
   initials: string;
   /** Profile position, e.g. "Sales Manager" */
   position: string;
+  /** Sign-in email, shown in outreach contact lines */
+  email?: string;
 }
 
 function fromEmail(email?: string | null): MyName {
@@ -44,11 +46,12 @@ export function useMyName(): MyName {
   const first = profile.data?.first_name?.trim() ?? "";
   const last = profile.data?.last_name?.trim() ?? "";
   const position = profile.data?.position?.trim() ?? "";
-  if (!first && !last) return { ...fallback, position };
+  const email = user?.email ?? "";
+  if (!first && !last) return { ...fallback, position, email };
 
   const fullName = [first, last].filter(Boolean).join(" ");
   const initials =
     ((first[0] ?? "") + (last[0] ?? "")).toUpperCase() ||
     fallback.initials;
-  return { firstName: first || last, fullName, initials, position };
+  return { firstName: first || last, fullName, initials, position, email };
 }

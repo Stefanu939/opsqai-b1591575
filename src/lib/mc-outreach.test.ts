@@ -1,13 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { whatsappTemplate } from "./mc-outreach";
+import { toneScripts, whatsappTemplate } from "./mc-outreach";
 
-const v = { name: "Ion", company: "ARC GRUP", sender: "Ștefan Bari", role: "Fondator" };
+const v = { name: "Ion", company: "ARC GRUP", sender: "Ștefan Bari", role: "Fondator", email: "stefan@opsqai.de" };
 
 describe("first-contact WhatsApp", () => {
-  it("has no links and does not presume a prepared presentation", () => {
+  it("introduces the sender on behalf of the OPSQAI team and offers the 30-day pilot", () => {
     const t = whatsappTemplate("production", v);
-    expect(t).not.toMatch(/https?:\/\//);
+    expect(t).toContain("Mă numesc Ștefan Bari, Fondator și vă contactez din partea echipei OPSQAI");
+    expect(t).toContain("pilot gratuit de 30 de zile, dacă sunteți interesați");
     expect(t).not.toMatch(/pregătit/i);
+  });
+  it("lists email, Instagram and KAI below the message", () => {
+    const t = whatsappTemplate("transport", v);
+    expect(t).toContain("stefan@opsqai.de");
+    expect(t).toContain("instagram.com/opsqai");
+    expect(t).toContain("opsqai.de/kai");
+  });
+  it("custom domain description reaches the message", () => {
+    const t = toneScripts("generic", "custom", v, "clinici veterinare").whatsapp;
+    expect(t).toContain("clinici veterinare");
   });
   it("follow-up may include the KAI link but never Instagram", () => {
     const t = whatsappTemplate("followup", v);
