@@ -86,23 +86,63 @@ export function whatsappTemplate(kind: Industry | "followup", v: Vars) {
   return coldWhatsapp("generic", PAIN[kind], v);
 }
 
-export function coldEmail(v: Vars) {
+/** Clean, professional email sign-off used by every outreach email. */
+export function emailSignature(v: Vars) {
+  const who = v.sender?.trim() || "Echipa OPSQAI";
+  const role = v.role?.trim();
+  return `Cu stimă,\n${who}\n${role ? `${role} | ` : ""}OPSQAI\n\n${KAI_URL}`;
+}
+
+function intro(v: Vars) {
+  const who = v.sender?.trim() || "Ștefan";
+  const role = v.role?.trim();
+  return `Mă numesc ${who}${role ? ` și sunt ${role} OPSQAI` : " și vă contactez din partea echipei OPSQAI"}.`;
+}
+
+/**
+ * The one cold-outreach email (Sales Cockpit, CRM, Kai): short paragraphs,
+ * free 30-day pilot, 15-minute call ask, clean signature + KAI link.
+ */
+export function coldEmail(v: Vars, pain = "procedurile interne, informațiile operaționale și documentația de lucru") {
+  const company = v.company?.trim() || "firma dumneavoastră";
+  const greet = v.name?.trim() ? `Bună ziua, ${v.name.trim()},` : "Bună ziua,";
   return {
-    subject: fill("Optimizare proceduri interne și instruire {company} (100% local, fără cloud)", v),
-    body: signEmail(
-      `Bună ziua, {name},
+    subject: `Propunere pilot gratuit OPSQAI – ${company}`,
+    body: `${greet}
 
-Vă contactez direct deoarece sprijinim companiile din România să reducă timpul alocat căutării de proceduri interne și instruirii noilor angajați.
+${intro(v)}
 
-OPSQAI este o platformă de asistență operațională și academie internă cu o particularitate importantă: rulează 100% instalată pe serverul dumneavoastră, fără ca datele confidențiale să părăsească rețeaua firmei.
+Vă contactez pentru a vă propune un proiect pilot gratuit de 30 de zile, prin care echipa ${company} să poată evalua modul în care OPSQAI poate simplifica accesul la ${pain}.
 
-Ați fi deschis pentru o discuție scurtă de 10-15 minute marți sau joi, ca să vă arăt cum funcționează practic pe documentele dumneavoastră?
+Scopul nostru este să ajutăm companiile să organizeze mai eficient informațiile interne și să ofere angajaților acces rapid la acestea, prin intermediul unui asistent AI.
 
-Cu stimă,
-{sender} | OPSQAI
-opsqai.de`,
-      v,
-    ),
+Dacă propunerea este relevantă pentru activitatea dumneavoastră, aș fi bucuros să stabilim o scurtă discuție de 15 minute pentru a identifica eventualele puncte în care OPSQAI v-ar putea fi util.
+
+Vă mulțumesc pentru timpul acordat și aștept cu interes răspunsul dumneavoastră.
+
+${emailSignature(v)}`,
+  };
+}
+
+/** Follow-up email in the same style; stage-aware wording. */
+export function followUpEmail(v: Vars, stage?: string) {
+  const company = v.company?.trim() || "firma dumneavoastră";
+  const greet = v.name?.trim() ? `Bună ziua, ${v.name.trim()},` : "Bună ziua,";
+  const middle =
+    stage === "offer"
+      ? `Revin cu privire la propunerea OPSQAI transmisă pentru ${company}. Aș dori să aflu dacă ați avut ocazia să o parcurgeți și dacă există aspecte pe care le-ați dori clarificate.`
+      : stage === "demo" || stage === "pilot"
+        ? `Vă mulțumesc pentru timpul acordat demonstrației OPSQAI. Dacă vi se pare util, putem porni pilotul gratuit de 30 de zile pe procedurile unui singur departament, pentru a evalua rezultatele concret.`
+        : `Revin în urma discuției noastre despre OPSQAI și propunerea de pilot gratuit de 30 de zile pentru ${company}. Vă pot transmite o prezentare de o pagină sau putem stabili o scurtă discuție de 15 minute.`;
+  return {
+    subject: `Revenire OPSQAI – ${company}`,
+    body: `${greet}
+
+${middle}
+
+Rămân la dispoziția dumneavoastră pentru orice întrebare și vă mulțumesc pentru timpul acordat.
+
+${emailSignature(v)}`,
   };
 }
 
