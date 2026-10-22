@@ -454,7 +454,14 @@ function LeadDetailPage() {
                 <div className="text-foreground">{facts.address}</div>
               </div>
             )}
-            {facts.rest && <p className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">{facts.rest}</p>}
+          </Panel>
+
+          <Panel title="Note">
+            {lead.notes ? (
+              <p className="whitespace-pre-wrap text-sm text-foreground">{lead.notes}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nicio notă încă.</p>
+            )}
           </Panel>
 
           <Panel title="Ce s-a discutat">
