@@ -368,8 +368,9 @@ export function toneScripts(tone: Tone, industry: Industry | "custom", v: Vars, 
     pitch: fill(swap(s.pitch), v),
     whatsapp: coldWhatsapp(tone, pain, v),
     whatsappFollowUp: signWa(swap(s.waFollow), v),
-    subject: fill(swap(s.subject), v),
-    email: signEmail(swap(s.email), v),
+    subject: coldEmail(v, pain).subject,
+    email: coldEmail(v, pain).body,
+    emailFollowUp: followUpEmail(v),
   };
 }
 
