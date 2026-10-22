@@ -26,3 +26,19 @@ describe("first-contact WhatsApp", () => {
     expect(t).not.toContain("instagram");
   });
 });
+
+describe("outreach emails", () => {
+  it("cold email offers the 30-day pilot and signs with name, role and KAI link", async () => {
+    const { coldEmail } = await import("./mc-outreach");
+    const m = coldEmail(v);
+    expect(m.subject).toBe("Propunere pilot gratuit OPSQAI – ARC GRUP");
+    expect(m.body).toContain("proiect pilot gratuit de 30 de zile");
+    expect(m.body).toContain("Cu stimă,\nȘtefan Bari\nFondator | OPSQAI\n\nhttps://opsqai.de/kai");
+  });
+  it("follow-up email uses the same signature", async () => {
+    const { followUpEmail } = await import("./mc-outreach");
+    const m = followUpEmail(v, "offer");
+    expect(m.subject).toBe("Revenire OPSQAI – ARC GRUP");
+    expect(m.body).toContain("Fondator | OPSQAI");
+  });
+});
