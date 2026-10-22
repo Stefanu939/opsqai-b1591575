@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Brain, Copy, FileText, Mail, MessageCircle, Phone, ShieldCheck, ShieldQuestion } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { listCrmLeads, type CrmLead } from "@/lib/crm.functions";
 import { analyzeClient, type ClientAnalysis } from "@/lib/sales-tools.functions";
 import { onePagerHtml, openHtml, securityHtml } from "@/lib/sales-html";
 import { toast } from "sonner";
@@ -69,6 +71,28 @@ function SalesCockpit() {
   const analyze = useServerFn(analyzeClient);
   useEffect(() => { setName(pre.contact); setCompany(pre.company); setPhone(pre.phone); setEmail(pre.email); setNotes(pre.notes); setAnalysis(null); setWaEdit(null); }, [pre.company, pre.contact, pre.phone, pre.email, pre.notes]);
 
+  const leadsFn = useServerFn(listCrmLeads);
+  const leadsQ = useQuery({ queryKey: ["crm-leads-cockpit"], queryFn: () => leadsFn(), staleTime: 60_000 });
+  const [leadQuery, setLeadQuery] = useState("");
+  const [leadId, setLeadId] = useState("");
+  const allLeads: CrmLead[] = leadsQ.data?.leads ?? [];
+  const lq = leadQuery.trim().toLowerCase();
+  const filteredLeads = (lq ? allLeads.filter((l) => `${l.company_name} ${l.contact_name ?? ""} ${l.email ?? ""}`.toLowerCase().includes(lq)) : allLeads).slice(0, 200);
+  const pickLead = (id: string) => {
+    setLeadId(id);
+    setAnalysis(null);
+    setWaEdit(null);
+    if (!id) { setName(""); setCompany(""); setPhone(""); setEmail(""); setNotes(""); return; }
+    const l = allLeads.find((x) => x.id === id);
+    if (!l) return;
+    setName(l.contact_name ?? "");
+    setCompany(l.company_name);
+    setPhone(l.phone ?? "");
+    setEmail(l.email ?? "");
+    setNotes(l.notes ?? "");
+    setKind(["new"].includes(l.stage) ? "intro" : "followup");
+  };
+
   const me = useMyName();
   useEffect(() => { if (me.fullName) setSender(me.fullName); }, [me.fullName]);
   const vars = { name, company, sender, time, role: me.position, email: me.email };
@@ -111,6 +135,30 @@ function SalesCockpit() {
       <FollowUpRadar sender={sender} role={me.position} />
 
       <Panel title="Cu cine vorbești?">
+        <div className="mb-4">
+          <Label className="text-xs">Alege din CRM (completează automat)</Label>
+          <div className="mt-1 flex flex-col gap-2 sm:flex-row">
+            <Input value={leadQuery} onChange={(e) => setLeadQuery(e.target.value)} placeholder="Caută firmă sau persoană…" className="sm:max-w-xs" />
+            <select
+              value={leadId}
+              onChange={(e) => pickLead(e.target.value)}
+              className="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            >
+              <option value="">{leadsQ.isLoading ? "Se încarcă…" : `— Client nou / manual (${filteredLeads.length}) —`}</option>
+              {filteredLeads.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.company_name}{l.contact_name ? ` · ${l.contact_name}` : ""} · {l.stage}
+                </option>
+              ))}
+            </select>
+            {leadId && (
+              <>
+                <Button variant="secondary" size="sm" asChild><Link to="/management/crm/$leadId" params={{ leadId }}>Fișa CRM</Link></Button>
+                <Button variant="ghost" size="sm" onClick={() => pickLead("")}>Golește</Button>
+              </>
+            )}
+          </div>
+        </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Persoană de contact" value={name} onChange={setName} placeholder="dl. Popescu" />
           <Field label="Firmă" value={company} onChange={setCompany} placeholder="Transport SRL" />
