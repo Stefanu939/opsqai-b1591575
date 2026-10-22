@@ -102,7 +102,7 @@ function SalesCockpit() {
   const waText = kind === "intro" ? sc.whatsapp : sc.whatsappFollowUp;
   const [waEdit, setWaEdit] = useState<string | null>(null);
   const waFinal = waEdit ?? waText;
-  const mail = { subject: sc.subject, body: sc.email };
+  const mail = kind === "intro" ? { subject: sc.subject, body: sc.email } : sc.emailFollowUp;
   const objections = [
     ...OBJECTIONS.map((o, i) => ({ q: o.q, a: toneObjection(baseTone, i) })),
     ...(analysis?.objections ?? []).map((o) => ({ q: `„${o.q.replace(/[„”"]/g, "")}”`, a: o.a })),

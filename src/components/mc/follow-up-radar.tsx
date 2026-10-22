@@ -6,7 +6,7 @@ import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { listFollowUps, type FollowUp } from "@/lib/sales-tools.functions";
-import { mailtoUrl, signature, telUrl, whatsappUrl } from "@/lib/mc-outreach";
+import { followUpEmail, mailtoUrl, signature, telUrl, whatsappUrl } from "@/lib/mc-outreach";
 
 const LABEL: Record<FollowUp["urgency"], string> = {
   overdue: "Întârziat",
@@ -77,7 +77,7 @@ export function FollowUpRadar({ sender = "Ștefan", role, limit = 12 }: { sender
                     <a href={telUrl(f.phone)} aria-label="Sună"><Phone className="h-4 w-4" /></a>
                   </Button>
                 )}
-                <Button size="sm" variant="secondary" onClick={() => window.open(mailtoUrl(f.email ?? undefined, `Revenire OPSQAI – ${f.company_name}`, text), "_blank")}>
+                <Button size="sm" variant="secondary" onClick={() => window.open((() => { const m = followUpEmail({ name: f.contact_name ?? "", company: f.company_name, sender, role }, f.stage); return mailtoUrl(f.email ?? undefined, m.subject, m.body); })(), "_blank")}>
                   <Mail className="h-4 w-4" />
                 </Button>
               </div>
