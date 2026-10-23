@@ -62,6 +62,7 @@ import { RoleScenarios } from "@/components/oix/role-scenarios";
 import { ProofMap } from "@/components/oix/proof-map";
 import { useHomeCopy } from "@/i18n/pages/home";
 import { useDiscoveryCopy } from "@/i18n/pages/discovery";
+import { HeroV2, ScrollWalkthrough, KaiPrompts, CompareTable, BackToTop } from "@/components/marketing/home-v2";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -118,23 +119,15 @@ function Home() {
 
   return (
     <OixLayout>
-      <ProblemHero />
-      <DiscoverySteps />
-      <PainToSolution />
-      <AntiCompare />
-      <BeforeAfter />
-      <CostCalculator />
-      <RoleScenarios />
-      <ProofMap />
-      <ThreeSurfaces />
-      <CorePlatform />
-      <ProductsAndAddons />
-      <Differentiation />
+      <HeroV2 />
+      <ScrollWalkthrough />
+      <KaiPrompts />
+      <CompareTable />
       <SecurityWall />
-      <Maturity />
       <FAQSection />
       <Founders />
       <FinalCTA />
+      <BackToTop />
     </OixLayout>
   );
 }

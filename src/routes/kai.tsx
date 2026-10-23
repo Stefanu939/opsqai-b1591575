@@ -224,6 +224,12 @@ function ProspectChat({ signedIn }: { signedIn: boolean }) {
   const resumedRef = useRef(false);
   const endRef = useRef<HTMLDivElement>(null);
 
+  // Homepage question pills link here with ?q= — prefill, never auto-send.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setInput(q.slice(0, 4000));
+  }, []);
+
   // Restore the session (also after Google / email sign-in redirects).
   // Never leave the chat locked: a session owned by another account or a
   // slow network falls back to a fresh conversation.

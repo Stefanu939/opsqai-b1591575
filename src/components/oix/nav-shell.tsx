@@ -17,17 +17,21 @@ export function NavShell() {
   const m = useMarketing();
   const kai = useProspectCopy();
 
-  const links = [
-    { to: "/discovery", label: "Discovery" },
-    { to: "/product", label: m.nav.product },
+  // Grouped: max 5 top-level entries, every page reachable in ≤2 clicks.
+  const productLinks = [
+    { to: "/modules", label: m.nav.modules },
     { to: "/solutions", label: m.nav.solutions },
     { to: "/product-overview", label: m.nav.overview },
-    { to: "/modules", label: m.nav.modules },
     { to: "/self-hosted", label: m.nav.selfHosted },
+    { to: "/discovery", label: "Discovery" },
+  ];
+  const topLinks = [
     { to: "/security", label: m.nav.security },
+    { to: "/pilot", label: "Pilot" },
     { to: "/pricing", label: m.nav.pricing },
     { to: "/company", label: m.nav.company },
   ];
+  const links = [...productLinks, ...topLinks];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
