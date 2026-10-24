@@ -290,7 +290,7 @@ export function ScrollWalkthrough() {
         <h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold text-foreground md:text-5xl">{t.title}</h2>
       </Reveal>
       <div className="mt-12 grid gap-10 lg:grid-cols-2">
-        <div className="space-y-6 lg:space-y-[30vh] lg:pb-[20vh]">
+        <div className="space-y-6 lg:space-y-[18vh] lg:pb-[10vh]">
           {t.steps.map(([h, p], i) => (
             <div
               key={h}
