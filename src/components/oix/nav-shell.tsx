@@ -79,13 +79,27 @@ export function NavShell() {
         </Link>
 
 
-        <nav className="hidden items-center gap-3 2xl:flex" aria-label="Primary navigation">
-          {links.map((l) => (
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+          <div className="group relative">
+            <button type="button" className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+              {m.nav.product} ▾
+            </button>
+            <div className="invisible absolute left-0 top-full w-60 pt-2 opacity-0 transition-all group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+              <div className="rounded-xl border border-border bg-card p-2 shadow-xl">
+                {productLinks.map((l) => (
+                  <Link key={l.to} to={l.to} className="block rounded-md px-3 py-2 text-sm text-foreground hover:bg-primary/10">
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+          {topLinks.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className="border-b-2 border-transparent py-2 text-sm font-medium text-[var(--oix-cream-dim)] transition-colors duration-200 hover:text-[var(--oix-cream)]"
-              activeProps={{ className: "border-[var(--oix-emerald)] text-[var(--oix-cream)]" }}
+              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              activeProps={{ className: "text-foreground bg-primary/10" }}
             >
               {l.label}
             </Link>
