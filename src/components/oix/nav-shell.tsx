@@ -150,14 +150,14 @@ export function NavShell() {
           <OixButton
             variant="ghost"
             to="/auth"
-            className="hidden px-4 py-2 2xl:inline-flex"
+            className="hidden px-4 py-2 lg:inline-flex"
           >
             {m.cta.signIn}
           </OixButton>
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="border-[var(--oix-gold-line)] bg-transparent text-[var(--oix-cream)] 2xl:hidden" aria-label="Open navigation">
+              <Button variant="outline" size="icon" className="border-[var(--oix-gold-line)] bg-transparent text-[var(--oix-cream)] lg:hidden" aria-label="Open navigation">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
