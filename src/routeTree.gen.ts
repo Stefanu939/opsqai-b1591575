@@ -41,6 +41,7 @@ import { Route as SecurityRouteImport } from './routes/security'
 import { Route as SelfHostedRouteImport } from './routes/self-hosted'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SsoSigninRouteImport } from './routes/sso-signin'
+import { Route as StudiesRouteImport } from './routes/studies'
 import { Route as StudyRouteImport } from './routes/study'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as WindowsOnlyRouteImport } from './routes/windows-only'
@@ -354,6 +355,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SsoSigninRoute = SsoSigninRouteImport.update({
   id: '/sso-signin',
   path: '/sso-signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudiesRoute = StudiesRouteImport.update({
+  id: '/studies',
+  path: '/studies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudyRoute = StudyRouteImport.update({
@@ -1244,6 +1250,7 @@ export interface FileRoutesByFullPath {
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/studies': typeof StudiesRoute
   '/study': typeof StudyRoute
   '/support': typeof SupportRoute
   '/windows-only': typeof WindowsOnlyRoute
@@ -1430,6 +1437,7 @@ export interface FileRoutesByTo {
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/studies': typeof StudiesRoute
   '/study': typeof StudyRoute
   '/support': typeof SupportRoute
   '/windows-only': typeof WindowsOnlyRoute
@@ -1615,6 +1623,7 @@ export interface FileRoutesById {
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/studies': typeof StudiesRoute
   '/study': typeof StudyRoute
   '/support': typeof SupportRoute
   '/windows-only': typeof WindowsOnlyRoute
@@ -1805,6 +1814,7 @@ export interface FileRouteTypes {
     | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/studies'
     | '/study'
     | '/support'
     | '/windows-only'
@@ -1991,6 +2001,7 @@ export interface FileRouteTypes {
     | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/studies'
     | '/study'
     | '/support'
     | '/windows-only'
@@ -2175,6 +2186,7 @@ export interface FileRouteTypes {
     | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/studies'
     | '/study'
     | '/support'
     | '/windows-only'
@@ -2365,6 +2377,7 @@ export interface RootRouteChildren {
   SelfHostedRoute: typeof SelfHostedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SsoSigninRoute: typeof SsoSigninRoute
+  StudiesRoute: typeof StudiesRoute
   StudyRoute: typeof StudyRoute
   SupportRoute: typeof SupportRoute
   WindowsOnlyRoute: typeof WindowsOnlyRoute
@@ -2654,6 +2667,13 @@ declare module '@tanstack/react-router' {
       path: '/sso-signin'
       fullPath: '/sso-signin'
       preLoaderRoute: typeof SsoSigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studies': {
+      id: '/studies'
+      path: '/studies'
+      fullPath: '/studies'
+      preLoaderRoute: typeof StudiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/study': {
@@ -4103,6 +4123,7 @@ const rootRouteChildren: RootRouteChildren = {
   SelfHostedRoute: SelfHostedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SsoSigninRoute: SsoSigninRoute,
+  StudiesRoute: StudiesRoute,
   StudyRoute: StudyRoute,
   SupportRoute: SupportRoute,
   WindowsOnlyRoute: WindowsOnlyRoute,
