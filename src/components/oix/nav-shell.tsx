@@ -9,6 +9,7 @@ import { useMarketing } from "@/i18n/marketing";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useProspectCopy } from "@/i18n/pages/prospect";
+import { useBenchmarkCopy } from "@/i18n/pages/benchmarks";
 
 export function NavShell() {
   const [scrolled, setScrolled] = useState(false);
@@ -16,6 +17,7 @@ export function NavShell() {
   const { lang, setLang } = useT();
   const m = useMarketing();
   const kai = useProspectCopy();
+  const research = useBenchmarkCopy();
 
   // Grouped: max 5 top-level entries, every page reachable in ≤2 clicks.
   const productLinks = [
@@ -24,6 +26,8 @@ export function NavShell() {
     { to: "/product-overview", label: m.nav.overview },
     { to: "/self-hosted", label: m.nav.selfHosted },
     { to: "/discovery", label: "Discovery" },
+    { to: "/studies", label: research.nav },
+    { to: "/blog", label: m.nav.blog },
   ];
   const topLinks = [
     { to: "/security", label: m.nav.security },

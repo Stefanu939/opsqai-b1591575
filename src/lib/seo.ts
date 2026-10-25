@@ -22,7 +22,7 @@ export interface PageHeadInput {
   description: string;
   path: string; // leading slash
   ogType?: "website" | "article" | "product";
-  ogImage?: string; // absolute URL
+  ogImage?: string | null; // absolute URL; null omits image tags when no page cover exists
   noindex?: boolean;
   breadcrumbs?: BreadcrumbItem[];
   jsonLd?: unknown[]; // extra JSON-LD blocks to inline
@@ -147,12 +147,13 @@ export function pageHead(input: PageHeadInput) {
     { property: "og:description", content: input.description },
     { property: "og:type", content: ogType },
     { property: "og:url", content: url },
-    { property: "og:image", content: ogImage },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: input.title },
     { name: "twitter:description", content: input.description },
-    { name: "twitter:image", content: ogImage },
   ];
+  if (ogImage) {
+    meta.push({ property: "og:image", content: ogImage }, { name: "twitter:image", content: ogImage });
+  }
   if (input.keywords) meta.push({ name: "keywords", content: input.keywords });
   if (input.noindex) meta.push({ name: "robots", content: "noindex, nofollow" });
 

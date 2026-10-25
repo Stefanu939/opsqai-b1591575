@@ -6,10 +6,12 @@ import { useInvestNavLabel } from "@/i18n/pages/invest";
 import { useT } from "@/i18n";
 import { footerExtra } from "./footer-links";
 import { COMPETITOR_NAMES, COMPETITOR_SLUGS } from "@/i18n/pages/competitors";
+import { useBenchmarkCopy } from "@/i18n/pages/benchmarks";
 
 export function FooterOix() {
   const m = useMarketing();
   const { lang } = useT();
+  const research = useBenchmarkCopy();
   const x = footerExtra[lang === "de" ? "de" : lang === "ro" ? "ro" : "en"];
   void useInvestNavLabel;
 
@@ -17,6 +19,7 @@ export function FooterOix() {
     {
       heading: m.footer.resources,
       items: [
+        { label: research.nav, to: "/studies" },
         { label: m.nav.blog, to: "/blog" },
         { label: x.partner, to: "/partners" },
         { label: x.ambassador, to: "/partners#ambassador" },

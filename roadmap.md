@@ -1,5 +1,11 @@
 # Roadmap
 
+## Public operational benchmarks (2026-10-25)
+- [ ] Verify primary-source metrics; distinguish external research from OPSQAI analysis and simulations
+- [ ] Add visible homepage benchmarks, a study hub and multilingual blog analyses
+- [ ] Add editable operational-cost simulation with transparent assumptions and tests
+- [ ] Verify navigation, calculation and article reading on desktop/mobile
+
 ## MC revenue period report (2026-10-20)
 - [x] Reconcile dashboard approved value versus recorded receipts; selectable inclusive dates and all-time
 - [x] Download the same period and customer breakdown as PDF

@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { OPERATIONAL_RESEARCH } from "./operational-research";
+import { ResearchArticle } from "@/components/oix/operational-benchmarks";
 
 export type BlogPost = {
   slug: string;
@@ -7,7 +9,7 @@ export type BlogPost = {
   date: string; // ISO
   readingMinutes: number;
   author: string;
-  tag: "Product" | "Security" | "Engineering";
+  tag: "Product" | "Security" | "Engineering" | "Research";
   body: () => ReactNode;
 };
 
@@ -24,6 +26,16 @@ const UL = ({ children }: { children: ReactNode }) => (
 );
 
 export const BLOG_POSTS: BlogPost[] = [
+  ...OPERATIONAL_RESEARCH.map((study): BlogPost => ({
+    slug: study.slug,
+    title: study.text.ro.title,
+    description: `${study.metric} ${study.text.ro.finding} Analiză OPSQAI, sursă și limite.`,
+    date: "2026-10-25",
+    readingMinutes: 4,
+    author: "OPSQAI Research",
+    tag: "Research",
+    body: () => <ResearchArticle study={study} />,
+  })),
   {
     slug: "why-we-chose-windows-native",
     title: "Why OPSQAI ships as native Windows services — not Docker",

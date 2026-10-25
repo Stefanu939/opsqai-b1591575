@@ -58,6 +58,7 @@ import { PainToSolution } from "@/components/oix/pain-to-solution";
 import { SectionShell } from "@/components/oix/section-shell";
 import { BeforeAfter } from "@/components/oix/before-after";
 import { CostCalculator } from "@/components/oix/cost-calculator";
+import { OperationalBenchmarks } from "@/components/oix/operational-benchmarks";
 import { RoleScenarios } from "@/components/oix/role-scenarios";
 import { ProofMap } from "@/components/oix/proof-map";
 import { useHomeCopy } from "@/i18n/pages/home";
@@ -71,6 +72,7 @@ export const Route = createFileRoute("/")({
       description:
         "Descoperă OPSQAI împreună cu KAI. Discută despre nevoile firmei tale în română, engleză sau germană și explorează soluții Self-Hosted pentru echipa ta.",
       path: "/",
+      ogImage: null,
       keywords:
         "OPSQAI Discovery, banking operational AI, financial services AI, workspace built around problems, enterprise operational AI, Windows self-hosted AI, logistics AI, HR AI",
       jsonLd: [
@@ -120,6 +122,7 @@ function Home() {
   return (
     <OixLayout>
       <HeroV2 />
+      <OperationalBenchmarks compact />
       <ScrollWalkthrough />
       <KaiPrompts />
       <CompareTable />
