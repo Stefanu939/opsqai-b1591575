@@ -2,6 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { pageHead } from "@/lib/seo";
 import { BLOG_POSTS, formatDate, getPost } from "@/content/blog";
 import { ArrowLeft } from "lucide-react";
+import { OPERATIONAL_RESEARCH } from "@/content/operational-research";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
@@ -30,6 +32,8 @@ export const Route = createFileRoute("/blog/$slug")({
       title: `${loaderData.title} — OPSQAI Blog`,
       description: loaderData.description,
       path: `/blog/${loaderData.slug}`,
+      ogType: "article",
+      ogImage: null,
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Blog", path: "/blog" },
@@ -57,10 +61,12 @@ function BlogNotFound() {
 }
 
 function BlogArticle() {
+  const { lang } = useT();
   const data = Route.useLoaderData();
   const post = getPost(data.slug);
   if (!post) return <BlogNotFound />;
   const related = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
+  const study = OPERATIONAL_RESEARCH.find(item => item.slug === post.slug);
   return (
     <>
       <article className="mx-auto max-w-3xl px-4 py-16 md:py-24">
@@ -78,9 +84,9 @@ function BlogArticle() {
           <span>{post.readingMinutes} min read</span>
         </div>
         <h1 className="mt-4 text-3xl md:text-5xl font-semibold tracking-tight leading-[1.08]">
-          {post.title}
+          {study?.text[lang].title ?? post.title}
         </h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed">{post.description}</p>
+        <p className="mt-5 text-lg text-muted-foreground leading-relaxed">{study ? `${study.metric} ${study.text[lang].finding}` : post.description}</p>
         <p className="mt-4 text-xs text-muted-foreground">By {post.author}</p>
         <div className="mt-10 border-t border-border/60 pt-8">{post.body()}</div>
       </article>
