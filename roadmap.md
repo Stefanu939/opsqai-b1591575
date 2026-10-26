@@ -38,6 +38,11 @@
 - [x] Keep explicit Kai sessions on Kai; separate MC and Portal login destinations
 - [x] 26 focused tests passed; real staff session verified Portal entry, Kai isolation from Portal/MC/app, reload and sign-out without page errors; unenrolled customer rules covered by server tests
 
+## Romania market study (2026-10-26)
+- [x] Eurostat DII 2024 source verified: 72% of Romanian enterprises very low digital intensity, last in EU (~27% SMEs basic, 1.3% very high)
+- [x] Third study in shared registry (RO/EN/DE) with honest limitations; auto-published on /studies, /blog index and /blog/digitalizarea-firmelor-romanesti
+- [x] Verified on 360px mobile: study card, article and blog listing render; build OK
+
 ## Prospect Kai stability (2026-10-17)
 - [x] Keep chat controls and contact form outside reply-render boundaries; display request failures separately
 - [x] Validate rich reply data before rendering; guard repeated submissions and registration errors
