@@ -1,24 +1,21 @@
 # OPSQAI
 
-> OPSQAI builds your workspace around your problems. It is not limited to logistics: banking, financial services, HR, manufacturing and other regulated or complex operations can start from one diagnosed workflow. The result is a Windows Self-Hosted product employees actually use. OPSQAI Cloud (Management Center and Customer Portal) exists only for licensing, releases, installer distribution and customer support. Customers own their data, documents, embeddings and AI provider.
+> OPSQAI is a Windows Self-Hosted operational AI platform with licensed modules and custom workspaces, not simply a chatbot or document search tool.
 
-## The model
+OPSQAI connects company knowledge with operational work: training, internal requests, HR, fleet workflows, reports and role-based access. KAI is its conversational interface, not the whole product. Available domain products include HR, Transport, Logistics and Operations; other products may be planned and are labelled on the Platform page.
 
-- OPSQAI Discovery: Problem → Diagnosis → Solution design → Workspace. Every engagement starts with the customer's problem, not a product catalogue. Discovery delivers a written diagnosis report, a proposed workspace configuration, a value estimate and a direct path into a 30-day pilot.
-- We do not compete on feature lists. If a module does not solve your problem, it is not in your workspace.
+Custom development starts with Discovery: problem, diagnosis, solution design and workspace. Banking, financial services, auto repair, manufacturing and other businesses with suitable infrastructure are potential custom-development domains, not claims of existing deployments or ready-made products. Scope, integrations, hardware and value assumptions are established per engagement.
 
-## Product architecture
+The customer's Windows installation holds operational data. A local AI engine is the default; external AI providers and integrations are optional and their data flows depend on configuration. Cloud services support licensing, releases, distribution and customer support; they are separate from the customer's operational installation. All modules remain license-governed. Roles and permissions govern user access within licensed capabilities.
 
-- Management Center (cloud, OPSQAI staff only): companies, installations, licenses, releases, signing keys, activation bundles, ownership, support, audit.
-- Customer Portal (cloud, customer contacts): installer downloads, updates, activation bundles, documentation, release notes, subscription and support.
-- Self-Hosted (Windows, the actual product): grounded AI Chat with citations, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, signed updates and recovery, GDPR data workflows, Microsoft Entra ID, incremental SharePoint sync, Email Intelligence with human approval, Teams access and licensed company-specific workspaces.
+Published research cites external sources. OPSQAI analyses and simulations are distinct from measured client outcomes. Estimates are not guaranteed savings; security controls are not a claim of legal compliance or certification.
 
 ## Pages
 
-- [Home](/): Your Workspace. Built around your problems.
+- [Home](/): Operational AI platform, licensed modules and custom workflows.
 - [Discovery](/discovery): Problem → Diagnosis → Solution → Workspace. Deliverables and how to start.
 - [Product](/product): Windows Self-Hosted customer product and its supporting cloud services.
-- [Platform](/modules): permanently included Core Platform, licensed OPSQAI Products and optional Add-ons.
+- [Platform](/modules): Core capabilities, available and planned domain products, optional Add-ons and signed licensing.
 - [Solutions](/solutions): examples across banking, financial services, logistics, HR, finance and transport; not the limit of configurable workspaces.
 - [Self-hosted](/self-hosted): Windows deployment, data flow, requirements.
 - [Security](/security): Ed25519 licenses, hash-chained audit, CRL, chunk-level ACL.
@@ -26,3 +23,5 @@
 - [Company](/company): Mission, team, go-to-market.
 - [Invest](/invest): Seed round of EUR 100,000, thesis, stage, commercial model and founder targets. Contact baristefan@opsqai.de.
 - [Contact](/contact): Request a Discovery session, pricing, demo or installer.
+- [Studies](/studies): Sourced market benchmarks and clearly labelled operational-impact simulations.
+- [Blog](/blog): Product analysis and market research with sources and limitations.
