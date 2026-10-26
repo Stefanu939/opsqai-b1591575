@@ -1,10 +1,10 @@
 # Roadmap
 
 ## Public operational benchmarks (2026-10-25)
-- [ ] Verify primary-source metrics; distinguish external research from OPSQAI analysis and simulations
-- [ ] Add visible homepage benchmarks, a study hub and multilingual blog analyses
-- [ ] Add editable operational-cost simulation with transparent assumptions and tests
-- [ ] Verify navigation, calculation and article reading on desktop/mobile
+- [x] Verify Microsoft 2023 (62%) and Coveo 2025 (47%) primary sources, populations and limitations; distinguish external research from OPSQAI analysis
+- [x] Add visible homepage benchmarks, /studies, navigation/footer links and two RO/EN/DE blog analyses with shareable links
+- [x] Add editable annual search-cost and hypothetical capacity simulation; 4 calculation tests passed
+- [x] Verify homepage → studies → custom inputs → article, RO/EN/DE and mobile menu/blog at 360px; no page errors or horizontal overflow
 
 ## MC revenue period report (2026-10-20)
 - [x] Reconcile dashboard approved value versus recorded receipts; selectable inclusive dates and all-time
