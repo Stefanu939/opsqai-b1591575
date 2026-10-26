@@ -138,7 +138,7 @@ export function hreflangLinks(path: string) {
 export function pageHead(input: PageHeadInput) {
   const url = abs(input.path);
   const ogType = input.ogType ?? "website";
-  const ogImage = input.ogImage ?? DEFAULT_OG_IMAGE;
+  const ogImage = input.ogImage === undefined ? DEFAULT_OG_IMAGE : input.ogImage;
 
   const meta: Array<Record<string, string>> = [
     { title: input.title },
