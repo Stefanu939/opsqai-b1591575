@@ -8,6 +8,36 @@ export type OperationalResearch = {
 
 export const OPERATIONAL_RESEARCH: OperationalResearch[] = [
   {
+    slug: "digitalizarea-firmelor-romanesti", metric: "72%", publisher: "Eurostat — Digital Intensity Index", year: 2024,
+    url: "https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20240829-1",
+    text: {
+      ro: {
+        title: "România, pe ultimul loc în UE la digitalizarea firmelor.",
+        finding: "dintre firmele românești au un nivel foarte scăzut de intensitate digitală — cea mai mare pondere din Uniunea Europeană, conform Eurostat.",
+        population: "Sondajul Eurostat privind utilizarea TIC în întreprinderi, date 2023, publicat în 2024. Indicele de Intensitate Digitală (DII) măsoară adoptarea a 12 tehnologii: AI, cloud, CRM, comerț electronic, analiză de date. Media UE: 59% dintre firme au cel puțin un nivel de bază. În România, doar ~27% dintre IMM-uri ating acest nivel, iar doar 1,3% au un nivel foarte ridicat.",
+        analysis: "În practică, asta înseamnă că în majoritatea companiilor românești cunoștințele critice stau în hârtii, fișiere Excel personale, grupuri de WhatsApp și în memoria câtorva oameni-cheie. Când un angajat nou are o întrebare, întrerupe un coleg. Când acel coleg pleacă, cunoștințele pleacă odată cu el. Decalajul nu e o condamnare — este o oportunitate: firmele care se digitalizează acum câștigă un avans real față de concurenții care așteaptă.",
+        mechanism: "OPSQAI este construit exact pentru acest punct de plecare: se instalează pe serverul Windows pe care firma îl are deja, funcționează integral în română, preia datele firmei din ANAF pe baza CUI-ului și nu cere migrarea în cloud. Documentele existente — proceduri, fișe, regulamente — devin o bază de cunoștințe interogabilă, fără ca vreun fișier să părăsească firma. Pilotul de 30 de zile verifică pe sarcini reale dacă angajații găsesc mai repede informația corectă.",
+        limitation: "DII este un indice compozit despre adoptarea tehnologiei, nu o măsurare a pierderilor tale concrete și nu testează OPSQAI. Faptul că România e pe ultimul loc nu garantează că firma ta are o problemă — dar simulatorul nostru îți arată, pe cifrele tale, cât costă căutarea informației în fiecare lună.",
+      },
+      en: {
+        title: "Romania ranks last in the EU for enterprise digitalisation.",
+        finding: "of Romanian enterprises have a very low level of digital intensity — the highest share in the European Union, according to Eurostat.",
+        population: "Eurostat survey on ICT usage in enterprises, 2023 data, published 2024. The Digital Intensity Index (DII) measures adoption of 12 technologies: AI, cloud, CRM, e-commerce, data analytics. EU average: 59% of enterprises reach at least a basic level. In Romania, only ~27% of SMEs reach it, and just 1.3% reach a very high level.",
+        analysis: "In practice, this means critical knowledge in most Romanian companies lives on paper, in personal Excel files, WhatsApp groups and the memory of a few key people. A new employee's question interrupts a colleague. When that colleague leaves, the knowledge leaves with them. The gap is not a verdict — it is an opportunity: companies that digitalise now gain a real lead over competitors who wait.",
+        mechanism: "OPSQAI is built for exactly this starting point: it installs on the Windows server the company already owns, works entirely in Romanian, pulls company data from ANAF by CUI, and requires no cloud migration. Existing documents — procedures, fact sheets, regulations — become a searchable knowledge base without any file leaving the company. The 30-day pilot tests on real tasks whether employees find the right information faster.",
+        limitation: "The DII is a composite index of technology adoption, not a measure of your specific losses, and it does not test OPSQAI. Romania's last place does not guarantee your company has a problem — but our simulator shows, on your own numbers, what searching for information costs every month.",
+      },
+      de: {
+        title: "Rumänien liegt bei der Digitalisierung von Unternehmen auf dem letzten EU-Platz.",
+        finding: "der rumänischen Unternehmen weisen eine sehr geringe digitale Intensität auf — der höchste Anteil in der Europäischen Union, laut Eurostat.",
+        population: "Eurostat-Erhebung zur IKT-Nutzung in Unternehmen, Daten 2023, veröffentlicht 2024. Der Digital Intensity Index (DII) misst die Nutzung von 12 Technologien: KI, Cloud, CRM, E-Commerce, Datenanalyse. EU-Durchschnitt: 59% der Unternehmen erreichen mindestens ein Basisniveau. In Rumänien erreichen nur ~27% der KMU dieses Niveau, nur 1,3% ein sehr hohes.",
+        analysis: "In der Praxis bedeutet das: Kritisches Wissen liegt in den meisten rumänischen Unternehmen auf Papier, in persönlichen Excel-Dateien, WhatsApp-Gruppen und im Gedächtnis weniger Schlüsselpersonen. Jede Frage eines neuen Mitarbeiters unterbricht einen Kollegen. Wenn dieser Kollege geht, geht das Wissen mit. Die Lücke ist kein Urteil — sie ist eine Chance: Wer jetzt digitalisiert, gewinnt einen echten Vorsprung vor wartenden Wettbewerbern.",
+        mechanism: "OPSQAI ist genau für diesen Ausgangspunkt gebaut: Es installiert sich auf dem vorhandenen Windows-Server, arbeitet vollständig auf Rumänisch, übernimmt Firmendaten aus ANAF anhand der CUI und erfordert keine Cloud-Migration. Vorhandene Dokumente — Verfahren, Merkblätter, Regelwerke — werden zu einer durchsuchbaren Wissensbasis, ohne dass eine Datei das Unternehmen verlässt. Der 30-tägige Pilot prüft an realen Aufgaben, ob Mitarbeitende Informationen schneller finden.",
+        limitation: "Der DII ist ein zusammengesetzter Index zur Technologieadoption, kein Maß für Ihre konkreten Verluste, und er testet OPSQAI nicht. Rumäniens letzter Platz garantiert nicht, dass Ihr Unternehmen ein Problem hat — aber unser Simulator zeigt Ihnen anhand Ihrer eigenen Zahlen, was die Informationssuche jeden Monat kostet.",
+      },
+    },
+  },
+  {
     slug: "costul-informatiei-greu-de-gasit", metric: "62%", publisher: "Microsoft Work Trend Index", year: 2023,
     url: "https://www.microsoft.com/en-us/worklab/work-trend-index/will-ai-fix-work",
     text: {
