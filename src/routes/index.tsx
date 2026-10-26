@@ -64,13 +64,14 @@ import { ProofMap } from "@/components/oix/proof-map";
 import { useHomeCopy } from "@/i18n/pages/home";
 import { useDiscoveryCopy } from "@/i18n/pages/discovery";
 import { HeroV2, ScrollWalkthrough, KaiPrompts, CompareTable, BackToTop } from "@/components/marketing/home-v2";
+import { OperationalPlatform } from "@/components/marketing/operational-platform";
 
 export const Route = createFileRoute("/")({
   head: () =>
     pageHead({
-      title: "OPSQAI — Discută cu KAI despre firma ta",
+      title: "OPSQAI — Platformă AI Self-Hosted, module și fluxuri custom",
       description:
-        "Descoperă OPSQAI împreună cu KAI. Discută despre nevoile firmei tale în română, engleză sau germană și explorează soluții Self-Hosted pentru echipa ta.",
+        "Platformă operațională AI pe Windows: module licențiate HR, Transport, Logistică și Operations, plus dezvoltare custom pentru bănci, service-uri auto și alte companii.",
       path: "/",
       ogImage: null,
       keywords:
@@ -78,7 +79,7 @@ export const Route = createFileRoute("/")({
       jsonLd: [
         softwareApplicationLd({
           description:
-            "OPSQAI builds a workspace around your problems: you describe the pain, OPSQAI diagnoses the root cause, designs the solution and delivers it as a Windows self-hosted workspace your employees actually use.",
+            "OPSQAI is a Windows Self-Hosted operational AI platform combining licensed modules for HR, Transport, Logistics and Operations with custom workspace development. Knowledge, training, internal requests and workflows share role-based access and audit. Banking and auto repair are examples of potential custom engagements, not claims of shipped industry products.",
         }),
       ],
     }),
@@ -122,6 +123,7 @@ function Home() {
   return (
     <OixLayout>
       <HeroV2 />
+      <OperationalPlatform />
       <OperationalBenchmarks compact />
       <ScrollWalkthrough />
       <KaiPrompts />

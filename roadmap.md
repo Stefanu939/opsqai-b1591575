@@ -1,5 +1,9 @@
 # Roadmap
 
+## Public platform positioning (2026-10-26)
+- [ ] Clarify homepage, platform copy and AI-readable summary: licensed operational modules plus custom workflows across industries
+- [ ] Align homepage search/share metadata; verify public navigation and translated copy without changing Kai or private screens
+
 ## Public operational benchmarks (2026-10-25)
 - [x] Verify Microsoft 2023 (62%) and Coveo 2025 (47%) primary sources, populations and limitations; distinguish external research from OPSQAI analysis
 - [x] Add visible homepage benchmarks, /studies, navigation/footer links and two RO/EN/DE blog analyses with shareable links
