@@ -66,27 +66,27 @@ export function HeroV2() {
   const { lang } = useT();
   const t = pick(lang, {
     ro: {
-      eyebrow: "AI on-premise pentru companii",
-      title: "AI-ul firmei tale, pe serverul firmei tale.",
-      sub: "KAI și spațiile de lucru OPSQAI rulează local. Datele nu pleacă în cloud, iar fiecare acțiune importantă e aprobată de un om.",
+      eyebrow: "Platformă operațională AI Self-Hosted",
+      title: "OPSQAI. Module și fluxuri construite pentru firma ta.",
+      sub: "HR, flotă, logistică, instruire și operațiuni — plus workspace-uri custom pentru procesul tău. Pe infrastructura firmei, cu AI local implicit, acces pe roluri și audit. KAI este interfața conversațională, nu întregul produs.",
       cta: "Discută cu KAI",
       pilot: "Pilot gratuit 30 zile",
       note: "Fără card. Fără cont pentru primele întrebări.",
       tabs: ["KAI", "HR", "Flotă", "Securitate"],
     },
     en: {
-      eyebrow: "On-premise AI for companies",
-      title: "Your company's AI, on your company's server.",
-      sub: "KAI and the OPSQAI workspaces run locally. Data never leaves for the cloud, and every important action is approved by a human.",
+      eyebrow: "Self-Hosted operational AI platform",
+      title: "OPSQAI. Modules and workflows built for your business.",
+      sub: "HR, fleet, logistics, training and operations — plus custom workspaces for your process. On company infrastructure, with local AI by default, role-based access and audit. KAI is the conversational interface, not the entire product.",
       cta: "Talk to KAI",
       pilot: "Free 30-day pilot",
       note: "No card. No account for the first questions.",
       tabs: ["KAI", "HR", "Fleet", "Security"],
     },
     de: {
-      eyebrow: "On-Premise-KI für Unternehmen",
-      title: "Die KI Ihres Unternehmens, auf Ihrem Server.",
-      sub: "KAI und die OPSQAI-Arbeitsbereiche laufen lokal. Daten verlassen nie Ihr Haus, und jede wichtige Aktion bestätigt ein Mensch.",
+      eyebrow: "Self-Hosted-Plattform für operative KI",
+      title: "OPSQAI. Module und Abläufe für Ihr Unternehmen.",
+      sub: "HR, Flotte, Logistik, Schulungen und Betrieb — plus individuelle Workspaces für Ihren Prozess. Auf Ihrer Infrastruktur, standardmäßig mit lokaler KI, Rollenrechten und Audit. KAI ist die Gesprächsschnittstelle, nicht das gesamte Produkt.",
       cta: "Mit KAI sprechen",
       pilot: "Kostenloser 30-Tage-Pilot",
       note: "Keine Karte. Kein Konto für die ersten Fragen.",
@@ -337,17 +337,17 @@ export function KaiPrompts() {
     ro: {
       title: "Întreabă-l pe KAI ce ar face pentru firma ta.",
       sub: "Alege o întrebare — o găsești gata scrisă în chat.",
-      qs: ["Cum funcționează pilotul gratuit de 30 de zile?", "De ce e mai sigur decât ChatGPT sau Copilot pentru datele firmei?", "Ce calculator sau server îmi trebuie pentru instalare?", "Cum folosește KAI documentele noastre interne?"],
+      qs: ["Cum funcționează pilotul gratuit de 30 de zile?", "Ce module OPSQAI sunt disponibile pentru firma mea?", "Ce calculator sau server îmi trebuie pentru instalare?", "Putem construi un modul custom pentru o bancă sau un service auto?"],
     },
     en: {
       title: "Ask KAI what it would do for your company.",
       sub: "Pick a question — it opens ready-written in the chat.",
-      qs: ["How does the free 30-day pilot work?", "Why is it safer than ChatGPT or Copilot for company data?", "What computer or server do I need to install it?", "How does KAI use our internal documents?"],
+      qs: ["How does the free 30-day pilot work?", "Which OPSQAI modules are available for my company?", "What computer or server do I need to install it?", "Can we build a custom module for a bank or an auto repair shop?"],
     },
     de: {
       title: "Fragen Sie KAI, was es für Ihr Unternehmen tun würde.",
       sub: "Wählen Sie eine Frage — sie steht fertig im Chat.",
-      qs: ["Wie funktioniert der kostenlose 30-Tage-Pilot?", "Warum ist es sicherer als ChatGPT oder Copilot?", "Welchen Rechner oder Server brauche ich?", "Wie nutzt KAI unsere internen Dokumente?"],
+      qs: ["Wie funktioniert der kostenlose 30-Tage-Pilot?", "Welche OPSQAI-Module sind für mein Unternehmen verfügbar?", "Welchen Rechner oder Server brauche ich?", "Können wir ein individuelles Modul für eine Bank oder Kfz-Werkstatt entwickeln?"],
     },
   });
   return (

@@ -5,17 +5,17 @@ import { useT } from "@/i18n";
 
 const en = {
   heroEyebrow: "The OPSQAI platform",
-  heroSerifAccent: "replaces it with one system that answers.",
-  heroHeadline: "Folders, chats, inbox archaeology.",
+  heroSerifAccent: "custom workflows for your business.",
+  heroHeadline: "OPSQAI. Operational modules,",
   heroBody:
-    "Your operational knowledge lives in too many places, and every question costs someone time. OPSQAI Core is the complete platform every installation ships with; OPSQAI products bring the workspaces of your business domain on top of it. Delivered through signed licenses — activated by OPSQAI, no reinstall, no cloud dependency.",
+    "Connect knowledge, training, internal requests and day-to-day operations. Licensed HR, Transport, Logistics and Operations workspaces extend the platform; custom development starts with your process, including potential banking or auto repair workflows. Available and planned products are labelled below.",
   ctaRequestModules: "Talk to OPSQAI",
   ctaSeePricing: "See licensing model",
 
   coreTitle: "OPSQAI Core platform",
   coreBadge: "Always included",
   coreBody:
-    "Permanent platform capabilities. Never sold separately and never toggled commercially — access is governed only by roles and permissions.",
+    "Platform capabilities included in the installation license, not sold individually. All modules remain license-governed; roles and permissions control user access.",
 
   productsTitle: "OPSQAI products",
   productsBody:
@@ -38,17 +38,17 @@ type Copy = typeof en;
 
 const de: Copy = {
   heroEyebrow: "Die OPSQAI-Plattform",
-  heroSerifAccent: "ersetzt sie durch ein System, das antwortet.",
-  heroHeadline: "Ordner, Chats, Postfach-Archäologie.",
+  heroSerifAccent: "individuelle Abläufe für Ihr Unternehmen.",
+  heroHeadline: "OPSQAI. Operative Module,",
   heroBody:
-    "Ihr betriebliches Wissen liegt an zu vielen Orten, und jede Frage kostet jemanden Zeit. OPSQAI Core ist die vollständige Plattform jeder Installation; OPSQAI-Produkte bringen die Arbeitsbereiche Ihres Fachbereichs obenauf. Ausgeliefert über signierte Lizenzen — von OPSQAI aktiviert, ohne Neuinstallation, ohne Cloud-Abhängigkeit.",
+    "Wissen, Schulungen, interne Anfragen und operative Arbeit verbinden. Lizenzierte HR-, Transport-, Logistik- und Operations-Workspaces erweitern die Plattform. Individuelle Entwicklung beginnt mit Ihrem Prozess, auch für mögliche Bank- oder Werkstattabläufe. Verfügbare und geplante Produkte sind unten gekennzeichnet.",
   ctaRequestModules: "OPSQAI kontaktieren",
   ctaSeePricing: "Lizenzmodell ansehen",
 
   coreTitle: "OPSQAI Core-Plattform",
   coreBadge: "Immer enthalten",
   coreBody:
-    "Dauerhafte Plattformfunktionen. Werden nie separat verkauft und nie kommerziell freigeschaltet — der Zugriff wird ausschließlich über Rollen und Berechtigungen gesteuert.",
+    "Plattformfunktionen sind in der Installationslizenz enthalten und werden nicht einzeln verkauft. Alle Module bleiben lizenzgebunden; Rollen und Berechtigungen steuern den Benutzerzugriff.",
 
   productsTitle: "OPSQAI Produkte",
   productsBody:
@@ -69,17 +69,17 @@ const de: Copy = {
 
 const ro: Copy = {
   heroEyebrow: "Platforma OPSQAI",
-  heroSerifAccent: "le înlocuiește cu un sistem care răspunde.",
-  heroHeadline: "Foldere, chat-uri, arheologie în inbox.",
+  heroSerifAccent: "fluxuri custom pentru firma ta.",
+  heroHeadline: "OPSQAI. Module operaționale,",
   heroBody:
-    "Cunoștințele operaționale stau în prea multe locuri, iar fiecare întrebare costă timpul cuiva. OPSQAI Core este platforma completă inclusă în fiecare instalare; produsele OPSQAI aduc spațiile de lucru ale domeniului dumneavoastră peste ea. Livrate prin licențe semnate — activate de OPSQAI, fără reinstalare, fără dependență de cloud.",
+    "Leagă cunoștințele, instruirea, cererile interne și operațiunile zilnice. Workspace-urile licențiate HR, Transport, Logistică și Operations extind platforma; dezvoltarea custom pornește de la procesul tău, inclusiv pentru posibile fluxuri bancare sau de service auto. Produsele disponibile și cele planificate sunt marcate mai jos.",
   ctaRequestModules: "Contactați OPSQAI",
   ctaSeePricing: "Vedeți modelul de licențiere",
 
   coreTitle: "Platforma Core OPSQAI",
   coreBadge: "Mereu inclusă",
   coreBody:
-    "Capabilități permanente ale platformei. Nu se vând separat și nu se activează comercial — accesul este guvernat exclusiv de roluri și permisiuni.",
+    "Capabilități incluse în licența instalării, fără vânzare individuală. Toate modulele rămân guvernate de licență; rolurile și permisiunile controlează accesul utilizatorilor.",
 
   productsTitle: "Produse OPSQAI",
   productsBody:
