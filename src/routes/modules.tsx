@@ -21,10 +21,11 @@ import { localizeWorkspaceLabel } from "@/i18n/pages/product-workspaces";
 export const Route = createFileRoute("/modules")({
   head: () =>
     pageHead({
-      title: "Platform — OPSQAI Core, Products & Add-ons",
+       title: "OPSQAI Platform — Operational Modules & Custom Workflows",
       description:
-        "The OPSQAI Core platform ships with every installation. OPSQAI products cover your business domain, and optional add-ons are licensed only if you need them.",
+         "Explore licensed HR, Transport, Logistics and Operations modules, Core capabilities and custom workspace development for your business processes. Available and planned products are clearly labelled.",
       path: "/modules",
+       ogImage: null,
       keywords: "OPSQAI platform, OPSQAI products, core capabilities, add-ons, self-hosted AI",
       breadcrumbs: [
         { name: "Home", path: "/" },
