@@ -8,6 +8,36 @@ export type OperationalResearch = {
 
 export const OPERATIONAL_RESEARCH: OperationalResearch[] = [
   {
+    slug: "business-case-transport-40-camioane", metric: "5.000€", publisher: "OPSQAI — Model de rentabilitate", year: 2026,
+    url: "https://opsqai.de/studies",
+    text: {
+      ro: {
+        title: "De unde pierde o flotă de 40 de camioane peste 5.000€ pe lună.",
+        finding: "pe lună este costul operațional tipic al fricțiunii dintr-o firmă de transport cu 40 de camioane — calculat pe ipoteze transparente, nu pe promisiuni.",
+        population: "Model OPSQAI cu ipoteze explicite, ajustabile în simulator: 2 dispeceri × 2 ore/zi pierdute pe apeluri repetitive și căutare de informații (~1.200€/lună la 15€/oră); întârzieri și erori la documentele CMR și facturare (~1.500€/lună); urmărirea manuală a ITP, rovinietelor și reviziilor (~800€/lună); reconcilierea curselor și a deconturilor la final de lună (~1.500€/lună). Total: ~5.000€/lună. Nu este rezultatul unui client — este un model pe care îl poți recalcula cu cifrele tale.",
+        analysis: "Banii nu se pierd într-un singur loc spectaculos, ci în zeci de micro-întreruperi: dispecerul care sună șoferul pentru o informație care există deja într-un document, factura emisă greșit dintr-un CMR citit de pe WhatsApp, rovinieta expirată descoperită la control. Fiecare episod costă puțin; împreună, depășesc salariul unui angajat. Problema nu e lipsa datelor — datele există. Problema e că ajungerea la ele trece prin oameni, telefoane și memorie.",
+        mechanism: "Modulul OPSQAI Transport acționează pe fiecare punct: șoferii și dispecerii întreabă și primesc răspunsul din procedurile firmei în secunde, cu sursa citată; documentele CMR și facturile sunt generate din datele cursei, nu rescrise manual; alertele pentru ITP, roviniete și revizii pleacă automat înainte de expirare; reconcilierea curselor se face pe date centralizate. Totul rulează pe serverul firmei, fără ca datele să plece în cloud, iar unde fluxul tău e diferit, construim modulul custom pe el. Pilotul de 30 de zile măsoară pe curse reale cât din cei 5.000€ se recuperează.",
+        limitation: "Cei 5.000€ sunt un model cu ipoteze declarate, nu o medie de piață și nu un rezultat al unui client OPSQAI. Costul real depinde de salarii, numărul de curse și disciplina existentă. De aceea pilotul există: măsurăm la tine, înainte și după, și abia apoi vorbim despre investiție.",
+      },
+      en: {
+        title: "Where a 40-truck fleet loses over €5,000 a month.",
+        finding: "per month is the typical operational cost of friction in a 40-truck transport company — calculated on transparent assumptions, not promises.",
+        population: "OPSQAI model with explicit assumptions, adjustable in the simulator: 2 dispatchers × 2 hours/day lost on repetitive calls and information search (~€1,200/month at €15/hour); delays and errors on CMR documents and invoicing (~€1,500/month); manual tracking of inspections, tolls and maintenance (~€800/month); end-of-month trip and expense reconciliation (~€1,500/month). Total: ~€5,000/month. This is not a client result — it is a model you can recalculate with your own figures.",
+        analysis: "Money is not lost in one spectacular place, but in dozens of micro-interruptions: the dispatcher calling a driver for information that already exists in a document, the invoice issued wrong from a CMR read off WhatsApp, the expired toll vignette discovered at a roadside check. Each episode costs little; together they exceed one employee's salary. The problem is not missing data — the data exists. The problem is that reaching it goes through people, phones and memory.",
+        mechanism: "The OPSQAI Transport module acts on each point: drivers and dispatchers ask and get answers from company procedures in seconds, with the source cited; CMR documents and invoices are generated from trip data, not retyped; inspection, toll and maintenance alerts fire automatically before expiry; trip reconciliation runs on centralised data. Everything runs on the company's own server, no data leaves for the cloud, and where your workflow differs, we build the custom module around it. The 30-day pilot measures on real trips how much of the €5,000 is recovered.",
+        limitation: "The €5,000 is a model with declared assumptions, not a market average and not an OPSQAI client result. Real cost depends on salaries, trip volume and existing discipline. That is why the pilot exists: we measure at your site, before and after, and only then discuss investment.",
+      },
+      de: {
+        title: "Wo eine Flotte mit 40 Lkw über 5.000€ im Monat verliert.",
+        finding: "pro Monat betragen die typischen operativen Reibungskosten eines Transportunternehmens mit 40 Lkw — berechnet auf transparenten Annahmen, nicht auf Versprechen.",
+        population: "OPSQAI-Modell mit expliziten Annahmen, im Simulator anpassbar: 2 Disponenten × 2 Stunden/Tag für wiederkehrende Anrufe und Informationssuche (~1.200€/Monat bei 15€/Stunde); Verzögerungen und Fehler bei CMR-Dokumenten und Rechnungen (~1.500€/Monat); manuelle Verfolgung von Inspektionen, Maut und Wartung (~800€/Monat); Abgleich von Touren und Abrechnungen am Monatsende (~1.500€/Monat). Summe: ~5.000€/Monat. Kein Kundenergebnis — ein Modell, das Sie mit eigenen Zahlen nachrechnen können.",
+        analysis: "Das Geld geht nicht an einer spektakulären Stelle verloren, sondern in Dutzenden Mikro-Unterbrechungen: der Disponent ruft den Fahrer für eine Information an, die längst in einem Dokument existiert; die Rechnung wird falsch ausgestellt, weil der CMR aus WhatsApp abgeschrieben wurde; die abgelaufene Vignette fällt erst bei der Kontrolle auf. Jeder Vorfall kostet wenig — zusammen übersteigen sie ein Gehalt. Das Problem ist nicht fehlende Datenlage: Die Daten existieren. Das Problem ist, dass der Weg zu ihnen über Menschen, Telefone und Gedächtnis führt.",
+        mechanism: "Das OPSQAI-Transportmodul greift an jedem Punkt: Fahrer und Disponenten fragen und erhalten Antworten aus den Firmenverfahren in Sekunden, mit Quellenangabe; CMR-Dokumente und Rechnungen werden aus den Tourdaten erzeugt statt manuell abgetippt; Warnungen zu Inspektion, Maut und Wartung gehen automatisch vor Ablauf raus; der Tourenabgleich läuft auf zentralisierten Daten. Alles läuft auf dem eigenen Server, keine Daten verlassen das Unternehmen, und wo Ihr Ablauf anders ist, bauen wir das Modul passend dazu. Der 30-tägige Pilot misst an echten Touren, wie viel der 5.000€ zurückgeholt wird.",
+        limitation: "Die 5.000€ sind ein Modell mit deklarierten Annahmen, kein Marktdurchschnitt und kein OPSQAI-Kundenergebnis. Die tatsächlichen Kosten hängen von Gehältern, Tourvolumen und vorhandener Disziplin ab. Genau dafür gibt es den Piloten: Wir messen bei Ihnen, vorher und nachher, und sprechen erst dann über Investitionen.",
+      },
+    },
+  },
+  {
     slug: "digitalizarea-firmelor-romanesti", metric: "72%", publisher: "Eurostat — Digital Intensity Index", year: 2024,
     url: "https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20240829-1",
     text: {
