@@ -118,18 +118,24 @@ export function softwareApplicationLd(input: {
     description: input.description,
     url: input.url ?? SITE_URL,
     applicationCategory: input.category ?? "BusinessApplication",
-    operatingSystem: "Windows",
+    applicationSubCategory: "On-Premise / Self-Hosted Operational AI Platform",
+    operatingSystem: "Windows Server",
+    featureList: [
+      "Self-hosted deployment on the company's own Windows infrastructure",
+      "Licensed operational modules (transport, HR, core operations)",
+      "Custom modules built around the client's workflow",
+      "No company data leaves the local network",
+    ],
   };
 }
 
 export function hreflangLinks(path: string) {
   const url = abs(path);
-  // Site is currently English-only in code; alternates plumb the same URL
-  // so translated pages can plug in without a routing refactor.
-  return [
-    ...SUPPORTED_LOCALES.map((loc) => ({ rel: "alternate", hrefLang: loc, href: url })),
-    { rel: "alternate", hrefLang: "x-default", href: url },
-  ];
+  // Single-URL site: language switches client-side, so there are no
+  // distinct locale URLs to alternate between. Emitting en/de/ro all
+  // pointing at the same URL is a redundant, diluting signal — keep only
+  // the x-default self-reference.
+  return [{ rel: "alternate", hrefLang: "x-default", href: url }];
 }
 
 /**
