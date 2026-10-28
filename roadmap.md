@@ -1,8 +1,16 @@
 # Roadmap
 
 ## Public platform positioning (2026-10-26)
-- [ ] Clarify homepage, platform copy and AI-readable summary: licensed operational modules plus custom workflows across industries
-- [ ] Align homepage search/share metadata; verify public navigation and translated copy without changing Kai or private screens
+- [x] Clarify homepage, platform copy and AI-readable summary: licensed operational modules plus custom workflows across industries
+- [x] Align homepage search/share metadata; verify public navigation and translated copy without changing Kai or private screens
+
+## SEO/GEO cleanup & transport business case (2026-10-28)
+- [x] Remove redundant en/de/ro hreflang pointing at the same URL; keep x-default self-reference
+- [x] Upgrade SoftwareApplication JSON-LD: Windows Server, On-Premise/Self-Hosted subcategory, feature list
+- [x] Remove "Draft — pending final legal review" from /legal/terms meta description (body disclaimer kept)
+- [x] Publish RO/EN/DE transport business-case article (40-truck fleet, €5,000/month model) on /studies and /blog
+- [x] Verified in browser: homepage schema + hreflang, studies card, article, terms meta; build OK, no page errors
+- [ ] After publish: request indexing in Google Search Console for /, /product, /legal/terms
 
 ## Public operational benchmarks (2026-10-25)
 - [x] Verify Microsoft 2023 (62%) and Coveo 2025 (47%) primary sources, populations and limitations; distinguish external research from OPSQAI analysis

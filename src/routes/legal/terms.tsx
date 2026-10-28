@@ -8,13 +8,13 @@ export const Route = createFileRoute("/legal/terms")({
       {
         name: "description",
         content:
-          "Terms governing the use of opsqai.de and the OPSQAI application. Draft — pending final legal review.",
+          "Terms governing the use of opsqai.de and the OPSQAI self-hosted operational AI platform.",
       },
       { property: "og:url", content: "https://opsqai.de/legal/terms" },
       {
         property: "og:description",
         content:
-          "Terms governing the use of opsqai.de and the OPSQAI application. Draft — pending final legal review.",
+          "Terms governing the use of opsqai.de and the OPSQAI self-hosted operational AI platform.",
       },
     ],
     links: [{ rel: "canonical", href: "https://opsqai.de/legal/terms" }],
