@@ -15,6 +15,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BrandRouteImport } from './routes/brand'
+import { Route as CalculatorRouteImport } from './routes/calculator'
 import { Route as CompanyRouteImport } from './routes/company'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DiscoveryRouteImport } from './routes/discovery'
@@ -225,6 +226,11 @@ const BlogRoute = BlogRouteImport.update({
 const BrandRoute = BrandRouteImport.update({
   id: '/brand',
   path: '/brand',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalculatorRoute = CalculatorRouteImport.update({
+  id: '/calculator',
+  path: '/calculator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompanyRoute = CompanyRouteImport.update({
@@ -1225,6 +1231,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
+  '/calculator': typeof CalculatorRoute
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
@@ -1413,6 +1420,7 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRouteWithChildren
   '/brand': typeof BrandRoute
+  '/calculator': typeof CalculatorRoute
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
@@ -1598,6 +1606,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
+  '/calculator': typeof CalculatorRoute
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/discovery': typeof DiscoveryRoute
@@ -1789,6 +1798,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/brand'
+    | '/calculator'
     | '/company'
     | '/contact'
     | '/discovery'
@@ -1977,6 +1987,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/brand'
+    | '/calculator'
     | '/company'
     | '/contact'
     | '/discovery'
@@ -2161,6 +2172,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/brand'
+    | '/calculator'
     | '/company'
     | '/contact'
     | '/discovery'
@@ -2352,6 +2364,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   BlogRoute: typeof BlogRouteWithChildren
   BrandRoute: typeof BrandRoute
+  CalculatorRoute: typeof CalculatorRoute
   CompanyRoute: typeof CompanyRoute
   ContactRoute: typeof ContactRoute
   DiscoveryRoute: typeof DiscoveryRoute
@@ -2485,6 +2498,13 @@ declare module '@tanstack/react-router' {
       path: '/brand'
       fullPath: '/brand'
       preLoaderRoute: typeof BrandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calculator': {
+      id: '/calculator'
+      path: '/calculator'
+      fullPath: '/calculator'
+      preLoaderRoute: typeof CalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/company': {
@@ -4098,6 +4118,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   BlogRoute: BlogRouteWithChildren,
   BrandRoute: BrandRoute,
+  CalculatorRoute: CalculatorRoute,
   CompanyRoute: CompanyRoute,
   ContactRoute: ContactRoute,
   DiscoveryRoute: DiscoveryRoute,
