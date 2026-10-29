@@ -3,12 +3,14 @@
 // password generation. No network calls — everything opens the user's own
 // apps, so sending always stays a human action.
 
-export type Industry = "transport" | "production" | "finance";
+export type Industry = "transport" | "production" | "finance" | "service_auto" | "distribution";
 
 export const INDUSTRY_LABELS: Record<Industry, string> = {
   transport: "Transport & Logistică",
   production: "Producție / Industrie",
   finance: "Financiar / Enterprise",
+  service_auto: "Service Auto",
+  distribution: "Distribuție & Logistică",
 };
 
 /** Normalise a phone number for wa.me / tel: (Romanian local → +40). */
@@ -72,6 +74,10 @@ const WA: Record<Industry | "followup", string> = {
     "Bună ziua, {name}! Numele meu este {sender}, de la OPSQAI. Vă scriu direct pentru că ajutăm firme de producție ca {company} cu procedurile interne și instruirea echipelor noi. Totul rulează pe serverele firmei, fără ca datele să plece în cloud. Ați fi deschis să vă trimit o fișă de o pagină, fără nicio obligație?",
   finance:
     "Bună ziua, {name}! Numele meu este {sender}, de la OPSQAI. Vă scriu direct pentru că sprijinim echipe din zona financiară să găsească rapid procedurile interne și să instruiască angajații noi, cu sistemul instalat local, în rețeaua firmei. Ați fi deschis să vă trimit o fișă de o pagină?",
+  service_auto:
+    "Bună ziua, {name}! Numele meu este {sender}, de la OPSQAI. Vă scriu direct pentru că ajutăm service-uri auto ca {company} să scoată mai repede devizele, să găsească specificațiile și istoricul reparațiilor fără telefoane repetate. Sistemul rulează pe calculatoarele firmei, fără cloud. Ați fi deschis să vă trimit o fișă de o pagină?",
+  distribution:
+    "Bună ziua, {name}! Numele meu este {sender}, de la OPSQAI. Vă scriu direct pentru că ajutăm firme de distribuție ca {company} cu reconcilierea avizelor și CMR-urilor, trasabilitatea loturilor și instruirea echipei din depozit. Totul rulează local, fără ca datele să plece în cloud. Ați fi deschis să vă trimit o fișă de o pagină?",
   followup:
     "Bună ziua, {name}! Conform discuției noastre, vă trimit fișa OPSQAI de o pagină. Așa cum am stabilit, ne auzim la ora {time}. O zi excelentă!",
 };
@@ -225,6 +231,8 @@ const PAIN: Record<Industry, string> = {
   transport: "erorile de dispecerat, documentele CMR și instruirea șoferilor pe proceduri",
   production: "procedurile de pe linie, instruirea operatorilor și rotația personalului",
   finance: "găsirea rapidă a procedurilor de creditare, audit și conformitate",
+  service_auto: "devizele întârziate, căutarea specificațiilor tehnice și istoricul reparațiilor",
+  distribution: "reconcilierea avizelor și CMR-urilor, trasabilitatea loturilor și erorile din depozit",
 };
 
 type ToneSet = { opening: string; pitch: string; wa: string; waFollow: string; subject: string; email: string };

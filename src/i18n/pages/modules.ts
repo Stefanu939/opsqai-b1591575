@@ -26,6 +26,15 @@ const en = {
   addonsTitle: "Optional add-ons",
   addonsBody: "Genuinely optional capabilities, licensed only if you want them.",
 
+  customTitle: "Custom workflows by industry",
+  customBody: "Examples of custom workspaces built on the OPSQAI Core after a process diagnosis. Proposed development, not off-the-shelf licensed products.",
+  customBadge: "Custom development",
+  customCases: [
+    { title: "Auto repair", items: ["Vehicle intake sheets", "Faster repair estimates", "Technical specs and parts lookup", "Repair and warranty history"] },
+    { title: "Banking & finance", items: ["Internal operational controls aligned with DORA and NIS2 requirements", "Credit and AML procedure assistant", "Internal audit preparation"] },
+    { title: "Distribution & logistics", items: ["Delivery notes and CMR reconciliation", "Batch traceability", "Alerts for perishable stock and transport discrepancies"] },
+  ],
+  customCta: "Request a process diagnosis",
   activationEyebrow: "Activation",
   activationHeadlinePrefix: "Entitlements arrive through",
   activationHeadlineAccent: "signed licenses.",
@@ -59,6 +68,15 @@ const de: Copy = {
   addonsTitle: "Optionale Add-ons",
   addonsBody: "Wirklich optionale Funktionen — nur auf Wunsch lizenziert.",
 
+  customTitle: "Individuelle Abläufe nach Branche",
+  customBody: "Beispiele individueller Workspaces auf dem OPSQAI Core nach einer Prozessanalyse. Vorgeschlagene Entwicklung, keine fertig lizenzierten Produkte.",
+  customBadge: "Individuelle Entwicklung",
+  customCases: [
+    { title: "Kfz-Werkstatt", items: ["Fahrzeugannahme-Protokolle", "Schnellere Kostenvoranschläge", "Technische Daten und Teilesuche", "Reparatur- und Garantiehistorie"] },
+    { title: "Banken & Finanzen", items: ["Interne operative Kontrollen, ausgerichtet an DORA- und NIS2-Anforderungen", "Assistent für Kredit- und AML-Verfahren", "Vorbereitung interner Audits"] },
+    { title: "Distribution & Logistik", items: ["Abgleich von Lieferscheinen und CMR", "Chargenrückverfolgbarkeit", "Warnungen bei verderblichem Bestand und Transportabweichungen"] },
+  ],
+  customCta: "Prozessanalyse anfragen",
   activationEyebrow: "Aktivierung",
   activationHeadlinePrefix: "Berechtigungen kommen über",
   activationHeadlineAccent: "signierte Lizenzen.",
@@ -90,6 +108,15 @@ const ro: Copy = {
   addonsTitle: "Add-on-uri opționale",
   addonsBody: "Capabilități cu adevărat opționale, licențiate doar dacă le doriți.",
 
+  customTitle: "Fluxuri custom pe industria ta",
+  customBody: "Exemple de workspace-uri custom construite pe OPSQAI Core după diagnosticarea procesului. Dezvoltare propusă, nu produse licențiate gata făcute.",
+  customBadge: "Dezvoltare custom",
+  customCases: [
+    { title: "Service auto", items: ["Fișe de intrare vehicul", "Devize estimative mai rapide", "Căutare specificații tehnice și piese", "Istoric reparații și garanții"] },
+    { title: "Bănci & finanțe", items: ["Controale operaționale interne aliniate cerințelor DORA și NIS2", "Asistent pentru proceduri de creditare și AML", "Pregătire audit intern"] },
+    { title: "Distribuție & logistică", items: ["Reconciliere avize și CMR-uri", "Trasabilitate loturi", "Alerte stocuri perisabile și discrepanțe de transport"] },
+  ],
+  customCta: "Cereți o diagnosticare a procesului",
   activationEyebrow: "Activare",
   activationHeadlinePrefix: "Drepturile ajung prin",
   activationHeadlineAccent: "licențe semnate.",
