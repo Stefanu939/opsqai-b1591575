@@ -149,6 +149,30 @@ function ModulesPage() {
             ))}
           </div>
         </div>
+        <div>
+          <SectionHeading icon={Package} title={t.customTitle} />
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-[var(--oix-cream-dim)]">{t.customBody}</p>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {t.customCases.map((c) => (
+              <Card key={c.title} className="p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-[var(--oix-cream)]">{c.title}</h3>
+                  <Badge variant="outline" className="border-[var(--oix-gold-line)] text-[10px] text-[var(--oix-gold)]">{t.customBadge}</Badge>
+                </div>
+                <ul className="mt-4 space-y-2">
+                  {c.items.map((i) => (
+                    <li key={i} className="flex gap-2 text-xs leading-relaxed text-[var(--oix-cream-dim)]">
+                      <Check className="mt-0.5 h-3 w-3 shrink-0 text-[var(--oix-gold)]" /> {i}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-6">
+            <OixButton variant="ghost" to="/contact" withArrow>{t.customCta}</OixButton>
+          </div>
+        </div>
       </section>
 
       {/* Activation */}
