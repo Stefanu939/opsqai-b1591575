@@ -41,9 +41,11 @@ export const Route = createFileRoute("/product-overview")({
           name: "OPSQAI Product Demo",
           description:
             "Walkthrough of OPSQAI: customer configuration in the Management Center, signed license issuance, and the Windows Self-Hosted employee workspace.",
-          uploadDate: "2026-09-03",
+          uploadDate: "2026-09-03T10:06:51+00:00",
           duration: "PT1M39S",
-          contentUrl: "https://opsqai.de/product-overview",
+          thumbnailUrl: ["https://opsqai.de/og-image.jpg"],
+          contentUrl: `https://opsqai.de${demoVideo.url}`,
+          embedUrl: "https://opsqai.de/product-overview",
         },
         softwareApplicationLd({
           description:
