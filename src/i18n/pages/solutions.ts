@@ -1,7 +1,7 @@
 // Copy for the public vertical landing pages (/solutions/...).
 import { useT } from "@/i18n";
 
-export const SOLUTION_VERTICALS = ["banking", "logistics", "hr", "finance", "transport"] as const;
+export const SOLUTION_VERTICALS = ["banking", "logistics", "hr", "finance", "transport", "service-auto", "production"] as const;
 export type SolutionVertical = (typeof SOLUTION_VERTICALS)[number];
 
 export function isSolutionVertical(value: string): value is SolutionVertical {
@@ -242,6 +242,54 @@ export const solutionsCopyEn: SolutionsCopy = {
         body: "Load your vehicles and drivers, run a weekly audit with evidence, and export the PDF report at the end of the week.",
       },
     },
+    "service-auto": {
+      name: 'Car Service & Workshops',
+      tagline: 'Intake sheets, quotes, parts specs and repair history in one place.',
+      meta: { title: 'Car Service Workshop AI, Self-Hosted — OPSQAI', description: 'Self-hosted operational AI for car service workshops: faster quotes, technical specs from your own documents, repair and warranty history — on your own server.' },
+      hero: { eyebrow: 'Car Service & Workshops', headline: 'Quote faster,', serifAccent: 'answer the phone less.', body: 'Customers call to ask about status, mechanics look for specs, the service advisor rebuilds quotes by hand. OPSQAI answers from your own procedures, price lists and repair history — people stay in charge of every repair decision.' },
+      pains: [
+        { title: 'The phone never stops', body: 'Status calls interrupt the advisor and the mechanics all day.' },
+        { title: 'Quotes are rebuilt from scratch', body: 'Labour times and parts are looked up again for every car.' },
+        { title: 'Specs live in PDFs and memory', body: 'Torques, fluids and procedures are searched on forums or asked to the senior mechanic.' },
+        { title: 'Repair history is hard to find', body: 'Warranty claims need past work orders that take too long to retrieve.' },
+      ],
+      capabilities: [
+        { title: 'Structured intake sheets', body: 'Each car gets a digital intake with complaints, photos and approvals.' },
+        { title: 'Draft quotes from your price list', body: 'Labour and parts suggestions from your own data, approved by the advisor.' },
+        { title: 'Answers from your technical documents', body: 'Mechanics ask in plain language and get the cited page from your manuals.' },
+        { title: 'Searchable repair history', body: 'Every work order is linked to the vehicle, so warranty proof is one search away.' },
+      ],
+      outcomes: [
+        { value: 'Cited', label: 'answers from your manuals and price lists' },
+        { value: 'One file', label: 'per vehicle: intake, quote, history' },
+        { value: 'Self-hosted', label: 'customer and vehicle data' },
+      ],
+      cta: { title: 'Pilot one workshop for 30 days', body: 'Load your price list and technical documents, run intake and quotes in OPSQAI and compare time per car at the end.' },
+    },
+    "production": {
+      name: 'Manufacturing & Production',
+      tagline: 'Work instructions, shift handover and traceability every shift can trust.',
+      meta: { title: 'Manufacturing AI, Self-Hosted — OPSQAI for Production Teams', description: 'Self-hosted operational AI for manufacturing: current work instructions, shift handover, operator training and traceability, aligned with NIS2 operational controls — on your server.' },
+      hero: { eyebrow: 'Manufacturing & Production', headline: 'Every shift builds', serifAccent: 'from the current version.', body: 'New operators, three shifts and frequent document revisions. OPSQAI answers from the approved work instruction, records shift handovers and turns changes into targeted training — without data leaving your plant.' },
+      pains: [
+        { title: 'Operators learn by asking', body: 'Onboarding pulls experienced people away from the line.' },
+        { title: 'Handover lives on paper', body: 'Open issues get lost between shifts.' },
+        { title: 'The wrong version is still printed', body: 'Outdated instructions cause scrap and rework.' },
+        { title: 'Traceability is assembled by hand', body: 'Audits require proof of who was trained on which revision.' },
+      ],
+      capabilities: [
+        { title: 'Answers from approved instructions', body: 'Operators ask at the station and get the current, cited instruction.' },
+        { title: 'Structured shift handover', body: 'Open issues, deviations and actions pass to the next shift with an owner.' },
+        { title: 'Training on every revision', body: 'Changed procedures become short assigned lessons with recorded completion.' },
+        { title: 'Local traceability evidence', body: 'Operational controls aligned with NIS2 requirements, with the audit trail on your server.' },
+      ],
+      outcomes: [
+        { value: 'Current', label: 'instruction at every station' },
+        { value: 'Recorded', label: 'handover between shifts' },
+        { value: 'On-premise', label: 'plant data stays inside' },
+      ],
+      cta: { title: 'Pilot one production line', body: 'Load the work instructions for one line, run handovers and training for 30 days, and measure questions answered and deviations.' },
+    },
   },
 };
 
@@ -446,6 +494,54 @@ const de: SolutionsCopy = {
         body: "Fahrzeuge und Fahrer laden, ein Wochenaudit mit Nachweis durchführen und den PDF-Bericht exportieren.",
       },
     },
+    "service-auto": {
+      name: 'Kfz-Werkstatt & Service',
+      tagline: 'Auftragsannahme, Kostenvoranschläge, Teile und Reparaturhistorie an einem Ort.',
+      meta: { title: 'KI für Kfz-Werkstätten, self-hosted — OPSQAI', description: 'Self-hosted operative KI für Kfz-Werkstätten: schnellere Kostenvoranschläge, technische Daten aus eigenen Unterlagen, Reparatur- und Garantiehistorie — auf Ihrem Server.' },
+      hero: { eyebrow: 'Kfz-Werkstatt & Service', headline: 'Schneller kalkulieren,', serifAccent: 'weniger telefonieren.', body: 'Kunden fragen nach dem Status, Mechaniker suchen Daten, der Serviceberater kalkuliert jedes Mal neu. OPSQAI antwortet aus Ihren Verfahren, Preislisten und Reparaturhistorie — die Entscheidung bleibt beim Menschen.' },
+      pains: [
+        { title: 'Das Telefon klingelt ständig', body: 'Statusanfragen unterbrechen Berater und Mechaniker.' },
+        { title: 'Kostenvoranschläge von vorn', body: 'Arbeitswerte und Teile werden für jedes Auto neu gesucht.' },
+        { title: 'Daten in PDFs und Köpfen', body: 'Drehmomente und Abläufe werden im Forum oder beim Meister erfragt.' },
+        { title: 'Historie schwer auffindbar', body: 'Garantiefälle brauchen alte Aufträge, die zu lange dauern.' },
+      ],
+      capabilities: [
+        { title: 'Strukturierte Annahme', body: 'Digitale Annahme mit Beanstandungen, Fotos und Freigaben.' },
+        { title: 'Entwürfe aus Ihrer Preisliste', body: 'Vorschläge für Arbeit und Teile, vom Berater freigegeben.' },
+        { title: 'Antworten aus Ihren Unterlagen', body: 'Mechaniker fragen in Alltagssprache und erhalten die belegte Seite.' },
+        { title: 'Durchsuchbare Historie', body: 'Jeder Auftrag hängt am Fahrzeug, Garantienachweise sind schnell gefunden.' },
+      ],
+      outcomes: [
+        { value: 'Belegt', label: 'Antworten aus Handbüchern und Preislisten' },
+        { value: 'Eine Akte', label: 'pro Fahrzeug' },
+        { value: 'Self-hosted', label: 'Kunden- und Fahrzeugdaten' },
+      ],
+      cta: { title: '30-Tage-Pilot in einer Werkstatt', body: 'Preisliste und Unterlagen laden, Annahme und Kalkulation in OPSQAI führen und die Zeit pro Auto vergleichen.' },
+    },
+    "production": {
+      name: 'Produktion & Fertigung',
+      tagline: 'Arbeitsanweisungen, Schichtübergabe und Rückverfolgbarkeit für jede Schicht.',
+      meta: { title: 'KI für die Produktion, self-hosted — OPSQAI', description: 'Self-hosted operative KI für die Fertigung: aktuelle Arbeitsanweisungen, Schichtübergabe, Einarbeitung und Rückverfolgbarkeit, ausgerichtet an NIS2-Betriebskontrollen.' },
+      hero: { eyebrow: 'Produktion & Fertigung', headline: 'Jede Schicht arbeitet', serifAccent: 'nach der aktuellen Version.', body: 'Neue Bediener, drei Schichten, häufige Revisionen. OPSQAI antwortet aus der freigegebenen Anweisung, dokumentiert Übergaben und macht Änderungen zu gezielten Schulungen — ohne dass Daten das Werk verlassen.' },
+      pains: [
+        { title: 'Einarbeitung durch Fragen', body: 'Erfahrene Kräfte fehlen an der Linie.' },
+        { title: 'Übergabe auf Papier', body: 'Offene Punkte gehen zwischen Schichten verloren.' },
+        { title: 'Falsche Version gedruckt', body: 'Veraltete Anweisungen verursachen Ausschuss.' },
+        { title: 'Nachweise von Hand', body: 'Audits verlangen, wer auf welche Revision geschult wurde.' },
+      ],
+      capabilities: [
+        { title: 'Antworten aus freigegebenen Anweisungen', body: 'Am Arbeitsplatz die aktuelle, belegte Anweisung.' },
+        { title: 'Strukturierte Übergabe', body: 'Offene Punkte gehen mit Verantwortlichem an die nächste Schicht.' },
+        { title: 'Schulung je Revision', body: 'Geänderte Verfahren werden zu kurzen Lektionen mit Nachweis.' },
+        { title: 'Lokale Nachweise', body: 'An NIS2-Anforderungen ausgerichtete Kontrollen, Audit-Trail auf Ihrem Server.' },
+      ],
+      outcomes: [
+        { value: 'Aktuell', label: 'Anweisung an jedem Platz' },
+        { value: 'Dokumentiert', label: 'Übergabe zwischen Schichten' },
+        { value: 'On-Premise', label: 'Werksdaten bleiben intern' },
+      ],
+      cta: { title: 'Pilot an einer Linie', body: 'Anweisungen einer Linie laden, 30 Tage Übergaben und Schulungen fahren und Abweichungen messen.' },
+    },
   },
 };
 
@@ -649,6 +745,54 @@ const ro: SolutionsCopy = {
         title: "Rulează o săptămână de flotă în OPSQAI",
         body: "Încarci vehiculele și șoferii, rulezi un audit săptămânal cu dovezi și exporți raportul PDF la final.",
       },
+    },
+    "service-auto": {
+      name: 'Service Auto',
+      tagline: 'Fișe de intrare, devize, piese și istoric reparații într-un singur loc.',
+      meta: { title: 'Program pentru service auto cu AI, self-hosted — OPSQAI', description: 'Soft operațional pentru service auto: devize mai rapide, fișe de intrare digitale, specificații tehnice din documentele tale și istoric reparații pentru garanții — pe serverul tău.' },
+      hero: { eyebrow: 'Service Auto', headline: 'Devize mai rapide,', serifAccent: 'mai puține telefoane.', body: 'Clienții sună să întrebe de mașină, mecanicii caută specificații, consilierul refacă devizul de la zero. OPSQAI răspunde din procedurile, listele de prețuri și istoricul tău de reparații — decizia rămâne mereu a omului.' },
+      pains: [
+        { title: 'Telefonul nu se oprește', body: 'Întrebările despre stadiul reparației întrerup consilierul și mecanicii toată ziua.' },
+        { title: 'Devizul se reface de fiecare dată', body: 'Normele de manoperă și piesele se caută din nou pentru fiecare mașină.' },
+        { title: 'Specificațiile stau în PDF-uri și în capul cuiva', body: 'Cupluri de strângere, lichide și proceduri se caută pe forumuri sau la mecanicul șef.' },
+        { title: 'Istoricul se găsește greu', body: 'Garanțiile cer comenzi vechi de lucru care durează prea mult de găsit.' },
+      ],
+      capabilities: [
+        { title: 'Fișe de intrare digitale', body: 'Fiecare mașină primește fișă cu reclamații, poze și acordul clientului.' },
+        { title: 'Devize propuse din lista ta de prețuri', body: 'Manoperă și piese sugerate din datele tale, aprobate de consilier.' },
+        { title: 'Răspunsuri din documentația tehnică', body: 'Mecanicul întreabă simplu și primește pagina exactă din manual.' },
+        { title: 'Istoric reparații căutabil', body: 'Fiecare comandă e legată de mașină — dovada pentru garanție e la o căutare distanță.' },
+      ],
+      outcomes: [
+        { value: 'Cu sursă', label: 'răspunsuri din manuale și liste de prețuri' },
+        { value: 'Un dosar', label: 'pe mașină: intrare, deviz, istoric' },
+        { value: 'Self-hosted', label: 'datele clienților și ale mașinilor' },
+      ],
+      cta: { title: 'Pilot de 30 de zile într-un service', body: 'Încarci lista de prețuri și documentația tehnică, lucrezi fișele și devizele în OPSQAI și compari timpul pe mașină la final.' },
+    },
+    "production": {
+      name: 'Producție & Fabrici',
+      tagline: 'Instrucțiuni de lucru, predare de tură și trasabilitate pentru fiecare schimb.',
+      meta: { title: 'Soft AI pentru producție și fabrici, self-hosted — OPSQAI', description: 'AI operațional pentru fabrici din România: instrucțiuni de lucru actuale, predare de tură, instruire operatori și trasabilitate, cu controale operaționale aliniate cerințelor NIS2 — pe serverul tău.' },
+      hero: { eyebrow: 'Producție & Fabrici', headline: 'Fiecare schimb lucrează', serifAccent: 'după versiunea actuală.', body: 'Operatori noi, trei schimburi și revizii dese ale documentelor. OPSQAI răspunde din instrucțiunea aprobată, înregistrează predarea de tură și transformă modificările în instruiri scurte — fără ca datele să iasă din fabrică.' },
+      pains: [
+        { title: 'Operatorii învață întrebând', body: 'Instruirea îi scoate de pe linie pe cei experimentați.' },
+        { title: 'Predarea de tură e pe hârtie', body: 'Problemele deschise se pierd între schimburi.' },
+        { title: 'Versiunea greșită e încă printată', body: 'Instrucțiunile depășite produc rebut și refaceri.' },
+        { title: 'Trasabilitatea se adună de mână', body: 'Auditul cere dovada cine a fost instruit pe ce revizie.' },
+      ],
+      capabilities: [
+        { title: 'Răspunsuri din instrucțiuni aprobate', body: 'Operatorul întreabă la post și primește instrucțiunea actuală, cu sursă.' },
+        { title: 'Predare de tură structurată', body: 'Probleme, abateri și acțiuni trec la schimbul următor cu responsabil.' },
+        { title: 'Instruire la fiecare revizie', body: 'Procedurile modificate devin lecții scurte, cu confirmare înregistrată.' },
+        { title: 'Dovezi de trasabilitate locale', body: 'Controale operaționale aliniate cerințelor NIS2, cu jurnal de audit pe serverul tău.' },
+      ],
+      outcomes: [
+        { value: 'Actuală', label: 'instrucțiunea la fiecare post' },
+        { value: 'Înregistrată', label: 'predarea între schimburi' },
+        { value: 'On-premise', label: 'datele fabricii rămân în fabrică' },
+      ],
+      cta: { title: 'Pilot pe o linie de producție', body: 'Încarci instrucțiunile unei linii, rulezi predări și instruiri 30 de zile și măsori întrebările rezolvate și abaterile.' },
     },
   },
 };
