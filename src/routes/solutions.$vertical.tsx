@@ -151,7 +151,7 @@ function VerticalPage() {
             <OixButton to="/pilot" variant="gold" withArrow>
               {t.labels.startPilot}
             </OixButton>
-            <OixButton to="/resources" variant="ghost">
+            <OixButton to="/calculator" variant="ghost">
               {t.labels.getResources}
             </OixButton>
           </div>

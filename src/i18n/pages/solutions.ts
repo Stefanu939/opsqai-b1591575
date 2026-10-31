@@ -750,7 +750,7 @@ const ro: SolutionsCopy = {
       name: 'Service Auto',
       tagline: 'Fișe de intrare, devize, piese și istoric reparații într-un singur loc.',
       meta: { title: 'Program pentru service auto cu AI, self-hosted — OPSQAI', description: 'Soft operațional pentru service auto: devize mai rapide, fișe de intrare digitale, specificații tehnice din documentele tale și istoric reparații pentru garanții — pe serverul tău.' },
-      hero: { eyebrow: 'Service Auto', headline: 'Devize mai rapide,', serifAccent: 'mai puține telefoane.', body: 'Clienții sună să întrebe de mașină, mecanicii caută specificații, consilierul refacă devizul de la zero. OPSQAI răspunde din procedurile, listele de prețuri și istoricul tău de reparații — decizia rămâne mereu a omului.' },
+      hero: { eyebrow: 'Service Auto', headline: 'Devize mai rapide,', serifAccent: 'mai puține telefoane.', body: 'Clienții sună să întrebe de mașină, mecanicii caută specificații, consilierul reface devizul de la zero. OPSQAI răspunde din procedurile, listele de prețuri și istoricul tău de reparații — decizia rămâne mereu a omului.' },
       pains: [
         { title: 'Telefonul nu se oprește', body: 'Întrebările despre stadiul reparației întrerup consilierul și mecanicii toată ziua.' },
         { title: 'Devizul se reface de fiecare dată', body: 'Normele de manoperă și piesele se caută din nou pentru fiecare mașină.' },
