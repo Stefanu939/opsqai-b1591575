@@ -250,7 +250,7 @@ function LeadDetailPage() {
             <DiagnosticPanel
               lead={lead as never}
               activities={data.activities as never}
-              sender={me || "Echipa OPSQAI"}
+              sender={me.fullName || "Echipa OPSQAI"}
               onChange={refresh}
             />
           </Panel>
