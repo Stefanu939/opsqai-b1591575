@@ -79,7 +79,7 @@ export function CustomModuleExamples() {
         })}
       </div>
       <div className="mt-8 flex flex-wrap gap-3">
-        <OixButton to="/contact?subject=custom" variant="gold" withArrow>{t.cta}</OixButton>
+        <OixButton to="/diagnostic" variant="gold" withArrow>{t.cta}</OixButton>
         <OixButton to="/calculator" variant="ghost">{t.secondary}</OixButton>
       </div>
     </SectionShell>

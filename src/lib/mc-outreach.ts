@@ -389,7 +389,7 @@ export function toneObjection(tone: Tone, i: number): string {
   return a;
 }
 
-export type EmailProvider = "default" | "gmail" | "outlook" | "yahoo" | "icloud";
+export type EmailProvider = "default" | "gmail" | "outlook" | "yahoo" | "icloud" | "strato";
 
 /** Opens a compose window in the colleague's own mailbox (no server-side sending). */
 export function composeEmailUrl(
@@ -412,7 +412,14 @@ export function composeEmailUrl(
     return `https://mail.google.com/mail/?${from ? `authuser=${e(from)}&` : ""}view=cm&fs=1&to=${t}&su=${e(subject)}&body=${e(body)}`;
   if (provider === "outlook")
     return `https://outlook.live.com/mail/0/deeplink/compose?to=${t}&subject=${e(subject)}&body=${e(body)}`;
+  if (provider === "strato") {
+    // Strato Webmail has no compose deep-link: copy-ready mailto opens the
+    // configured mail app; webmail is opened by the caller when preferred.
+    return mailtoUrl(to, subject, body);
+  }
   if (provider === "yahoo")
     return `https://compose.mail.yahoo.com/?to=${t}&subject=${e(subject)}&body=${e(body)}`;
   return mailtoUrl(to, subject, body);
 }
+
+export const STRATO_WEBMAIL_URL = "https://webmail.strato.de/";

@@ -28,6 +28,8 @@ const BodySchema = z.object({
     "other",
   ]),
   message: z.string().trim().min(10).max(8000),
+  role: z.string().trim().max(120).optional().or(z.literal("")),
+  kind: z.enum(["contact", "diagnostic"]).optional(),
   // Honeypot — bots fill this; humans don't see it.
   website: z.string().max(0).optional().or(z.literal("")),
 });
@@ -92,6 +94,10 @@ export const Route = createFileRoute("/api/public/contact-submit")({
         const mailboxes = mailboxesFromSettings(settings);
         const subject = parsed.subject as ContactSubject;
         const routedTo = routeContactSubject(subject, mailboxes);
+        const isDiagnostic = parsed.kind === "diagnostic";
+        const storedMessage = isDiagnostic
+          ? `[DIAGNOSTIC] Cerere diagnostic operațional\nFuncție: ${parsed.role || "-"}\n\n${parsed.message}`
+          : parsed.message;
 
         const { data: row, error: insertErr } = await sb
           .from("contact_submissions")
@@ -102,7 +108,7 @@ export const Route = createFileRoute("/api/public/contact-submit")({
             phone: parsed.phone || null,
             country: parsed.country || null,
             subject,
-            message: parsed.message,
+            message: storedMessage,
             routed_to: routedTo,
             user_agent: request.headers.get("user-agent")?.slice(0, 240) ?? null,
             ip_hash: await ipHash(request),
@@ -126,7 +132,7 @@ export const Route = createFileRoute("/api/public/contact-submit")({
           (parsed.company ? ` · ${parsed.company}` : "") +
           (parsed.country ? ` · ${parsed.country}` : "") +
           (parsed.phone ? ` · ${parsed.phone}` : "") +
-          `\n\n${parsed.message}`;
+          `\n\n${storedMessage}`;
 
         try {
           // Internal mailbox copy (reply-to set to the inquirer for direct reply).
@@ -161,6 +167,42 @@ export const Route = createFileRoute("/api/public/contact-submit")({
           });
         } catch (e) {
           console.error("[contact-submit] confirmation failed", (e as Error).message);
+        }
+
+        if (isDiagnostic) {
+          // Pre-generate the AI diagnostic so staff find it ready on the lead;
+          // send it automatically only when Strato auto-send is switched on.
+          try {
+            const d = await import("@/lib/diagnostic.server");
+            const { data: lead } = await sb
+              .from("crm_leads")
+              .select("id, company_name, contact_name")
+              .ilike("email", parsed.email)
+              .limit(1)
+              .maybeSingle();
+            if (lead) {
+              await sb.from("crm_leads").update({ source: "diagnostic_request" }).eq("id", lead.id).eq("source", "contact_form");
+              const text = await d.generateDiagnosticText({
+                company: (lead.company_name as string) || parsed.company || parsed.name,
+                contact: parsed.name,
+                role: parsed.role || null,
+                message: parsed.message,
+              });
+              await sb.from("crm_activities").insert({ lead_id: lead.id, kind: "note", subject: d.DIAGNOSTIC_SUBJECT, body: text });
+              if (d.stratoAutoSend()) {
+                const company = (lead.company_name as string) || parsed.company || parsed.name;
+                await d.sendStratoMail({
+                  to: parsed.email,
+                  subject: `Diagnostic operațional OPSQAI — ${company}`,
+                  text: d.diagnosticEmailBody(parsed.name, text, process.env.STRATO_FROM_NAME || "Echipa OPSQAI"),
+                  attachment: { filename: d.pdfFilename(company), bytes: d.diagnosticPdf(company, parsed.name, text) },
+                });
+                await sb.from("crm_activities").insert({ lead_id: lead.id, kind: "email", subject: "Diagnostic trimis automat", body: `Strato → ${parsed.email}`, done_at: new Date().toISOString() });
+              }
+            }
+          } catch (e) {
+            console.error("[contact-submit] diagnostic failed", (e as Error).message);
+          }
         }
 
         return Response.json({ ok: true, referenceId: row.reference_code });
