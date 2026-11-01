@@ -420,6 +420,11 @@ function LeadDetailPage() {
                   Sales Cockpit
                 </Link>
               </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/management/pricing" search={{ company: lead.company_name, contact: lead.contact_name ?? undefined, lead: lead.id }}>
+                  Generează ofertă
+                </Link>
+              </Button>
             </div>
             {(!lead.email || !lead.phone || landline) && (
               <p className="mt-3 rounded-md border border-border bg-secondary/40 p-2 text-xs text-muted-foreground">

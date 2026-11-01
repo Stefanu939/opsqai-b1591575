@@ -206,6 +206,11 @@ function ConversationDialog({ s, onClose }: { s: ProspectSessionRow | null; onCl
               <Link to="/management/crm/$leadId" params={{ leadId: s.crm_lead_id }}>Deschide lead-ul CRM</Link>
             </Button>
           )}
+          {s.email && (
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/management/onboarding" search={{ email: s.email, lead: s.crm_lead_id ?? undefined }}>Înrolează direct</Link>
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => copy(transcriptText(s))}>
             <Copy className="mr-1 h-4 w-4" /> Copiază transcript
           </Button>
