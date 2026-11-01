@@ -57,6 +57,19 @@ function mailboxesFromSettings(s: any | null) {
   };
 }
 
+async function runInBackground(p: Promise<unknown>) {
+  try {
+    const spec = "cloudflare:workers";
+    const mod: any = await import(/* @vite-ignore */ spec);
+    if (typeof mod.waitUntil === "function") {
+      mod.waitUntil(p);
+      return;
+    }
+  } catch {
+    // Not on Workers (dev server): the promise keeps running in Node.
+  }
+}
+
 export const Route = createFileRoute("/api/public/contact-submit")({
   server: {
     handlers: {
@@ -172,8 +185,10 @@ export const Route = createFileRoute("/api/public/contact-submit")({
         if (isDiagnostic) {
           // Pre-generate the AI diagnostic so staff find it ready on the lead;
           // send it automatically only when Strato auto-send is switched on.
+          // Lead lookup + notes update are fast and done before replying, so the
+          // panel always shows the latest request (also for returning leads).
+          // The slow AI/SMTP work runs after the response via waitUntil.
           try {
-            const d = await import("@/lib/diagnostic.server");
             const { data: lead } = await sb
               .from("crm_leads")
               .select("id, company_name, contact_name")
@@ -181,7 +196,10 @@ export const Route = createFileRoute("/api/public/contact-submit")({
               .limit(1)
               .maybeSingle();
             if (lead) {
+              await sb.from("crm_leads").update({ notes: storedMessage }).eq("id", lead.id);
               await sb.from("crm_leads").update({ source: "diagnostic_request" }).eq("id", lead.id).eq("source", "contact_form");
+              const work = (async () => {
+              const d = await import("@/lib/diagnostic.server");
               const text = await d.generateDiagnosticText({
                 company: (lead.company_name as string) || parsed.company || parsed.name,
                 contact: parsed.name,
@@ -199,6 +217,8 @@ export const Route = createFileRoute("/api/public/contact-submit")({
                 });
                 await sb.from("crm_activities").insert({ lead_id: lead.id, kind: "email", subject: "Diagnostic trimis automat", body: `Strato → ${parsed.email}`, done_at: new Date().toISOString() });
               }
+              })().catch((e) => console.error("[contact-submit] diagnostic bg failed", (e as Error).message));
+              await runInBackground(work);
             }
           } catch (e) {
             console.error("[contact-submit] diagnostic failed", (e as Error).message);
