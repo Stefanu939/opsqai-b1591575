@@ -12,6 +12,7 @@ import { OixButton } from "@/components/oix/buttons";
 import { ProofBand } from "@/components/oix/proof-band";
 import { PainBand } from "@/components/oix/pain-band";
 import { DiscoveryNote } from "@/components/oix/discovery-note";
+import { CustomModuleExamples } from "@/components/oix/custom-module-examples";
 import { usePricingCopy } from "@/i18n/pages/pricing";
 
 // English source used only for SEO head (faqLd) — not user-visible copy.
@@ -139,6 +140,8 @@ function PricingPage() {
           {t.tiers.footnote}
         </p>
       </SectionShell>
+
+      <CustomModuleExamples />
 
       <ProofBand />
 
