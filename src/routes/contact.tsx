@@ -22,21 +22,16 @@ import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
 import { useContactCopy } from "@/i18n/pages/contact";
 
+const SUBJECTS = [
+  "general", "demo", "pilot", "sales", "pricing", "support",
+  "bug", "security", "privacy", "partnership", "other",
+] as const;
+
+// Tolerant: unknown ?subject= values fall back instead of crashing the page.
 const SearchSchema = z.object({
   subject: z
-    .enum([
-      "general",
-      "demo",
-      "pilot",
-      "sales",
-      "pricing",
-      "support",
-      "bug",
-      "security",
-      "privacy",
-      "partnership",
-      "other",
-    ])
+    .unknown()
+    .transform((v) => (SUBJECTS as readonly unknown[]).includes(v) ? (v as (typeof SUBJECTS)[number]) : v === "custom" ? ("demo" as const) : undefined)
     .optional(),
 });
 
