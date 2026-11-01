@@ -39,7 +39,7 @@ export const Route = createFileRoute("/contact")({
   validateSearch: (s) => SearchSchema.parse(s),
   // Legacy links (?subject=custom / diagnostic) belong to the diagnostic form.
   beforeLoad: ({ search }) => {
-    if (search.subject === "legacy-diagnostic") throw redirect({ to: "/diagnostic", statusCode: 301 });
+    if (search.subject === "legacy-diagnostic") throw redirect({ to: "/diagnostic" });
   },
   head: () => ({
     meta: [
