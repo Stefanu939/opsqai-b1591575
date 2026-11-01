@@ -154,8 +154,14 @@ function SalesCockpit() {
             {leadId && (
               <>
                 <Button variant="secondary" size="sm" asChild><Link to="/management/crm/$leadId" params={{ leadId }}>Fișa CRM</Link></Button>
+                <Button variant="secondary" size="sm" asChild><Link to="/management/pricing" search={{ company: company || undefined, contact: name || undefined, lead: leadId }}>Ofertă</Link></Button>
                 <Button variant="ghost" size="sm" onClick={() => pickLead("")}>Golește</Button>
               </>
+            )}
+            {company.trim() && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/management/onboarding" search={{ company, contact: name || undefined, email: email || undefined, phone: phone || undefined, lead: leadId || undefined }}>Înrolează</Link>
+              </Button>
             )}
           </div>
         </div>

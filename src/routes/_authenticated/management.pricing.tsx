@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -362,6 +362,13 @@ function PricingPage() {
                   <Save className="h-4 w-4" />
                 </Button>
               </div>
+            </div>
+            <div className="mt-4 border-t border-border pt-4">
+              <Button asChild className="w-full" variant="secondary">
+                <Link to="/management/onboarding" search={{ company: customer || undefined, contact: contact || undefined, lead: leadId || undefined }}>
+                  Client de acord → Înrolează
+                </Link>
+              </Button>
             </div>
           </Panel>
           <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><FileText className="h-3.5 w-3.5" />Oferta include clauza: datele rămân 100% pe infrastructura clientului.</p>
