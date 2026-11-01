@@ -16,6 +16,7 @@ import { Check, Package } from "lucide-react";
 import { PainBand } from "@/components/oix/pain-band";
 import { useModulesCopy } from "@/i18n/pages/modules";
 import { useT } from "@/i18n";
+import { CustomModuleExamples } from "@/components/oix/custom-module-examples";
 import { localizeWorkspaceLabel } from "@/i18n/pages/product-workspaces";
 
 export const Route = createFileRoute("/modules")({
@@ -195,6 +196,7 @@ function ModulesPage() {
           </div>
         </div>
       </section>
+      <CustomModuleExamples />
     </OixLayout>
   );
 }

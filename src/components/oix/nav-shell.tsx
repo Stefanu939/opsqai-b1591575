@@ -33,6 +33,7 @@ export function NavShell() {
     { to: "/security", label: m.nav.security },
     { to: "/pilot", label: "Pilot" },
     { to: "/pricing", label: m.nav.pricing },
+    { to: "/calculator", label: lang === "de" ? "Rechner" : lang === "en" ? "Calculator" : "Calculator" },
     { to: "/company", label: m.nav.company },
   ];
   const links = [...productLinks, ...topLinks];
