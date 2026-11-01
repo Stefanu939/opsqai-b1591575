@@ -37,7 +37,7 @@ const SearchSchema = z.object({
 
 export const Route = createFileRoute("/contact")({
   beforeLoad: ({ location }) => {
-    const raw = (location.search as Record<string, unknown>)?.subject;
+    const raw = new URLSearchParams(location.searchStr ?? "").get("subject")?.replace(/"/g, "");
     if (raw === "custom" || raw === "diagnostic") throw redirect({ to: "/diagnostic", statusCode: 301 });
   },
   validateSearch: (s) => SearchSchema.parse(s),
