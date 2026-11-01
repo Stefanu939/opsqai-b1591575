@@ -12,6 +12,7 @@ const PROVIDERS = [
   { key: "outlook", label: "Outlook / Hotmail" },
   { key: "yahoo", label: "Yahoo" },
   { key: "icloud", label: "iCloud (aplicația Mail)" },
+  { key: "strato", label: "Strato (@opsqai.de)" },
 ];
 
 export function SenderSettingsCard() {
@@ -26,7 +27,7 @@ export function SenderSettingsCard() {
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-muted-foreground">
-          Poți folosi adresa personală (Gmail, Yahoo, iCloud, Outlook) și WhatsApp-ul tău. Kai
+          Poți folosi adresa de firmă (Strato @opsqai.de) sau personală (Gmail, Yahoo, iCloud, Outlook) și WhatsApp-ul tău. Kai
           pregătește mesajul și îl deschide în contul tău — tu apeși „Trimite”. Nimic nu pleacă
           automat.
         </p>

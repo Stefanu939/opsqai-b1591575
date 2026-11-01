@@ -171,7 +171,7 @@ function ModulesPage() {
             ))}
           </div>
           <div className="mt-6">
-            <OixButton variant="ghost" to="/contact" withArrow>{t.customCta}</OixButton>
+            <OixButton variant="ghost" to="/diagnostic" withArrow>{t.customCta}</OixButton>
           </div>
         </div>
       </section>
