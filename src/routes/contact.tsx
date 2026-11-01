@@ -31,16 +31,16 @@ const SUBJECTS = [
 const SearchSchema = z.object({
   subject: z
     .unknown()
-    .transform((v) => (SUBJECTS as readonly unknown[]).includes(v) ? (v as (typeof SUBJECTS)[number]) : v === "custom" ? ("demo" as const) : undefined)
+    .transform((v) => (SUBJECTS as readonly unknown[]).includes(v) ? (v as (typeof SUBJECTS)[number]) : v === "custom" || v === "diagnostic" ? ("demo" as const) : undefined)
     .optional(),
 });
 
 export const Route = createFileRoute("/contact")({
-  beforeLoad: ({ location }) => {
-    const raw = new URLSearchParams(location.searchStr ?? "").get("subject")?.replace(/"/g, "");
-    if (raw === "custom" || raw === "diagnostic") throw redirect({ to: "/diagnostic", statusCode: 301 });
+  validateSearch: (s) => {
+    // Legacy links (?subject=custom / diagnostic) belong to the diagnostic form.
+    if (s.subject === "custom" || s.subject === "diagnostic") throw redirect({ to: "/diagnostic", statusCode: 301 });
+    return SearchSchema.parse(s);
   },
-  validateSearch: (s) => SearchSchema.parse(s),
   head: () => ({
     meta: [
       { title: "Contact — OPSQAI" },
