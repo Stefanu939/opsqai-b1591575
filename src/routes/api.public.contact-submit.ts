@@ -59,7 +59,8 @@ function mailboxesFromSettings(s: any | null) {
 
 async function runInBackground(p: Promise<unknown>) {
   try {
-    const mod: any = await import(/* @vite-ignore */ "cloudflare:workers");
+    const spec = "cloudflare:workers";
+    const mod: any = await import(/* @vite-ignore */ spec);
     if (typeof mod.waitUntil === "function") {
       mod.waitUntil(p);
       return;
