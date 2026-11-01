@@ -10,6 +10,7 @@ import { isLandline, parseLeadFacts } from "@/lib/crm-lead-facts";
 import { toast } from "sonner";
 import { ModulePage } from "@/components/app/module-page";
 import { SalesDocButtons } from "@/components/mc/sales-docs";
+import { DiagnosticPanel } from "@/components/mc/crm/diagnostic-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -245,6 +246,14 @@ function LeadDetailPage() {
       <div className="grid gap-4 lg:grid-cols-5">
         {/* ── Left: work area (stage, activity, offer, documents) ── */}
         <div className="space-y-4 lg:col-span-3">
+          <Panel title="Diagnostic operațional">
+            <DiagnosticPanel
+              lead={lead as never}
+              activities={data.activities as never}
+              sender={me || "Echipa OPSQAI"}
+              onChange={refresh}
+            />
+          </Panel>
           <Panel title="Etapă">
             <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-7">
               {CRM_STAGES.map((s, i) => {
