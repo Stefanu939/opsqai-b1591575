@@ -304,7 +304,10 @@ function CalculatorPage() {
               </div>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <OixButton to="/kai" variant="gold" withArrow>
+              <OixButton to="/diagnostic" variant="gold" withArrow>
+                {lang === "de" ? "Kostenlose Diagnose anfordern" : lang === "en" ? "Request a free diagnostic" : "Cere un diagnostic gratuit"}
+              </OixButton>
+              <OixButton to="/kai" variant="ghost">
                 {t.kai}
               </OixButton>
               <OixButton to="/pilot" variant="ghost">

@@ -1,4 +1,4 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { createFileRoute, redirect, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { Card } from "@/components/ui/card";
@@ -36,6 +36,10 @@ const SearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/contact")({
+  beforeLoad: ({ location }) => {
+    const raw = (location.search as Record<string, unknown>)?.subject;
+    if (raw === "custom" || raw === "diagnostic") throw redirect({ to: "/diagnostic", statusCode: 301 });
+  },
   validateSearch: (s) => SearchSchema.parse(s),
   head: () => ({
     meta: [
