@@ -31,7 +31,7 @@ const SUBJECTS = [
 const SearchSchema = z.object({
   subject: z
     .unknown()
-    .transform((v) => (SUBJECTS as readonly unknown[]).includes(v) ? (v as (typeof SUBJECTS)[number]) : v === "custom" ? ("demo" as const) : undefined)
+    .transform((v) => (SUBJECTS as readonly unknown[]).includes(v) ? (v as (typeof SUBJECTS)[number]) : v === "custom" || v === "diagnostic" ? ("demo" as const) : undefined)
     .optional(),
 });
 

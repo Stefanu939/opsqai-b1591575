@@ -34,6 +34,7 @@ export function NavShell() {
     { to: "/pilot", label: "Pilot" },
     { to: "/pricing", label: m.nav.pricing },
     { to: "/calculator", label: lang === "de" ? "Rechner" : lang === "en" ? "Calculator" : "Calculator" },
+    { to: "/diagnostic", label: lang === "de" ? "Diagnose" : lang === "en" ? "Diagnostic" : "Diagnostic" },
     { to: "/company", label: m.nav.company },
   ];
   const links = [...productLinks, ...topLinks];
