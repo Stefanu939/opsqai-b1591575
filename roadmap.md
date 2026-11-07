@@ -1,5 +1,9 @@
 # Roadmap
 
+## Diagnostic CRM note preservation (2026-11-07)
+- [ ] Preserve staff notes; record each inbound diagnostic separately and use the latest request for regeneration
+- [ ] Run returning-contact regression tests and verify the diagnostic panel
+
 ## Public platform positioning (2026-10-26)
 - [x] Clarify homepage, platform copy and AI-readable summary: licensed operational modules plus custom workflows across industries
 - [x] Align homepage search/share metadata; verify public navigation and translated copy without changing Kai or private screens
