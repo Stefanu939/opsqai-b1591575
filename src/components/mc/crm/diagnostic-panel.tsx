@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { downloadBase64 } from "@/components/app/transport/download";
 import { composeEmailUrl, STRATO_WEBMAIL_URL } from "@/lib/mc-outreach";
 import { useSenderSettings } from "@/hooks/use-sender-settings";
+import { latestDiagnosticRequest } from "@/lib/diagnostic-request";
 import {
   generateLeadDiagnostic,
   getDiagnosticStatus,
@@ -20,14 +21,6 @@ import {
 type Lead = { id: string; company_name: string; contact_name: string | null; email: string | null; notes: string | null };
 type Activity = { subject: string | null; body: string | null; created_at: string | null };
 
-/** Pulls the client's own words out of a diagnostic request note. */
-function clientRequest(notes: string | null) {
-  const n = notes ?? "";
-  const role = n.match(/Funcție:\s*(.+)/)?.[1]?.trim() ?? "";
-  const message = n.includes("[DIAGNOSTIC]") ? n.split(/\n\s*\n/).slice(1).join("\n\n").trim() : n.trim();
-  return { role: role === "-" ? "" : role, message };
-}
-
 export function DiagnosticPanel({ lead, activities, sender, onChange }: { lead: Lead; activities: Activity[]; sender: string; onChange: () => void }) {
   const gen = useServerFn(generateLeadDiagnostic);
   const pdf = useServerFn(renderDiagnosticPdf);
@@ -37,10 +30,11 @@ export function DiagnosticPanel({ lead, activities, sender, onChange }: { lead: 
   const { data: status } = useQuery({ queryKey: ["diagnostic-status"], queryFn: () => statusFn() });
 
   const saved = activities.find((a) => a.subject === "Diagnostic operațional AI");
-  const req = clientRequest(lead.notes);
+  const req = latestDiagnosticRequest(lead.notes, activities);
   const [message, setMessage] = useState(req.message);
   const [text, setText] = useState(saved?.body ?? "");
   const [busy, setBusy] = useState<string | null>(null);
+  useEffect(() => { setMessage(req.message); }, [lead.id, req.message]);
   useEffect(() => { if (saved?.body && !text) setText(saved.body); }, [saved?.body]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const first = (lead.contact_name ?? "").split(/\s+/)[0];
@@ -89,7 +83,8 @@ export function DiagnosticPanel({ lead, activities, sender, onChange }: { lead: 
             <Button size="sm" disabled={busy !== null || !status?.strato || !lead.email}
               title={status?.strato ? `Trimite din ${status.from}` : "Configurează contul Strato pentru trimitere directă"}
               onClick={() => run("send", async () => {
-                await send({ data: { id: lead.id, to: lead.email!, subject, body, text } } as never);
+                if (!lead.email) return;
+                await send({ data: { id: lead.id, to: lead.email, subject, body, text } } as never);
                 toast.success(`Trimis către ${lead.email}`); onChange();
               })}>
               <Send className="mr-1 h-4 w-4" /> {busy === "send" ? "Se trimite…" : "Trimite direct (Strato)"}
