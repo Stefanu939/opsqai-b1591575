@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Diagnostic CRM note preservation (2026-11-07)
-- [ ] Preserve staff notes; record each inbound diagnostic separately and use the latest request for regeneration
-- [ ] Run returning-contact regression tests and verify the diagnostic panel
+- [x] Preserve staff notes; record each inbound diagnostic separately and use the latest request for regeneration
+- [x] Five regression tests pass; authenticated CRM shows latest request, preserves CUI/call notes and generates a saved diagnostic; build OK
 
 ## Public platform positioning (2026-10-26)
 - [x] Clarify homepage, platform copy and AI-readable summary: licensed operational modules plus custom workflows across industries
