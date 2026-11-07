@@ -3,6 +3,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { NavShell } from "./nav-shell";
 import { FooterOix } from "./footer-oix";
+import { StickyMobileCta } from "./sticky-mobile-cta";
 
 /**
  * Root wrapper for the OIX marketing site. Provides the .oix-shell scope,
@@ -16,7 +17,10 @@ export function OixLayout({ children }: { children: ReactNode }) {
     <div className={cn("oix-shell", isBlog ? "oix-blog" : "oix-static")}>
       <NavShell />
       <main className="pt-[4.5rem]">{children}</main>
-      <FooterOix />
+      <div className="pb-16 md:pb-0">
+        <FooterOix />
+      </div>
+      <StickyMobileCta />
     </div>
   );
 }
