@@ -7,6 +7,7 @@ import {
   type ContactSubject,
 } from "@/lib/email/routing";
 import { dispatchTransactionalEmail } from "@/lib/email/dispatch.server";
+import { DIAGNOSTIC_REQUEST_SUBJECT } from "@/lib/diagnostic-request";
 
 const BodySchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -185,8 +186,8 @@ export const Route = createFileRoute("/api/public/contact-submit")({
         if (isDiagnostic) {
           // Pre-generate the AI diagnostic so staff find it ready on the lead;
           // send it automatically only when Strato auto-send is switched on.
-          // Lead lookup + notes update are fast and done before replying, so the
-          // panel always shows the latest request (also for returning leads).
+          // Record the request in history before replying. Staff-owned lead
+          // notes must remain untouched, including for returning contacts.
           // The slow AI/SMTP work runs after the response via waitUntil.
           try {
             const { data: lead } = await sb
@@ -196,7 +197,15 @@ export const Route = createFileRoute("/api/public/contact-submit")({
               .limit(1)
               .maybeSingle();
             if (lead) {
-              await sb.from("crm_leads").update({ notes: storedMessage }).eq("id", lead.id);
+              const { error: requestErr } = await sb.from("crm_activities").insert({
+                lead_id: lead.id,
+                kind: "note",
+                subject: DIAGNOSTIC_REQUEST_SUBJECT,
+                body: storedMessage,
+                created_at: row.created_at,
+                done_at: row.created_at,
+              });
+              if (requestErr) throw new Error("Could not record diagnostic request history");
               await sb.from("crm_leads").update({ source: "diagnostic_request" }).eq("id", lead.id).eq("source", "contact_form");
               const work = (async () => {
               const d = await import("@/lib/diagnostic.server");
